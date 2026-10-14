@@ -815,6 +815,13 @@ fn xmlFreeDoc(env: &mut Environment, doc: u32) {
     }
 }
 
+/// Guests that are known to walk libxml2 DOM structures by direct field
+/// access instead of through the API accessors.
+fn guest_needs_xml_dom_mirror(env: &mut Environment) -> bool {
+    env.options.xml_dom_mirror
+        || env.bundle.bundle_identifier() == "com.walaber.jellycar"
+}
+
 #[allow(non_snake_case)]
 fn xmlDocGetRootElement(env: &mut Environment, doc: u32) -> u32 {
     let p = h2doc(doc);
@@ -824,7 +831,7 @@ fn xmlDocGetRootElement(env: &mut Environment, doc: u32) -> u32 {
     // games like Where's My Water (com.disney.SwampyGame) require. Opt-in via
     // `--xml-dom-mirror` / `RINTEDHLE_XML_MIRROR=1`; off by default so API-only
     // guests (which read nodes only through libxml2 accessors) are unaffected.
-    if env.options.xml_dom_mirror {
+    if guest_needs_xml_dom_mirror(env) {
         return mirror_node(env, root as *mut c_void, p as usize);
     }
     id_for(root as *mut c_void)
