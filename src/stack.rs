@@ -25,7 +25,7 @@ use crate::mem::{GuestUSize, Mem, MutPtr, Ptr};
 ///   to a `start` routine that reads `argc`/`argv`/… off the stack and then
 ///   calls `main` itself.
 /// * `LC_MAIN` binaries (iPhone OS 3.1 and later, including the 32-bit App
-///   Store builds touchHLE also targets) have their entry point be the C
+///   Store builds RintedHLE also targets) have their entry point be the C
 ///   `main` function directly; dyld calls it with `argc`, `argv`, `envp` and
 ///   `apple` already loaded into `r0`–`r3` per the AAPCS calling convention.
 ///

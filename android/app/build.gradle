@@ -12,16 +12,16 @@ apply plugin: 'com.android.application'
 apply plugin: "com.github.willir.rust.cargo-ndk-android"
 apply plugin: 'org.jetbrains.kotlin.android'
 
-static def runTouchHLEVersionTool(boolean wantBranding) {
-    return ('cargo run --package touchHLE_version' + (wantBranding ? ' -- --branding' : '')).execute().text.trim()
+static def runRintedHLEVersionTool(boolean wantBranding) {
+    return ('cargo run --package RintedHLE_version' + (wantBranding ? ' -- --branding' : '')).execute().text.trim()
 }
 
-static def getTouchHLEBranding() {
-    return runTouchHLEVersionTool(/* wantBranding: */ true)
+static def getRintedHLEBranding() {
+    return runRintedHLEVersionTool(/* wantBranding: */ true)
 }
 
-static def getTouchHLEVersionName() {
-    return runTouchHLEVersionTool(/* wantBranding: */ false)
+static def getRintedHLEVersionName() {
+    return runRintedHLEVersionTool(/* wantBranding: */ false)
 }
 
 static def join(String prefix, String separator, String branding) {
@@ -33,8 +33,8 @@ static def join(String prefix, String separator, String branding) {
 }
 
 
-def getTouchHLEVersionCode() {
-    def base = getTouchHLEVersionName().trim().replaceFirst('^v', '').split(' ')[0]
+def getRintedHLEVersionCode() {
+    def base = getRintedHLEVersionName().trim().replaceFirst('^v', '').split(' ')[0]
     def parts = base.tokenize('.')
     int code = 0
     for (int i = 0; i < 3; i++) {
@@ -47,13 +47,13 @@ def getTouchHLEVersionCode() {
 
 
 
-def hyperHLEKeystoreFile = System.getenv('HYPERHLE_KEYSTORE_FILE')
-def hyperHLEKeystoreB64 = System.getenv('HYPERHLE_KEYSTORE_B64')
-def hyperHLEUsesExternalKey = (hyperHLEKeystoreB64 != null && !hyperHLEKeystoreB64.trim().isEmpty()) || (hyperHLEKeystoreFile != null && !hyperHLEKeystoreFile.trim().isEmpty())
-def hyperHLEKeystorePass = System.getenv('HYPERHLE_KEYSTORE_PASSWORD') ?: 'hyperhle'
-def hyperHLEKeyAlias = System.getenv('HYPERHLE_KEY_ALIAS') ?: 'hyperhle'
-def hyperHLECommittedKeystore = file("${rootDir}/keystore/release.keystore")
-def hyperHLEHasReleaseKey = hyperHLEUsesExternalKey || hyperHLECommittedKeystore.exists()
+def RintedHLEKeystoreFile = System.getenv('RINTEDHLE_KEYSTORE_FILE')
+def RintedHLEKeystoreB64 = System.getenv('RINTEDHLE_KEYSTORE_B64')
+def RintedHLEUsesExternalKey = (RintedHLEKeystoreB64 != null && !RintedHLEKeystoreB64.trim().isEmpty()) || (RintedHLEKeystoreFile != null && !RintedHLEKeystoreFile.trim().isEmpty())
+def RintedHLEKeystorePass = System.getenv('RINTEDHLE_KEYSTORE_PASSWORD') ?: 'rintedhle'
+def RintedHLEKeyAlias = System.getenv('RINTEDHLE_KEY_ALIAS') ?: 'rintedhle'
+def RintedHLECommittedKeystore = file("${rootDir}/keystore/release.keystore")
+def RintedHLEHasReleaseKey = RintedHLEUsesExternalKey || RintedHLECommittedKeystore.exists()
 
 
 android {
@@ -61,19 +61,19 @@ android {
     compileSdkVersion 35
     signingConfigs {
         release {
-            if (hyperHLEKeystoreB64 != null && !hyperHLEKeystoreB64.trim().isEmpty()) {
-                def tmp = File.createTempFile('hyperhle', '.keystore')
-                tmp.bytes = hyperHLEKeystoreB64.decodeBase64()
+            if (RintedHLEKeystoreB64 != null && !RintedHLEKeystoreB64.trim().isEmpty()) {
+                def tmp = File.createTempFile('rintedhle', '.keystore')
+                tmp.bytes = RintedHLEKeystoreB64.decodeBase64()
                 storeFile tmp
-            } else if (hyperHLEKeystoreFile != null && !hyperHLEKeystoreFile.trim().isEmpty()) {
-                storeFile file(hyperHLEKeystoreFile)
-            } else if (hyperHLECommittedKeystore.exists()) {
-                storeFile hyperHLECommittedKeystore
+            } else if (RintedHLEKeystoreFile != null && !RintedHLEKeystoreFile.trim().isEmpty()) {
+                storeFile file(RintedHLEKeystoreFile)
+            } else if (RintedHLECommittedKeystore.exists()) {
+                storeFile RintedHLECommittedKeystore
             }
-            if (hyperHLEHasReleaseKey) {
-                storePassword hyperHLEKeystorePass
-                keyAlias hyperHLEKeyAlias
-                keyPassword hyperHLEKeystorePass
+            if (RintedHLEHasReleaseKey) {
+                storePassword RintedHLEKeystorePass
+                keyAlias RintedHLEKeyAlias
+                keyPassword RintedHLEKeystorePass
             }
         }
         debug {
@@ -81,18 +81,18 @@ android {
         }
     }
     defaultConfig {
-        def branding = getTouchHLEBranding()
-        applicationId 'org.hyperhle.fork'
+        def branding = getRintedHLEBranding()
+        applicationId 'org.rintedhle.android'
         applicationIdSuffix(branding.isEmpty() ? null : '.' + branding.toLowerCase())
-        resValue 'string', 'app_name', join('HyperHLE-Fork', ' ', branding)
-        buildConfigField 'String', 'APP_NAME', ('"' + join('HyperHLE-Fork', ' ', branding) + '"')
+        resValue 'string', 'app_name', join('RintedHLE', ' ', branding)
+        buildConfigField 'String', 'APP_NAME', ('"' + join('RintedHLE', ' ', branding) + '"')
         manifestPlaceholders = [
                 icon: join('@drawable/icon', '_', branding.toLowerCase())
         ]
         buildConfigField 'int', 'APP_ICON', join('R.drawable.icon', '_', branding.toLowerCase())
 
-        versionCode getTouchHLEVersionCode()
-        versionName join(getTouchHLEVersionName(), ' ', branding)
+        versionCode getRintedHLEVersionCode()
+        versionName join(getRintedHLEVersionName(), ' ', branding)
 
         minSdkVersion 21 // first version with AArch64
         targetSdkVersion 35
@@ -101,10 +101,10 @@ android {
                 arguments "APP_PLATFORM=android-21"
                 // abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
                 // Only 'arm64-v8a' and 'x86_64' are supported by dynarmic
-                // and hence touchHLE. The 'x86_64' build works, but the main
+                // and hence RintedHLE. The 'x86_64' build works, but the main
                 // use for that would be the emulator in Android Studio, and
                 // its OpenGL ES implementations don't seem to work properly
-                // with touchHLE, so we disable it to reduce build time and
+                // with RintedHLE, so we disable it to reduce build time and
                 // avoid shipping stuff we haven't meaningfully tested.
                 // Make sure this matches the cargoNdk targets below.
                 abiFilters 'arm64-v8a'
@@ -121,7 +121,7 @@ android {
     }
     buildTypes {
         release {
-            if (hyperHLEHasReleaseKey) {
+            if (RintedHLEHasReleaseKey) {
                 signingConfig signingConfigs.release
             } else {
                 signingConfig signingConfigs.debug
@@ -142,7 +142,7 @@ android {
         tasks["merge${variant.name.capitalize()}Assets"]
                 .dependsOn("externalNativeBuild${variant.name.capitalize()}")
         variant.outputs.all { output ->
-            outputFileName = "HyperHLE-Fork-${variant.name}.apk"
+            outputFileName = "RintedHLE-${variant.name}.apk"
         }
     }
 
@@ -160,14 +160,14 @@ android {
     lintOptions {
         abortOnError false
     }
-    namespace 'org.touchhle.android'
+    namespace 'org.rintedhle.android'
 }
 
 cargoNdk {
     // Make sure this matches the android abiFilters above.
     targets = ["arm64"]
     module = ".."
-    librariesNames = ["libtouchHLE.so", "libSDL2.so", "libc++_shared.so"]
+    librariesNames = ["libRintedHLE.so", "libSDL2.so", "libc++_shared.so"]
     extraCargoEnv = ["ANDROID_NDK": android.ndkDirectory, "ANDROID_NDK_HOME": android.ndkDirectory]
     if (DefaultNativePlatform.host().operatingSystem.isWindows()) {
         def binPath = android.ndkDirectory.toPath().resolve("toolchains/llvm/prebuilt/windows-x86_64/bin")
@@ -193,7 +193,7 @@ cargoNdk {
     // The default feature, "static", makes us use static linking for SDL2 and OpenAL Soft.
     // For Android, we need dynamic linking for SDL2, but static linking for OpenAL Soft.
     // libxml2 is also statically linked from the vendored source because Android has no system libxml2.
-    extraCargoBuildArguments = ["--lib", "--no-default-features", "--features", "touchHLE_openal_soft_wrapper/static,touchHLE_libxml2_wrapper/static,sdl2/bundled"]
+    extraCargoBuildArguments = ["--lib", "--no-default-features", "--features", "RintedHLE_openal_soft_wrapper/static,RintedHLE_libxml2_wrapper/static,sdl2/bundled"]
 }
 
 dependencies {

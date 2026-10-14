@@ -110,7 +110,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     //    call this class method. The system immediately attempts to rotate
     //    to the new orientation."
     //
-    // touchHLE does not currently perform live device-orientation
+    // RintedHLE does not currently perform live device-orientation
     // rotations — the window is pinned to the orientation the app launched
     // in. Re-querying supported orientations would therefore not result in
     // any change, so the documented behavior reduces to a no-op for our
@@ -432,16 +432,16 @@ pub const CLASSES: ClassExports = objc_classes! {
 - (())setWantsFullScreenLayout:(bool)_wants {
     // Apple docs: When set to YES, the view controller's view extends
     // underneath the status bar and navigation bar. On real iOS this
-    // affects layout insets. In touchHLE we always render full-screen,
+    // affects layout insets. In RintedHLE we always render full-screen,
     // so this is effectively a no-op but we accept it silently.
 }
 - (bool)wantsFullScreenLayout {
-    // Always report YES since touchHLE renders games full-screen.
+    // Always report YES since RintedHLE renders games full-screen.
     true
 }
 - (())setExtendedLayoutIncludesOpaqueBars:(bool)value {
     // iOS 7+ layout hint: whether the extended layout includes the area
-    // behind opaque bars. touchHLE renders full-screen and does not model
+    // behind opaque bars. RintedHLE renders full-screen and does not model
     // bar opacity insets, so we faithfully store the value (for the getter)
     // but it has no layout effect.
     env.objc
@@ -462,7 +462,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 - (())setEdgesForExtendedLayout:(NSUInteger)edges {
     // UIRectEdge bitmask: specifies which edges the view controller's view
     // should extend beneath bars (status bar, navigation bar, tab bar, toolbar).
-    // touchHLE renders full-screen without system bars, so this has no visual
+    // RintedHLE renders full-screen without system bars, so this has no visual
     // effect, but we store the value faithfully for the getter.
     env.objc
         .borrow_mut::<UIViewControllerHostObject>(this)
@@ -935,7 +935,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 - (())willMoveToParentViewController:(id)parent {
     // UIKit only allows nil (removal) or an actual view controller here.
-    // touchHLE has no public way to query an object's class here, so trust
+    // RintedHLE has no public way to query an object's class here, so trust
     // the caller (containers always pass a UIViewController subclass).
     env.objc
         .borrow_mut::<UIViewControllerHostObject>(this)
@@ -961,7 +961,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 - (())beginAppearanceTransition:(bool)appearing animated:(bool)_animated {
     // Forward the transition to the view's `isHidden` state, which drives
-    // the appearance callbacks elsewhere in touchHLE's UIView
+    // the appearance callbacks elsewhere in RintedHLE's UIView
     // implementation. `appearing == true` means the views are about to
     // become visible.
     let view: id = env.objc.borrow::<UIViewControllerHostObject>(this).view;

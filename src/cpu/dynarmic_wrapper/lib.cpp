@@ -11,22 +11,22 @@
 #include "dynarmic/interface/A32/coprocessor.h"
 #include "dynarmic/interface/exclusive_monitor.h"
 
-namespace touchHLE::cpu {
+namespace RintedHLE::cpu {
 
 using VAddr = std::uint32_t;
 
 // Types and functions defined in Rust
 extern "C" {
-struct touchHLE_Mem;
-std::uint8_t touchHLE_cpu_read_u8(touchHLE_Mem *mem, VAddr addr, bool *error);
-std::uint16_t touchHLE_cpu_read_u16(touchHLE_Mem *mem, VAddr addr, bool *error);
-std::uint32_t touchHLE_cpu_read_u32(touchHLE_Mem *mem, VAddr addr, bool *error);
-std::uint64_t touchHLE_cpu_read_u64(touchHLE_Mem *mem, VAddr addr, bool *error);
-bool touchHLE_cpu_write_u8(touchHLE_Mem *mem, VAddr addr, std::uint8_t value);
-bool touchHLE_cpu_write_u16(touchHLE_Mem *mem, VAddr addr, std::uint16_t value);
-bool touchHLE_cpu_write_u32(touchHLE_Mem *mem, VAddr addr, std::uint32_t value);
-bool touchHLE_cpu_write_u64(touchHLE_Mem *mem, VAddr addr, std::uint64_t value);
-struct touchHLE_DynarmicContext {
+struct RintedHLE_Mem;
+std::uint8_t RintedHLE_cpu_read_u8(RintedHLE_Mem *mem, VAddr addr, bool *error);
+std::uint16_t RintedHLE_cpu_read_u16(RintedHLE_Mem *mem, VAddr addr, bool *error);
+std::uint32_t RintedHLE_cpu_read_u32(RintedHLE_Mem *mem, VAddr addr, bool *error);
+std::uint64_t RintedHLE_cpu_read_u64(RintedHLE_Mem *mem, VAddr addr, bool *error);
+bool RintedHLE_cpu_write_u8(RintedHLE_Mem *mem, VAddr addr, std::uint8_t value);
+bool RintedHLE_cpu_write_u16(RintedHLE_Mem *mem, VAddr addr, std::uint16_t value);
+bool RintedHLE_cpu_write_u32(RintedHLE_Mem *mem, VAddr addr, std::uint32_t value);
+bool RintedHLE_cpu_write_u64(RintedHLE_Mem *mem, VAddr addr, std::uint64_t value);
+struct RintedHLE_DynarmicContext {
   std::array<std::uint32_t, 16> regs;
   std::array<std::uint32_t, 64> extregs;
   std::uint32_t cpsr;
@@ -41,7 +41,7 @@ const auto HaltReasonBreakpoint = Dynarmic::HaltReason::UserDefined3;
 class Environment final : public Dynarmic::A32::UserCallbacks {
 public:
   Dynarmic::A32::Jit *cpu = nullptr;
-  touchHLE_Mem *mem = nullptr;
+  RintedHLE_Mem *mem = nullptr;
   std::uint64_t ticks_remaining;
   uint32_t halting_svc;
   // Start address of the instruction that most recently raised an
@@ -50,13 +50,13 @@ public:
   // 2 or + 4 depending on whether it was a 16-bit or 32-bit Thumb
   // encoding), so the Rust side cannot reliably recover the fault address or
   // the instruction length from the register file alone. See
-  // `touchHLE_DynarmicWrapper_last_exception_pc`.
+  // `RintedHLE_DynarmicWrapper_last_exception_pc`.
   std::uint32_t last_exception_pc = 0;
 
 private:
   std::uint8_t MemoryRead8(VAddr vaddr) override {
     bool error;
-    auto value = touchHLE_cpu_read_u8(mem, vaddr, &error);
+    auto value = RintedHLE_cpu_read_u8(mem, vaddr, &error);
     if (error) {
       cpu->HaltExecution(Dynarmic::HaltReason::MemoryAbort);
     }
@@ -64,7 +64,7 @@ private:
   }
   std::uint16_t MemoryRead16(VAddr vaddr) override {
     bool error;
-    auto value = touchHLE_cpu_read_u16(mem, vaddr, &error);
+    auto value = RintedHLE_cpu_read_u16(mem, vaddr, &error);
     if (error) {
       cpu->HaltExecution(Dynarmic::HaltReason::MemoryAbort);
     }
@@ -72,7 +72,7 @@ private:
   }
   std::uint32_t MemoryRead32(VAddr vaddr) override {
     bool error;
-    auto value = touchHLE_cpu_read_u32(mem, vaddr, &error);
+    auto value = RintedHLE_cpu_read_u32(mem, vaddr, &error);
     if (error) {
       cpu->HaltExecution(Dynarmic::HaltReason::MemoryAbort);
     }
@@ -80,7 +80,7 @@ private:
   }
   std::uint64_t MemoryRead64(VAddr vaddr) override {
     bool error;
-    auto value = touchHLE_cpu_read_u64(mem, vaddr, &error);
+    auto value = RintedHLE_cpu_read_u64(mem, vaddr, &error);
     if (error) {
       cpu->HaltExecution(Dynarmic::HaltReason::MemoryAbort);
     }
@@ -89,7 +89,7 @@ private:
 
   std::optional<std::uint32_t> MemoryReadCode(VAddr vaddr) override {
     bool error;
-    auto value = touchHLE_cpu_read_u32(mem, vaddr, &error);
+    auto value = RintedHLE_cpu_read_u32(mem, vaddr, &error);
     if (error) {
       return std::nullopt;
     } else {
@@ -98,22 +98,22 @@ private:
   }
 
   void MemoryWrite8(VAddr vaddr, std::uint8_t value) override {
-    if (touchHLE_cpu_write_u8(mem, vaddr, value)) {
+    if (RintedHLE_cpu_write_u8(mem, vaddr, value)) {
       cpu->HaltExecution(Dynarmic::HaltReason::MemoryAbort);
     }
   }
   void MemoryWrite16(VAddr vaddr, std::uint16_t value) override {
-    if (touchHLE_cpu_write_u16(mem, vaddr, value)) {
+    if (RintedHLE_cpu_write_u16(mem, vaddr, value)) {
       cpu->HaltExecution(Dynarmic::HaltReason::MemoryAbort);
     }
   }
   void MemoryWrite32(VAddr vaddr, std::uint32_t value) override {
-    if (touchHLE_cpu_write_u32(mem, vaddr, value)) {
+    if (RintedHLE_cpu_write_u32(mem, vaddr, value)) {
       cpu->HaltExecution(Dynarmic::HaltReason::MemoryAbort);
     }
   }
   void MemoryWrite64(VAddr vaddr, std::uint64_t value) override {
-    if (touchHLE_cpu_write_u64(mem, vaddr, value)) {
+    if (RintedHLE_cpu_write_u64(mem, vaddr, value)) {
       cpu->HaltExecution(Dynarmic::HaltReason::MemoryAbort);
     }
   }
@@ -333,8 +333,8 @@ public:
     cpu->InvalidateCacheRange(start, size);
   }
 
-  void swap_context(touchHLE_DynarmicContext *context) {
-    touchHLE_DynarmicContext tmp = {cpu->Regs(), cpu->ExtRegs(), cpu->Cpsr(),
+  void swap_context(RintedHLE_DynarmicContext *context) {
+    RintedHLE_DynarmicContext tmp = {cpu->Regs(), cpu->ExtRegs(), cpu->Cpsr(),
                                     cpu->Fpscr()};
     cpu->Regs() = context->regs;
     cpu->ExtRegs() = context->extregs;
@@ -343,7 +343,7 @@ public:
     *context = tmp;
   }
 
-  std::int32_t run_or_step(touchHLE_Mem *mem, std::uint64_t *ticks) {
+  std::int32_t run_or_step(RintedHLE_Mem *mem, std::uint64_t *ticks) {
     env.mem = mem;
     Dynarmic::HaltReason hr;
     if (ticks) {
@@ -377,49 +377,49 @@ public:
 
 extern "C" {
 
-DynarmicWrapper *touchHLE_DynarmicWrapper_new(void *direct_memory_access_ptr,
+DynarmicWrapper *RintedHLE_DynarmicWrapper_new(void *direct_memory_access_ptr,
                                               size_t null_page_count) {
   return new DynarmicWrapper(direct_memory_access_ptr, null_page_count);
 }
-void touchHLE_DynarmicWrapper_delete(DynarmicWrapper *cpu) { delete cpu; }
+void RintedHLE_DynarmicWrapper_delete(DynarmicWrapper *cpu) { delete cpu; }
 
 const std::uint32_t *
-touchHLE_DynarmicWrapper_regs_const(const DynarmicWrapper *cpu) {
+RintedHLE_DynarmicWrapper_regs_const(const DynarmicWrapper *cpu) {
   return cpu->regs();
 }
-std::uint32_t *touchHLE_DynarmicWrapper_regs_mut(DynarmicWrapper *cpu) {
+std::uint32_t *RintedHLE_DynarmicWrapper_regs_mut(DynarmicWrapper *cpu) {
   return cpu->regs();
 }
 
-std::uint32_t touchHLE_DynarmicWrapper_cpsr(const DynarmicWrapper *cpu) {
+std::uint32_t RintedHLE_DynarmicWrapper_cpsr(const DynarmicWrapper *cpu) {
   return cpu->cpsr();
 }
-void touchHLE_DynarmicWrapper_set_cpsr(DynarmicWrapper *cpu,
+void RintedHLE_DynarmicWrapper_set_cpsr(DynarmicWrapper *cpu,
                                        std::uint32_t cpsr) {
   cpu->set_cpsr(cpsr);
 }
 
 std::uint32_t
-touchHLE_DynarmicWrapper_last_exception_pc(const DynarmicWrapper *cpu) {
+RintedHLE_DynarmicWrapper_last_exception_pc(const DynarmicWrapper *cpu) {
   return cpu->last_exception_pc();
 }
 
-void touchHLE_DynarmicWrapper_swap_context(DynarmicWrapper *cpu,
-                                           touchHLE_DynarmicContext *context) {
+void RintedHLE_DynarmicWrapper_swap_context(DynarmicWrapper *cpu,
+                                           RintedHLE_DynarmicContext *context) {
   cpu->swap_context(context);
 }
 
-void touchHLE_DynarmicWrapper_invalidate_cache_range(DynarmicWrapper *cpu,
+void RintedHLE_DynarmicWrapper_invalidate_cache_range(DynarmicWrapper *cpu,
                                                      VAddr start,
                                                      std::uint32_t size) {
   cpu->invalidate_cache_range(start, size);
 }
 
-std::int32_t touchHLE_DynarmicWrapper_run_or_step(DynarmicWrapper *cpu,
-                                                  touchHLE_Mem *mem,
+std::int32_t RintedHLE_DynarmicWrapper_run_or_step(DynarmicWrapper *cpu,
+                                                  RintedHLE_Mem *mem,
                                                   std::uint64_t *ticks) {
   return cpu->run_or_step(mem, ticks);
 }
 }
 
-} // namespace touchHLE::cpu
+} // namespace RintedHLE::cpu

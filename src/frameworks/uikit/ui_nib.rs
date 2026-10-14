@@ -115,7 +115,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 - (id)instantiateWithOwner:(id)owner options:(id)options {
     if owner == nil {
-            log!("touchHLE Warning: UINib instantiateWithOwner:nil; continuing with nil File's Owner");
+            log!("RintedHLE Warning: UINib instantiateWithOwner:nil; continuing with nil File's Owner");
         }
 
     // Apple's UINib loading documentation: the only documented `options`
@@ -242,7 +242,7 @@ pub const CLASSES: ClassExports = objc_classes! {
             }
         }
 
-        log!("touchHLE Warning: {} requested but file_owner is nil! Returning dummy.", id);
+        log!("RintedHLE Warning: {} requested but file_owner is nil! Returning dummy.", id);
         let ns_object_class = env.objc.get_known_class("NSObject", &mut env.mem);
         let dummy: id = msg![env; ns_object_class alloc];
         release(env, this);
@@ -429,7 +429,7 @@ pub const CLASSES: ClassExports = objc_classes! {
         // заглушка NSObject
         if source_class == ns_object_class {
             let label_str = to_rust_string(env, label);
-            log!("touchHLE NIB: Skipping outlet '{}' connection because source is an unhandled NSObject", label_str);
+            log!("RintedHLE NIB: Skipping outlet '{}' connection because source is an unhandled NSObject", label_str);
             return;
         }
 
@@ -551,8 +551,8 @@ fn load_nib_file(env: &mut Environment, ui_nib: id, path: GuestPathBuf) -> Resul
     // ... дальше без изменений, начиная с let unarchiver = ...
 
     let unarchiver = if env.mem.bytes_at(bytes.cast(), 10) == b"NIBArchive" {
-        let decoder: id = msg_class![env; _touchHLE_NIBArchiveDecoder alloc];
-        msg![env; decoder _touchHLE_initForReadingWithData:ns_data]
+        let decoder: id = msg_class![env; _RintedHLE_NIBArchiveDecoder alloc];
+        msg![env; decoder _RintedHLE_initForReadingWithData:ns_data]
     } else {
         let unarchiver = msg_class![env; NSKeyedUnarchiver alloc];
         msg![env; unarchiver initForReadingWithData:ns_data]

@@ -30,7 +30,7 @@ pub const kCFNumberLongLongType: CFNumberType = 11;
 pub const kCFNumberFloatType: CFNumberType = 12;
 pub const kCFNumberDoubleType: CFNumberType = 13;
 // Apple CFNumber.h: these are platform-width types. On the 32-bit iOS ABI
-// that touchHLE emulates, NSInteger / CFIndex / long are 32-bit signed
+// that RintedHLE emulates, NSInteger / CFIndex / long are 32-bit signed
 // integers and CGFloat is a 32-bit float.
 pub const kCFNumberLongType: CFNumberType = 10;
 pub const kCFNumberCFIndexType: CFNumberType = 14;

@@ -14,7 +14,7 @@
 //!
 //! POSIX permits a conforming implementation that does not allow multiple
 //! concurrent readers, provided every reader/writer is serialised through a
-//! single critical section (POSIX.1‑2008 §4.12). touchHLE uses that
+//! single critical section (POSIX.1‑2008 §4.12). RintedHLE uses that
 //! conservative model: each rwlock is backed by a normal mutex from the
 //! shared [`crate::environment::mutex::MutexState`], so every
 //! `pthread_rwlock_rdlock` / `pthread_rwlock_wrlock` acquires the mutex and

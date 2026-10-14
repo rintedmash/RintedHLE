@@ -1,7 +1,7 @@
 From 043ddb7af6555f0765ea30845855fa932ac7ab98 Mon Sep 17 00:00:00 2001
 From: johnny901901901 <58041188+johnny901901901@users.noreply.github.com>
 Date: Sat, 1 Aug 2026 08:40:58 +0100
-Subject: [PATCH] Support touchHLE iOS host scenes
+Subject: [PATCH] Support RintedHLE iOS host scenes
 
 ---
  CMakeLists.txt                         |   2 +-
@@ -191,7 +191,7 @@ index fb42d2202..4cae825f5 100644
 +        if (window.hidden || window.alpha == 0.0) {
 +            continue;
 +        }
-+        if ([window.accessibilityIdentifier isEqualToString:@"touchHLE.gameControls"]) {
++        if ([window.accessibilityIdentifier isEqualToString:@"RintedHLE.gameControls"]) {
 +            return [window.rootViewController supportedInterfaceOrientations];
 +        }
 +    }

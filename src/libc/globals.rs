@@ -7,7 +7,7 @@
 //!
 //! Apple's libsystem exposes several `extern` globals that the dynamic
 //! linker resolves at load time. Apps reach them either by `extern`
-//! declaration or via convenience wrappers. The dyld linker in touchHLE
+//! declaration or via convenience wrappers. The dyld linker in RintedHLE
 //! resolves "non-lazy" symbols using the `ConstantExports` mechanism;
 //! each entry returns the *address* of a guest-side storage slot that
 //! the runtime fills in with the appropriate value.
@@ -31,7 +31,7 @@ fn optarg_ptr(env: &mut Environment) -> ConstVoidPtr {
 }
 
 /// `extern char **environ;` — base of the program's environment vector.
-/// touchHLE has no real environment block, so we expose a one-element
+/// RintedHLE has no real environment block, so we expose a one-element
 /// NUL-terminated array (`{ NULL }`) which is what newly-spawned
 /// processes see when they `unsetenv` everything.
 fn environ_ptr(env: &mut Environment) -> ConstVoidPtr {

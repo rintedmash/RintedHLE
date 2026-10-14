@@ -353,7 +353,7 @@ pub const CLASSES: ClassExports = objc_classes! {
         return false;
     }
     stop_response_timer(env, this);
-    let Some(selector) = env.objc.lookup_selector("_touchHLE_iapProductsTimer:") else {
+    let Some(selector) = env.objc.lookup_selector("_RintedHLE_iapProductsTimer:") else {
         log!("Warning: SKProductsRequest timer selector missing; cannot answer.");
         return false;
     };
@@ -369,7 +369,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     stop_response_timer(env, this);
 }
 
-- (())_touchHLE_iapProductsTimer:(id)_timer {
+- (())_RintedHLE_iapProductsTimer:(id)_timer {
     stop_response_timer(env, this);
     deliver_products_response(env, this);
 }

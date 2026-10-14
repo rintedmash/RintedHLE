@@ -86,7 +86,7 @@ pub const ADDRESS_BOOK_UI: super::HostDylib = super::HostDylib {
 
 // Social — exposes the `SLServiceType*` string identifiers plus a real
 // `SLComposeViewController` whose `+isAvailableForServiceType:` always
-// returns `NO` (touchHLE has no Accounts framework, so per Apple's docs
+// returns `NO` (RintedHLE has no Accounts framework, so per Apple's docs
 // every service is genuinely unavailable).
 pub const SOCIAL: super::HostDylib = super::HostDylib {
     path: "/System/Library/Frameworks/Social.framework/Social",
@@ -110,8 +110,8 @@ pub const TWITTER: super::HostDylib = super::HostDylib {
 // (src/libc.rs), which every app links against; listing them here too would
 // trip the no-duplicate-exports test. The dylib entry stays so the path
 // resolves and non-lazy relocations don't warn about a missing dylib.
-// CoreTelephony — touchHLE has no cellular radio, but we expose real
-// CoreTelephony — touchHLE has no cellular radio, but we expose real
+// CoreTelephony — RintedHLE has no cellular radio, but we expose real
+// CoreTelephony — RintedHLE has no cellular radio, but we expose real
 // `CTTelephonyNetworkInfo` / `CTCarrier` classes plus the
 // `CTRadioAccessTechnology*` string constants and the
 // `CTRadioAccessTechnologyDidChangeNotification` notification name so apps

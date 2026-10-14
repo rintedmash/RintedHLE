@@ -456,9 +456,9 @@ impl Environment {
             // are created. These env vars are read by compatibility shims inside this
             // same process.
             unsafe {
-                std::env::set_var("TOUCHHLE_DISABLE_PRESENT_ROTATION", "1");
-                std::env::set_var("TOUCHHLE_TOUCH_LOCATION_PORTRAIT_TO_LANDSCAPE", "1");
-                std::env::set_var("TOUCHHLE_FAKE_NETWORK_SUCCESS", "1");
+                std::env::set_var("RINTEDHLE_DISABLE_PRESENT_ROTATION", "1");
+                std::env::set_var("RINTEDHLE_TOUCH_LOCATION_PORTRAIT_TO_LANDSCAPE", "1");
+                std::env::set_var("RINTEDHLE_FAKE_NETWORK_SUCCESS", "1");
 
                 // PotatoGold's audio path was crashing on some Linux setups unless
                 // OpenAL Soft used the null backend. This keeps the app playable even
@@ -568,7 +568,7 @@ impl Environment {
         let bundle_supports_ipad = device_family_array.iter().any(|f| f.is_ipad());
         let bundle_supports_phone = device_family_array.iter().any(|f| !f.is_ipad());
         // Default model picked for each class when the user hasn't chosen one.
-        // iPhone 3GS (iPhone2,1) is the historical touchHLE phone default
+        // iPhone 3GS (iPhone2,1) is the historical RintedHLE phone default
         // (320x480, GLES2-capable); iPad 2 (iPad2,1) is the tablet default.
         let default_phone = DeviceFamily::iPhone3GS;
         let default_ipad = DeviceFamily::iPad2;
@@ -643,7 +643,7 @@ impl Environment {
             };
             Some(Box::new(window::Window::new(
                 &format!(
-                    "{} (touchHLE {}{}{})",
+                    "{} (RintedHLE {}{}{})",
                     bundle.display_name(),
                     super::branding(),
                     if super::branding().is_empty() {
@@ -1092,7 +1092,7 @@ impl Environment {
         assert!(!options.headless);
         let window = Some(Box::new(window::Window::new(
             &format!(
-                "touchHLE {}{}{}",
+                "RintedHLE {}{}{}",
                 super::branding(),
                 if super::branding().is_empty() {
                     ""
@@ -1287,19 +1287,19 @@ impl Environment {
         }
     }
 
-    /// Get a shared reference to the window. Panics if touchHLE is running in
+    /// Get a shared reference to the window. Panics if RintedHLE is running in
     /// headless mode.
     pub fn window(&self) -> &window::Window {
         self.window.as_ref().expect(
-            "Tried to do something that needs a window, but touchHLE is running in headless mode!",
+            "Tried to do something that needs a window, but RintedHLE is running in headless mode!",
         )
     }
 
-    /// Get a mutable reference to the window. Panics if touchHLE is running
+    /// Get a mutable reference to the window. Panics if RintedHLE is running
     /// in headless mode.
     pub fn window_mut(&mut self) -> &mut window::Window {
         self.window.as_mut().expect(
-            "Tried to do something that needs a window, but touchHLE is running in headless mode!",
+            "Tried to do something that needs a window, but RintedHLE is running in headless mode!",
         )
     }
 
@@ -1319,7 +1319,7 @@ impl Environment {
         frames
     }
 
-    /// DIAG (TOUCHHLE_STALL_DIAG): detect a guest hang — frames stopped being
+    /// DIAG (RINTEDHLE_STALL_DIAG): detect a guest hang — frames stopped being
     /// presented while the guest keeps executing — and periodically dump every
     /// active thread's stack so the spinning function can be located.
     fn stall_diag(&self) {
@@ -1520,7 +1520,7 @@ impl Environment {
         let thread_routine =
             Coroutine::with_stack(thread_stack, move |yielder, mut env: Environment| {
                 log_dbg!(
-                    "touchHLE: guest worker thread now running (start_routine={:#x})",
+                    "RintedHLE: guest worker thread now running (start_routine={:#x})",
                     start_routine.addr_with_thumb_bit()
                 );
                 let res = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -1965,11 +1965,11 @@ impl Environment {
                 w.on_main_stack = true;
             }
 
-            // DIAG (TOUCHHLE_STALL_DIAG=1): if the guest keeps running but stops
+            // DIAG (RINTEDHLE_STALL_DIAG=1): if the guest keeps running but stops
             // presenting frames, it is hung/spinning. Periodically dump the
             // stack of every active thread so the spinning function can be
             // identified. Env-gated so it costs nothing in normal runs.
-            if crate::env_flag_cached!("TOUCHHLE_STALL_DIAG") {
+            if crate::env_flag_cached!("RINTEDHLE_STALL_DIAG") {
                 self.stall_diag();
             }
 
@@ -2712,7 +2712,7 @@ impl Environment {
                 let pc = legacy_pc;
                 let lr = self.cpu.regs()[cpu::Cpu::LR];
                 if is_undefined_instruction
-                    && crate::env_flag_cached!("TOUCHHLE_TRACE_UDF_REGS")
+                    && crate::env_flag_cached!("RINTEDHLE_TRACE_UDF_REGS")
                 {
                     static TRACE_COUNT: std::sync::atomic::AtomicUsize =
                         std::sync::atomic::AtomicUsize::new(0);
@@ -2857,7 +2857,7 @@ impl Environment {
                         // after the constant-load clusters. Do not fake-return
                         // from the whole function; advance past the trapped
                         // 32-bit instruction and let scene setup continue.
-                        if std::env::var_os("TOUCHHLE_POTATO_ANDROID_THUMB2_COMPAT").is_some()
+                        if std::env::var_os("RINTEDHLE_POTATO_ANDROID_THUMB2_COMPAT").is_some()
                             && matches!(hw1 & 0xfe00, 0xec00 | 0xee00)
                         {
                             log_no_panic!(
@@ -3275,7 +3275,7 @@ impl Environment {
             }
 
             // A memory abort raised by the one-shot null-write probe (see
-            // `touchHLE_cpu_write_impl`). This is the only way to learn which
+            // `RintedHLE_cpu_write_impl`). This is the only way to learn which
             // guest instruction stores through NULL, so report it and carry
             // on: the store already reached the null page, and later nil
             // writes are absorbed without probing again.
@@ -3530,7 +3530,7 @@ impl Environment {
                 );
 
                 // Asphalt 8 (com.gameloft.asphalt8) v1.1.0 compatibility hacks,
-                // ported from the touchHLE-XaView fork. The game deliberately
+                // ported from the RintedHLE-XaView fork. The game deliberately
                 // calls abort() when its DRM/network checks fail, which looks
                 // like a silent emulator crash. These unwinds skip the checks.
                 if self
@@ -4001,7 +4001,7 @@ impl Environment {
         unsafe impl Send for WindowWrapper<'_> {}
 
         const NO_WINDOW_MSG: &str =
-            "on_parent_stack_in_coroutine() was called while touchHLE is running in \
+            "on_parent_stack_in_coroutine() was called while RintedHLE is running in \
              headless mode (no window). This function is only for code paths that \
              need a real window (e.g. OpenGL ES, text input, dialogs); headless-safe \
              callers must check env.window.is_none() first and skip the window-only \

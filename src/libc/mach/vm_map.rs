@@ -112,7 +112,7 @@ pub fn vm_allocate(
 
     // `size is always rounded up to an integral number of pages`
     let new_size = round_up_to_page(size);
-    // touchHLE delegates page-granularity Mach VM allocations to the
+    // RintedHLE delegates page-granularity Mach VM allocations to the
     // standard guest heap allocator. This is fine in practice — apps
     // call vm_allocate to obtain page-aligned scratch buffers, which
     // env.mem.alloc does honour — but it does mean we can't enforce
@@ -299,7 +299,7 @@ fn vm_read_overwrite_in_memory(
 /// vm_size_t size, vm_address_t data, vm_size_t *outsize)`
 ///
 /// Copy bytes from the specified task into the caller-provided buffer without
-/// allocating a new VM region. touchHLE has one guest address space, so only
+/// allocating a new VM region. RintedHLE has one guest address space, so only
 /// `MACH_TASK_SELF` is supported.
 fn vm_read_overwrite(
     env: &mut Environment,
@@ -319,7 +319,7 @@ fn vm_read_overwrite(
 ///
 /// Real Mach `vm_remap` maps the physical pages backing a region of one task's
 /// address space into another (or the same) task, optionally sharing them.
-/// touchHLE has a single flat guest address space and no notion of shared
+/// RintedHLE has a single flat guest address space and no notion of shared
 /// physical pages, so we approximate it: allocate a fresh page-aligned region
 /// and copy the source bytes into it. This is what callers like the Mono/Boehm
 /// GC actually need to keep running — a valid, readable mapping of the same

@@ -126,7 +126,7 @@ fn localeconv(env: &mut Environment) -> MutVoidPtr {
 /// localeconv_l — locale-aware variant of localeconv. Per Apple's
 /// `localeconv_l(3)` man page (iPhoneOS man pages), this behaves like
 /// `localeconv()` except it uses the passed `locale_t` instead of the
-/// global locale. touchHLE only models the "C" locale, so the extended
+/// global locale. RintedHLE only models the "C" locale, so the extended
 /// locale argument is ignored and we return the same minimal lconv.
 fn localeconv_l(env: &mut Environment, _locale: locale_t) -> MutVoidPtr {
     localeconv(env)

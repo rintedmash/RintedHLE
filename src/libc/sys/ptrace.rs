@@ -25,7 +25,7 @@ pub(crate) fn ptrace(
         PT_DENY_ATTACH => {
             log_dbg!("ptrace(PT_DENY_ATTACH) called by app for anti-debugging.");
 
-            // Честная реализация: если в TouchHLE включен и подключен
+            // Честная реализация: если в RintedHLE включен и подключен
             // GDB-сервер,
             // мы должны завершить процесс, как это делает реальная iOS.
             if env.is_debugging_enabled() {

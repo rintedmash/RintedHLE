@@ -8,10 +8,10 @@ members = ["platform/ios/rust-entry"]
 version = "0.2.3"
 edition = "2021"
 license = "MPL-2.0"
-authors = ["touchHLE project contributors"]
+authors = ["RintedHLE project contributors"]
 
 [package]
-name = "touchHLE"
+name = "RintedHLE"
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -22,7 +22,7 @@ authors = { workspace = true }
 crate-type = ["cdylib", "rlib"]
 
 [[bin]]
-name = "touchHLE"
+name = "RintedHLE"
 path = "src/bin.rs"
 
 [features]
@@ -30,16 +30,16 @@ default = ["static"]
 static = [
     "sdl2/bundled",
     "sdl2/static-link",
-    "touchHLE_openal_soft_wrapper/static",
-    "touchHLE_libxml2_wrapper/static",
+    "RintedHLE_openal_soft_wrapper/static",
+    "RintedHLE_libxml2_wrapper/static",
 ]
 # Like "static", but SDL2 is linked dynamically against a shared library
 # supplied by the host. The iOS host app loads a core as a dylib at runtime, and
 # SDL owns the process entry point and the UIApplicationDelegate, so the app and
 # the core have to be the same SDL — a core cannot bring its own copy.
 dynamic-sdl = [
-    "touchHLE_openal_soft_wrapper/static",
-    "touchHLE_libxml2_wrapper/static",
+    "RintedHLE_openal_soft_wrapper/static",
+    "RintedHLE_libxml2_wrapper/static",
 ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -51,6 +51,7 @@ gl_generator = "0.14.0"
 
 [dependencies]
 caf = "0.1.0" # ИСПРАВЛЕНИЕ: Добавлен недостающий крейт
+flate2 = "1"
 hound = "3.5.0"
 openh264 = { version = "0.9.8", default-features = false, features = ["source"] }
 mach_object = "0.1.17"
@@ -106,18 +107,18 @@ encoding_rs = "0.8.35"
 # We currently use a fork of rust-sdl2 because we need a fix for Android builds
 # that's not upstream yet.
 # The HIDAPI feature is enabled because rust-sdl2 hides the SDL2 sensor features
-# behind this, but the actual HIDAPI is not used by touchHLE (see window.rs).
+# behind this, but the actual HIDAPI is not used by RintedHLE (see window.rs).
 # Note that the submodule in vendor/SDL2/ must use exactly the same revision of
 # SDL2 that rust-sdl2 uses, so that the Android JNI interface matches.
 sdl2 = { git = "https://github.com/touchHLE/rust-sdl2", tag = "touchHLE-3", features = ["hidapi"] }
 sdl2-sys = { git = "https://github.com/touchHLE/rust-sdl2", tag = "touchHLE-3" }
-touchHLE_dynarmic_wrapper = { path = "src/cpu/dynarmic_wrapper" }
-touchHLE_gl_bindings = { path = "src/gles/gl_bindings" }
-touchHLE_libxml2_wrapper = { path = "src/frameworks/libxml2_wrapper" }
-touchHLE_openal_soft_wrapper = { path = "src/audio/openal_soft_wrapper" }
-touchHLE_pvrt_decompress_wrapper = { path = "src/image/pvrt_decompress_wrapper" }
-touchHLE_stb_image_wrapper = { path = "src/image/stb_image_wrapper" }
-touchHLE_version = { path = "src/version" }
+RintedHLE_dynarmic_wrapper = { path = "src/cpu/dynarmic_wrapper" }
+RintedHLE_gl_bindings = { path = "src/gles/gl_bindings" }
+RintedHLE_libxml2_wrapper = { path = "src/frameworks/libxml2_wrapper" }
+RintedHLE_openal_soft_wrapper = { path = "src/audio/openal_soft_wrapper" }
+RintedHLE_pvrt_decompress_wrapper = { path = "src/image/pvrt_decompress_wrapper" }
+RintedHLE_stb_image_wrapper = { path = "src/image/stb_image_wrapper" }
+RintedHLE_version = { path = "src/version" }
 windows-sys = { version = "0.61.0", features = [
     "Win32_Foundation",
     "Win32_System_Memory",
@@ -142,7 +143,7 @@ cmake = { workspace = true }
 gl_generator = { workspace = true }
 
 # Game startup is CPU-bound, so optimize Dynarmic in debug runs without optimizing all Rust code.
-[profile.dev.package.touchHLE_dynarmic_wrapper]
+[profile.dev.package.RintedHLE_dynarmic_wrapper]
 opt-level = 1
 
 [profile.release]

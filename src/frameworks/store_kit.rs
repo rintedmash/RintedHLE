@@ -11,7 +11,7 @@ mod sk_product;
 use crate::dyld::{ConstantExports, HostConstant};
 
 /// Whether guest in-app purchases are emulated ("Lucky Patcher"-style free
-/// buys). Off by default; `TOUCHHLE_IAP_EMULATION` in the environment forces
+/// buys). Off by default; `RINTEDHLE_IAP_EMULATION` in the environment forces
 /// it on at startup, and the Cheat Engine overlay's `IAP` button latches it
 /// per session.
 static IAP_EMULATION: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
@@ -27,7 +27,7 @@ pub const SK_PAYMENT_TRANSACTION_STATE_RESTORED: crate::frameworks::foundation::
 /// Current IAP emulation switch.
 pub fn emulation_enabled() -> bool {
     IAP_EMULATION.load(std::sync::atomic::Ordering::Relaxed)
-        || crate::env_flag_cached!("TOUCHHLE_IAP_EMULATION")
+        || crate::env_flag_cached!("RINTEDHLE_IAP_EMULATION")
 }
 
 /// Change the IAP emulation switch (Cheat Engine overlay `IAP` button).

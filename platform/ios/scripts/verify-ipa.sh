@@ -35,7 +35,7 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-[ -n "$IPA" ] || IPA="$REPO/dist/HyperHLE-iOS-unsigned.ipa"
+[ -n "$IPA" ] || IPA="$REPO/dist/RintedHLE-iOS-unsigned.ipa"
 
 case "$IPA" in
     /*) ;;
@@ -47,15 +47,15 @@ if [ ! -f "$IPA" ]; then
     exit 1
 fi
 
-STAGE=$(mktemp -d "${TMPDIR:-/tmp}/hyperhle-verify.XXXXXX")
+STAGE=$(mktemp -d "${TMPDIR:-/tmp}/rintedhle-verify.XXXXXX")
 trap 'rm -rf "$STAGE"' EXIT HUP INT TERM
 
 unzip -tq "$IPA" >/dev/null
 unzip -q "$IPA" -d "$STAGE"
 
-APP="$STAGE/Payload/HyperHLE.app"
+APP="$STAGE/Payload/RintedHLE.app"
 if [ ! -d "$APP" ]; then
-    echo "Payload/HyperHLE.app is missing." >&2
+    echo "Payload/RintedHLE.app is missing." >&2
     exit 1
 fi
 
@@ -75,7 +75,7 @@ if ! command -v ldid >/dev/null 2>&1; then
     exit 1
 fi
 
-ENTITLEMENTS=$(ldid -e "$APP/HyperHLE" 2>/dev/null || true)
+ENTITLEMENTS=$(ldid -e "$APP/RintedHLE" 2>/dev/null || true)
 
 require_entitlement() {
     if ! printf '%s' "$ENTITLEMENTS" | python3 -c \
@@ -146,12 +146,12 @@ BUNDLE_ID=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$INFO")
 VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$INFO")
 BUILD=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$INFO")
 
-if [ "$BUNDLE_ID" != "com.klugklug.hyperhle" ]; then
+if [ "$BUNDLE_ID" != "com.klugklug.rintedhle" ]; then
     echo "Unexpected bundle identifier: $BUNDLE_ID" >&2
     exit 1
 fi
 
-file "$APP/HyperHLE" | grep -q 'arm64'
+file "$APP/RintedHLE" | grep -q 'arm64'
 
 echo "Verified $EXPECT IPA"
 echo "Bundle: $BUNDLE_ID"

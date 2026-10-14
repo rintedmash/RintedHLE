@@ -4,34 +4,34 @@ import Foundation
 ///
 /// The cores are forks of each other and export the same symbols, so they can
 /// never be linked into one binary. Each is built as a dylib in
-/// `touchHLE.app/Frameworks` instead, and the one a game needs is loaded with
+/// `RintedHLE.app/Frameworks` instead, and the one a game needs is loaded with
 /// `dlopen` when that game starts.
 enum CoreKind: String, CaseIterable, Identifiable {
-    case hyperHLE = "hyperhle"
+    case RintedHLE = "rintedhle"
     case touchHLE = "touchhle"
 
     var id: String { rawValue }
 
     var displayName: String {
         switch self {
-        case .hyperHLE: return "HyperHLE"
+        case .RintedHLE: return "RintedHLE"
         case .touchHLE: return "touchHLE"
         }
     }
 
     var version: String {
         switch self {
-        case .hyperHLE: return "(HyperHLE-Fork)"
+        case .RintedHLE: return "(RintedHLE)"
         case .touchHLE: return "0.2.3"
         }
     }
 
     var summary: String {
         switch self {
-        case .hyperHLE:
+        case .RintedHLE:
             return "A fork of touchHLE that runs more games."
         case .touchHLE:
-            return "The original emulator. Worth trying if a game misbehaves on HyperHLE."
+            return "The original emulator. Worth trying if a game misbehaves on RintedHLE."
         }
     }
 
@@ -40,7 +40,7 @@ enum CoreKind: String, CaseIterable, Identifiable {
     /// the app bundle.
     var defaultOptionsFileName: String {
         switch self {
-        case .hyperHLE: return "touchHLE_default_options.txt"
+        case .RintedHLE: return "RintedHLE_default_options.txt"
         case .touchHLE: return "touchHLE_default_options.touchhle.txt"
         }
     }
@@ -104,7 +104,7 @@ final class EmulatorCore {
 
     static func withRunning<T>(_ core: EmulatorCore, _ body: () -> T) -> T {
         running = core
-        setenv("TOUCHHLE_DEFAULT_OPTIONS_FILE", core.kind.defaultOptionsFileName, 1)
+        setenv("RINTEDHLE_DEFAULT_OPTIONS_FILE", core.kind.defaultOptionsFileName, 1)
         defer { running = nil }
         return body()
     }
@@ -133,18 +133,18 @@ final class EmulatorCore {
         }
 
         self.kind = kind
-        runGame = try symbol("touchhle_ios_run_game")
-        metadataCreate = try symbol("touchhle_ios_game_metadata_create")
-        metadataDisplayName = try symbol("touchhle_ios_game_metadata_display_name")
-        metadataBundleIdentifier = try symbol("touchhle_ios_game_metadata_bundle_identifier")
+        runGame = try symbol("rintedhle_ios_run_game")
+        metadataCreate = try symbol("rintedhle_ios_game_metadata_create")
+        metadataDisplayName = try symbol("rintedhle_ios_game_metadata_display_name")
+        metadataBundleIdentifier = try symbol("rintedhle_ios_game_metadata_bundle_identifier")
         metadataOrientationCapabilities =
-            try symbol("touchhle_ios_game_metadata_orientation_capabilities")
-        metadataIconRGBA = try symbol("touchhle_ios_game_metadata_icon_rgba")
-        metadataIconWidth = try symbol("touchhle_ios_game_metadata_icon_width")
-        metadataIconHeight = try symbol("touchhle_ios_game_metadata_icon_height")
-        metadataFree = try symbol("touchhle_ios_game_metadata_free")
-        requestExit = try symbol("touchhle_ios_request_exit")
-        currentFPS = try symbol("touchhle_ios_current_fps")
+            try symbol("rintedhle_ios_game_metadata_orientation_capabilities")
+        metadataIconRGBA = try symbol("rintedhle_ios_game_metadata_icon_rgba")
+        metadataIconWidth = try symbol("rintedhle_ios_game_metadata_icon_width")
+        metadataIconHeight = try symbol("rintedhle_ios_game_metadata_icon_height")
+        metadataFree = try symbol("rintedhle_ios_game_metadata_free")
+        requestExit = try symbol("rintedhle_ios_request_exit")
+        currentFPS = try symbol("rintedhle_ios_current_fps")
         loadedAllSymbols = true
     }
 }
@@ -178,7 +178,7 @@ enum CoreSelection {
         if let stored, let kind = CoreKind(rawValue: stored), kind.isAvailable {
             return kind
         }
-        return CoreKind.installed.first ?? .hyperHLE
+        return CoreKind.installed.first ?? .RintedHLE
     }
 
     static func kind(forBundleIdentifier bundleIdentifier: String?) -> CoreKind {

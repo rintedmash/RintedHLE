@@ -504,19 +504,19 @@ fn set_sdl2_orientation(orientation: DeviceOrientation) {
 /// expect (e.g. tablets) — and then steering/camera controls come out
 /// mirrored or sideways (seen with e.g. Asphalt 7's tilt camera).
 ///
-/// `TOUCHHLE_ACCELEROMETER_AXES` accepts a comma-separated list of:
+/// `RINTEDHLE_ACCELEROMETER_AXES` accepts a comma-separated list of:
 /// - "swap": transpose x and y (sideways behaviour on some devices)
 /// - "flipx": negate x (left/right inversion)
 /// - "flipy": negate y (forward/backward inversion)
 /// Both flips together make a 180-degree fix; all three together swap and
-/// flip. Example: TOUCHHLE_ACCELEROMETER_AXES=swap,flipy
+/// flip. Example: RINTEDHLE_ACCELEROMETER_AXES=swap,flipy
 ///
 /// The knob is read once and cached. Gyroscope readings are NOT remapped.
 fn accelerometer_compat_remap(x: f32, y: f32, z: f32) -> (f32, f32, f32) {
     use std::sync::OnceLock;
     static CACHE: OnceLock<(bool, bool, bool)> = OnceLock::new();
     let (swap, flipx, flipy) = *CACHE.get_or_init(|| {
-        let var = std::env::var("TOUCHHLE_ACCELEROMETER_AXES").unwrap_or_default();
+        let var = std::env::var("RINTEDHLE_ACCELEROMETER_AXES").unwrap_or_default();
         let var = var.to_ascii_lowercase();
         (
             var.contains("swap"),
@@ -567,21 +567,21 @@ pub enum TextInputEvent {
 pub enum Event {
     /// User requested quit.
     Quit,
-    /// OS has informed touchHLE it will soon become inactive.
+    /// OS has informed RintedHLE it will soon become inactive.
     /// (iOS `applicationWillResignActive:`, Android `onPause()`)
     AppWillResignActive,
-    /// OS has informed touchHLE it has become inactive and entered the
+    /// OS has informed RintedHLE it has become inactive and entered the
     /// background. (iOS `applicationDidEnterBackground:`, Android
     /// `onPause()` completing / activity no longer visible)
     AppDidEnterBackground,
-    /// OS has informed touchHLE it is about to leave the background and
+    /// OS has informed RintedHLE it is about to leave the background and
     /// re-enter the foreground. (iOS `applicationWillEnterForeground:`,
     /// Android `onResume()` starting)
     AppWillEnterForeground,
-    /// OS has informed touchHLE it has become active again after being
+    /// OS has informed RintedHLE it has become active again after being
     /// inactive/backgrounded. (iOS `applicationDidBecomeActive:`)
     AppDidBecomeActive,
-    /// OS has informed touchHLE it will soon terminate.
+    /// OS has informed RintedHLE it will soon terminate.
     /// (iOS `applicationWillTerminate:`, Android `onDestroy()`)
     AppWillTerminate,
     TouchesDown(HashMap<FingerId, Coords>),
@@ -746,7 +746,7 @@ pub struct Window {
     event_queue: VecDeque<Event>,
     last_polled: Instant,
     /// TEST HOOK: injected tap coordinates for the GD music-bypass autoplay
-    /// test ( TOUCHHLE_GD_AUTOPLAY ), scheduled in popped-frame counts.
+    /// test ( RINTEDHLE_GD_AUTOPLAY ), scheduled in popped-frame counts.
     auto_taps: Vec<(u64, f32, f32)>,
     /// Separate queue for extremely high-priority events (e.g. app about to
     /// terminate).
@@ -798,7 +798,7 @@ pub struct Window {
 }
 
 impl Window {
-    /// Returns [true] if touchHLE is running on a device where we should always
+    /// Returns [true] if RintedHLE is running on a device where we should always
     /// display fullscreen, but SDL2 will let us control the orientation, i.e.
     /// Android and iOS devices.
     pub fn rotatable_fullscreen() -> bool {
@@ -938,7 +938,7 @@ impl Window {
         // is available, but we don't want to enable SDL's HIDAPI controller
         // drivers because they cause duplicated controllers on macOS
         // (https://github.com/libsdl-org/SDL/issues/7479). Once that's fixed,
-        // remove this (https://github.com/touchHLE/touchHLE/issues/85).
+        // remove this (https://github.com/RintedHLE/RintedHLE/issues/85).
         sdl2::hint::set("SDL_JOYSTICK_HIDAPI", "0");
 
         if env::consts::OS == "android" {
@@ -1119,7 +1119,7 @@ impl Window {
             event_queue: VecDeque::new(),
             auto_taps: {
                 let mut taps = Vec::new();
-                if std::env::var_os("TOUCHHLE_GD_AUTOPLAY").is_some() {
+                if std::env::var_os("RINTEDHLE_GD_AUTOPLAY").is_some() {
                     // (frame, x, y) in window-drawable coordinates. GD flow:
                     // main menu centre = play button; level select centre =
                     // level 1 card / Normal Mode.
@@ -1335,7 +1335,7 @@ impl Window {
     }
 
     /// Poll for events from the OS. This needs to be done reasonably often
-    /// (60Hz is probably fine) so that the host OS doesn't consider touchHLE
+    /// (60Hz is probably fine) so that the host OS doesn't consider RintedHLE
     /// to be unresponsive. Note that events are not returned by this function,
     /// since we often need to defer actually handling them.
     ///
@@ -1380,11 +1380,11 @@ impl Window {
             // PERF: cache the read-once debug toggles; this runs per SDL
             // touch event, and each std::env::var_os is a global-lock environ
             // scan with allocation.
-            let [x, y] = if crate::env_flag_cached!("TOUCHHLE_DISABLE_PRESENT_ROTATION")
-                || crate::env_flag_cached!("TOUCHHLE_DISABLE_TOUCH_ROTATION")
+            let [x, y] = if crate::env_flag_cached!("RINTEDHLE_DISABLE_PRESENT_ROTATION")
+                || crate::env_flag_cached!("RINTEDHLE_DISABLE_TOUCH_ROTATION")
             {
                 log_once!(
-                    "TOUCHHLE_DISABLE_TOUCH_ROTATION: not rotating touch hit-test coordinates [this log will only be shown once]"
+                    "RINTEDHLE_DISABLE_TOUCH_ROTATION: not rotating touch hit-test coordinates [this log will only be shown once]"
                 );
                 [x, y]
             } else {
@@ -1399,12 +1399,12 @@ impl Window {
 
             // Optional hit-test tuning only. Do not use these unless you are
             // deliberately testing the UIKit hit-test position.
-            if let Some(offset) = crate::env_var_cached!("TOUCHHLE_HITTEST_X_OFFSET") {
+            if let Some(offset) = crate::env_var_cached!("RINTEDHLE_HITTEST_X_OFFSET") {
                 if let Ok(offset) = offset.parse::<f32>() {
                     out_x += offset;
                 }
             }
-            if let Some(offset) = crate::env_var_cached!("TOUCHHLE_HITTEST_Y_OFFSET") {
+            if let Some(offset) = crate::env_var_cached!("RINTEDHLE_HITTEST_Y_OFFSET") {
                 if let Ok(offset) = offset.parse::<f32>() {
                     out_y += offset;
                 }
@@ -1518,7 +1518,7 @@ impl Window {
                     }
                     let coords = transform_input_coords(self, abs_coords, false);
                     log_dbg!("MouseButtonDown x {}, y {}, coords {:?}", x, y, coords);
-                    if crate::env_flag_cached!("TOUCHHLE_TRACE_TOUCHES") {
+                    if crate::env_flag_cached!("RINTEDHLE_TRACE_TOUCHES") {
                         log!("SDL mouse-down delivered at ({}, {}) -> {:?}", x, y, coords);
                     }
                     Event::TouchesDown(HashMap::from([(FingerId::Mouse, coords)]))
@@ -1905,7 +1905,7 @@ impl Window {
                     keycode: Some(sdl2::keyboard::Keycode::F12),
                     ..
                 } => {
-                    // Log this so you can tell when touchHLE has received
+                    // Log this so you can tell when RintedHLE has received
                     // the event but it's stuck in the queue.
                     echo!("F12 pressed, EnterDebugger event queued.");
                     Event::EnterDebugger
@@ -2483,9 +2483,9 @@ impl Window {
                 // Also show FPS in the window title so it's visible when the
                 // app is running fullscreen or without console.
                 let base_title = if crate::branding().is_empty() {
-                    format!("touchHLE {}", crate::VERSION)
+                    format!("RintedHLE {}", crate::VERSION)
                 } else {
-                    format!("touchHLE {} {}", crate::branding(), crate::VERSION)
+                    format!("RintedHLE {} {}", crate::branding(), crate::VERSION)
                 };
                 let title = format!("{} - FPS: {:.1}", base_title, fps);
                 // Ignore any error setting the title.
@@ -2852,7 +2852,7 @@ pub fn show_error_messagebox(window: Option<&Window>, error_message: &str) {
         messagebox::ButtonData {
             flags: messagebox::MessageBoxButtonFlag::NOTHING,
             button_id: 0,
-            text: "Open touchHLE directory",
+            text: "Open RintedHLE directory",
         },
         messagebox::ButtonData {
             flags: messagebox::MessageBoxButtonFlag::NOTHING,
@@ -2864,13 +2864,13 @@ pub fn show_error_messagebox(window: Option<&Window>, error_message: &str) {
     let Ok(clicked_button) = messagebox::show_message_box(
         messagebox::MessageBoxFlag::ERROR,
         &mbox,
-        "touchHLE crashed!",
-        &format!("touchHLE crashed with the following error: {error_message}"),
+        "RintedHLE crashed!",
+        &format!("RintedHLE crashed with the following error: {error_message}"),
         window.map(|win| &win.window),
         None,
     ) else {
         log!("Warning: Failed to show error message box; falling back to stderr only.");
-        eprintln!("touchHLE crashed: {}", error_message);
+        eprintln!("RintedHLE crashed: {}", error_message);
         return;
     };
 

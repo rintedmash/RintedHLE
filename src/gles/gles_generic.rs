@@ -1496,7 +1496,7 @@ pub trait GLES {
     // The default implementations therefore `gles_unimplemented!(self, )` so that any
     // future backend which forgets to provide one of these methods fails
     // loudly at the point of misuse, rather than silently returning zero or
-    // no-opping. This is what makes the touchHLE ES 2.0 surface
+    // no-opping. This is what makes the RintedHLE ES 2.0 surface
     // "implemented without stubs" — every code path is real.
     unsafe fn CreateShader(&mut self, _type_: GLenum) -> GLuint {
         gles_unimplemented!(

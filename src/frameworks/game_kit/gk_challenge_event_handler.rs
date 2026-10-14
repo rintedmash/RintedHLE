@@ -16,7 +16,7 @@
 //! Apple reference:
 //! <https://developer.apple.com/documentation/gamekit/gkchallengeeventhandler>
 //!
-//! Since touchHLE has no network connectivity and therefore can never
+//! Since RintedHLE has no network connectivity and therefore can never
 //! receive real challenges, the singleton stores the caller's delegate
 //! but never delivers any events — this matches what a real device
 //! does when no challenges have ever been issued to the local player.
@@ -132,7 +132,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 };
 
-/// Tears down the cached singleton (kept for completeness; touchHLE has
+/// Tears down the cached singleton (kept for completeness; RintedHLE has
 /// no per-app teardown path today but mirrors `gk_local_player`).
 #[allow(dead_code)]
 pub fn reset(env: &mut Environment) {

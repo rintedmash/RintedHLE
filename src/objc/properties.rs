@@ -26,7 +26,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 static IVAR_ACCESS_DIAGNOSTICS: AtomicUsize = AtomicUsize::new(0);
 
 fn trace_ivar_access(message: &str) {
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_IVARS")
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_IVARS")
         && IVAR_ACCESS_DIAGNOSTICS.fetch_add(1, Ordering::Relaxed) < 96
     {
         log!("OBJC-IVAR {}", message);
@@ -467,7 +467,7 @@ pub(super) fn objc_getProperty(
         None
     };
 
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_IVARS") && this != nil {
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_IVARS") && this != nil {
         let class_name = env
             .objc
             .get_class_name(ObjC::read_isa(this, &env.mem))
@@ -495,7 +495,7 @@ pub(super) fn objc_getProperty(
     };
     let ivar: MutPtr<id> = Ptr::from_bits(addr);
     let value = env.mem.read(ivar);
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_IVARS") && this != nil {
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_IVARS") && this != nil {
         let class_name = env
             .objc
             .get_class_name(ObjC::read_isa(this, &env.mem))
@@ -593,7 +593,7 @@ pub(super) fn objc_setProperty(
 /// `@property (nonatomic, retain)` / `@property (nonatomic, strong)`
 /// setters. We just forward to the generic implementation so the ivar
 /// receives a real `objc_retain` of the new value (with proper
-/// `objc_release` of the previous value), instead of touchHLE silently
+/// `objc_release` of the previous value), instead of RintedHLE silently
 /// dropping the assignment.
 ///
 /// Note the argument order: `(self, _cmd, newValue, offset)` — the
@@ -617,7 +617,7 @@ pub(super) fn objc_setProperty_nonatomic(
 /// `_objc_setProperty(…, atomic=true, should_copy=0)` for autosynthesised
 /// `@property (atomic, retain)` / `@property (atomic, strong)` setters
 /// (i.e. the default atomic kind when no explicit `nonatomic` is given).
-/// touchHLE previously installed a return-0 stub for this entry point,
+/// RintedHLE previously installed a return-0 stub for this entry point,
 /// which silently dropped every assignment on atomic properties and led to
 /// guest crashes when the property was later read back as nil.
 ///
@@ -643,7 +643,7 @@ pub(super) fn objc_setProperty_atomic(
 /// `_objc_setProperty(…, atomic=false, should_copy=1)` for autosynthesised
 /// `@property (nonatomic, copy)` setters; we just forward to the generic
 /// implementation so the ivar gets a real `copyWithZone:` of the new value
-/// (with proper retain/release of the previous value), instead of touchHLE
+/// (with proper retain/release of the previous value), instead of RintedHLE
 /// installing a return-0 stub that silently drops every assignment.
 ///
 /// Note the argument order: `(self, _cmd, newValue, offset)` — the
@@ -701,14 +701,14 @@ pub(super) fn objc_copyStruct(
 /// > Returns the name of a property.
 /// > Return Value: A C string containing the property's name.
 ///
-/// `objc_property_t` is an opaque pointer; in touchHLE it points at the
+/// `objc_property_t` is an opaque pointer; in RintedHLE it points at the
 /// `property_t { name, attributes }` entry parsed from the app binary's
 /// property list (see [ClassHostObject::add_properties_from_bin]). We read
 /// the `name` field and return the guest pointer to that C string directly,
 /// matching real libobjc which returns a pointer into the property struct
 /// (the caller must NOT free it).
 ///
-/// touchHLE previously had no implementation, so dyld installed a return-0
+/// RintedHLE previously had no implementation, so dyld installed a return-0
 /// stub. Returning NULL for `property_getName` breaks reflective code such
 /// as KVC's `-dictionaryWithValuesForKeys:` and JSON/serialization helpers
 /// that enumerate a class's properties (e.g. Spy Mouse HD's ad SDK).

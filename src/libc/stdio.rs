@@ -63,7 +63,7 @@ impl State {
         //    libc-provided `FILE*` symbols without ever calling `fopen`, so
         //    there is no `FILEHostObject` until the first I/O call.
         // 2. App-provided `FILE*`s that got out of sync with our bookkeeping.
-        //    Several games (e.g. the path that triggered HyperHLE log #1,
+        //    Several games (e.g. the path that triggered RintedHLE log #1,
         //    Ankagua's resource loader) call `free()` directly on a `FILE*`,
         //    skipping `fclose()`. The allocator can then hand the same
         //    address back to a later `fopen()`, or — for read-only streams
@@ -908,7 +908,7 @@ fn tmpfile(env: &mut Environment) -> MutPtr<FILE> {
     // host PID, making collisions extremely unlikely.
     static TMPFILE_COUNTER: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
     let count = TMPFILE_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    let tmp_path = format!("/tmp/touchHLE_tmp_{}_{}\0", std::process::id(), count);
+    let tmp_path = format!("/tmp/RintedHLE_tmp_{}_{}\0", std::process::id(), count);
 
     // Write the path string into guest memory so fopen/remove can use it.
     let path_len = tmp_path.len() as GuestUSize;

@@ -29,8 +29,8 @@ fn main() {
     let workspace_root = package_root.join("../../..");
     // The iOS build points this at a patched copy of the submodule (see
     // platform/ios/scripts/build-rust.sh), so the submodule itself stays clean.
-    println!("cargo:rerun-if-env-changed=TOUCHHLE_DYNARMIC_DIR");
-    let dynarmic_dir = env::var_os("TOUCHHLE_DYNARMIC_DIR")
+    println!("cargo:rerun-if-env-changed=RINTEDHLE_DYNARMIC_DIR");
+    let dynarmic_dir = env::var_os("RINTEDHLE_DYNARMIC_DIR")
         .map(PathBuf::from)
         .unwrap_or_else(|| workspace_root.join("vendor/dynarmic"));
     for path in [

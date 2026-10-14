@@ -11,7 +11,7 @@
     PPL bypass, and an app that carries them CRASHES ON LAUNCH. See TrollStore's
     troubleshooting notes.
 
-    On A12+ use TouchHLEHost-TrollStore.entitlements instead and enable JIT per
+    On A12+ use RintedHLEHost-TrollStore.entitlements instead and enable JIT per
     launch through TrollStore.
 
     Applied by: platform/ios/scripts/package-ipa.sh --trollstore-permanent-jit
@@ -26,7 +26,7 @@
 	<key>dynamic-codesigning</key>
 	<true/>
 
-	<!-- See TouchHLEHost-TrollStore.entitlements for why these are needed. -->
+	<!-- See RintedHLEHost-TrollStore.entitlements for why these are needed. -->
 	<key>com.apple.developer.kernel.extended-virtual-addressing</key>
 	<true/>
 	<key>com.apple.developer.kernel.increased-memory-limit</key>

@@ -16,7 +16,7 @@ use std::sync::{LazyLock, Mutex};
 pub fn get_log_file() -> &'static Mutex<File> {
     static LOG_FILE: LazyLock<Mutex<File>> = LazyLock::new(|| {
         let file =
-            File::create(crate::paths::user_data_base_path().join("touchHLE_log.txt")).unwrap();
+            File::create(crate::paths::user_data_base_path().join("RintedHLE_log.txt")).unwrap();
         #[cfg(unix)]
         crate::crash_handler::set_log_fd(std::os::fd::AsRawFd::as_raw_fd(&file));
         Mutex::new(file)
@@ -67,7 +67,7 @@ macro_rules! log_once {
 }
 
 /// Print a message (with implicit newline). This should be used for all
-/// touchHLE output that isn't coming from the app itself.
+/// RintedHLE output that isn't coming from the app itself.
 ///
 /// Prefer use [log] or [log_dbg] for errors and warnings during emulation.
 macro_rules! echo {
@@ -145,14 +145,14 @@ macro_rules! echo_no_panic {
     }
 }
 
-/// Put modules to enable [log_dbg] for here, e.g. "touchHLE::mem" to see when
+/// Put modules to enable [log_dbg] for here, e.g. "RintedHLE::mem" to see when
 /// memory is allocated and freed. Keep the default empty to avoid hot-path log
 /// traffic in normal builds.
 #[cfg(not(target_os = "ios"))]
-pub const ENABLED_MODULES: &[&str] = &["touchHLE::frameworks::media_player::movie_player"];
+pub const ENABLED_MODULES: &[&str] = &["RintedHLE::frameworks::media_player::movie_player"];
 // NOTE: keep this EMPTY for builds that run on an iOS device. Every
 // `log_dbg!` does two blocking writes (stderr, which the iOS host redirects to
-// a file, and touchHLE_log.txt). On the main thread that starves UIKit of the
+// a file, and RintedHLE_log.txt). On the main thread that starves UIKit of the
 // run-loop time it needs to dispatch touches.
 #[cfg(target_os = "ios")]
 pub const ENABLED_MODULES: &[&str] = &[];

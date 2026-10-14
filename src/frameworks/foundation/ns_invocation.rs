@@ -153,7 +153,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     env.objc.borrow::<NSMethodSignatureHostObject>(this).argument_types.len() as NSUInteger
 }
 
-- (())_touchHLE_setNumberOfArguments:(NSUInteger)count {
+- (())_RintedHLE_setNumberOfArguments:(NSUInteger)count {
     let host = env.objc.borrow_mut::<NSMethodSignatureHostObject>(this);
     let count_usize = count as usize;
     host.argument_types.resize(count_usize, String::from("@"));

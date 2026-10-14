@@ -86,7 +86,7 @@ pub fn statfs_inner(env: &mut Environment, path: ConstPtr<u8>) -> (i32, statfs) 
     }
 
     // Apple documents `statfs(2)` as returning information about the mounted
-    // filesystem containing the supplied path. touchHLE exposes a single
+    // filesystem containing the supplied path. RintedHLE exposes a single
     // filesystem, so any valid guest path should report the same mount.
     // Returning the fake filesystem for every valid path is therefore the
     // closest match and avoids crashing on apps that probe arbitrary paths.

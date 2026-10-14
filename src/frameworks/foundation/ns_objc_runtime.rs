@@ -34,7 +34,7 @@ pub fn NSStringFromClass(env: &mut Environment, class: Class) -> id {
 /// that returns the protocol's name as an `NSString`.
 /// <https://developer.apple.com/documentation/foundation/1395294-nsstringfromprotocol>
 ///
-/// touchHLE does not currently materialise real `Protocol *` instances
+/// RintedHLE does not currently materialise real `Protocol *` instances
 /// (see `objc_getProtocol` in `objc/classes.rs`), so the runtime side
 /// returns NULL for the name lookup. We forward that, returning `nil`
 /// to match the contract apps expect for an unknown protocol pointer.

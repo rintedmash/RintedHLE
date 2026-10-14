@@ -5,7 +5,7 @@
  */
 //! Minimal Metal.framework compatibility layer.
 //!
-//! Metal is a native Apple GPU API, while HyperHLE renders through its
+//! Metal is a native Apple GPU API, while RintedHLE renders through its
 //! portable GLES presentation path. This layer intentionally provides the
 //! object and descriptor contract used during app startup and resource setup;
 //! it does not pretend to execute Metal command streams on non-Apple hosts.
@@ -228,7 +228,7 @@ const CLASSES: ClassExports = objc_classes! {
 // a failed/nil device lookup). Real iOS answers these on the metaclass only
 // for the handful of +class helpers, but being permissive here is free:
 // forward every creation/probe selector to a fresh instance.
-+ (id)name { metal_string(env, "HyperHLE Metal compatibility device") }
++ (id)name { metal_string(env, "RintedHLE Metal compatibility device") }
 + (bool)hasUnifiedMemory { true }
 + (bool)supportsFamily:(NSUInteger)family {
     let device: id = msg_class![env; MTLDevice new];
@@ -288,7 +288,7 @@ const CLASSES: ClassExports = objc_classes! {
 }
 
 - (id)init { this }
-- (id)name { metal_string(env, "HyperHLE Metal compatibility device") }
+- (id)name { metal_string(env, "RintedHLE Metal compatibility device") }
 - (bool)hasUnifiedMemory { true }
 - (NSUInteger)recommendedMaxWorkingSetSize { 0 }
 - (bool)supportsFamily:(NSUInteger)_family { false }
@@ -350,7 +350,7 @@ const CLASSES: ClassExports = objc_classes! {
             .borrow::<SamplerDescriptorHostObject>(descriptor)
             .settings
     };
-    let state = msg_class![env; TouchHLEMTLSamplerState new];
+    let state = msg_class![env; RintedHLEMTLSamplerState new];
     let host = env.objc.borrow_mut::<SamplerStateHostObject>(state);
     host.device = this;
     host.settings = settings;
@@ -425,7 +425,7 @@ const CLASSES: ClassExports = objc_classes! {
 - (())setReductionMode:(NSUInteger)mode { env.objc.borrow_mut::<SamplerDescriptorHostObject>(this).settings.reduction_mode = mode }
 @end
 
-@implementation TouchHLEMTLSamplerState: NSObject
+@implementation RintedHLEMTLSamplerState: NSObject
 + (id)allocWithZone:(NSZonePtr)_zone {
     env.objc.alloc_object(this, Box::new(SamplerStateHostObject::default()), &mut env.mem)
 }

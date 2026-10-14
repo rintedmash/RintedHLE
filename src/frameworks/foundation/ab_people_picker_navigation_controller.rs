@@ -188,7 +188,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 // =========================================================================
 // MARK: - UIViewController overrides
-// touchHLE has no contacts UI. When presented we immediately fire
+// RintedHLE has no contacts UI. When presented we immediately fire
 // peoplePickerNavigationControllerDidCancel: so the app can clean up.
 // =========================================================================
 

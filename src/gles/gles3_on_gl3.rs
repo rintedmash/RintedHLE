@@ -2046,7 +2046,7 @@ impl GLES for GLES3OnGL3<'_> {
     // -- Sync objects --
     //
     // GLES `GLsync` is opaque (`*const __GLsync`). We expose it to the rest
-    // of touchHLE as `usize` for portability — guest code never holds the
+    // of RintedHLE as `usize` for portability — guest code never holds the
     // pointer directly; it goes via a host->guest GLsync handle table in
     // `gles_guest.rs`.
     fn supports_sync_objects(&self) -> bool {

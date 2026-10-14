@@ -91,7 +91,7 @@ struct AudioQueueHostObject {
     aq_is_running_user_data: Option<MutVoidPtr>,
     /// Listeners registered via `AudioQueueAddPropertyListener` for
     /// properties other than `kAudioQueueProperty_IsRunning` (which uses
-    /// dedicated storage above, matching historical touchHLE behaviour).
+    /// dedicated storage above, matching historical RintedHLE behaviour).
     property_listeners: Vec<(
         AudioQueuePropertyID,
         AudioQueuePropertyListenerProc,
@@ -101,7 +101,7 @@ struct AudioQueueHostObject {
     is_input: bool,
     input_delay: u32,
     /// Stored `kAudioQueueProperty_HardwareCodecPolicy` value. Defaults to
-    /// `kAudioQueueHardwareCodecPolicy_Default` (0). touchHLE has no hardware
+    /// `kAudioQueueHardwareCodecPolicy_Default` (0). RintedHLE has no hardware
     /// codecs, so this is informational only.
     hardware_codec_policy: u32,
     /// PCM format set via `AudioQueueSetOfflineRenderFormat`. `None` means the
@@ -186,7 +186,7 @@ const kAudioQueueProperty_DeviceSampleRate: AudioQueuePropertyID = fourcc(b"devr
 /// queue format's channel count.
 const kAudioQueueProperty_DeviceNumberChannels: AudioQueuePropertyID = fourcc(b"dev#");
 /// `kAudioQueueProperty_HardwareCodecPolicy` from Apple's `AudioQueue.h`.
-/// Controls whether the queue uses hardware or software codecs. touchHLE only
+/// Controls whether the queue uses hardware or software codecs. RintedHLE only
 /// ships software codecs (the host has no audio hardware codec), so this is
 /// stored as a hint and the codec choice never changes.
 const kAudioQueueProperty_HardwareCodecPolicy: AudioQueuePropertyID = fourcc(b"aqcp");
@@ -965,7 +965,7 @@ fn AudioQueueSetProperty(
 ///
 /// Apple requires the queue to be stopped and the format (when non-NULL) to be
 /// uncompressed PCM. The channel layout argument is accepted for API
-/// compatibility but not modelled by touchHLE — every guest we have seen
+/// compatibility but not modelled by RintedHLE — every guest we have seen
 /// passes NULL here, matching Apple's own examples.
 fn AudioQueueSetOfflineRenderFormat(
     env: &mut Environment,
@@ -1449,7 +1449,7 @@ pub fn decode_buffer_from_bytes(
             // raw stream works in practice. Frames that straddle
             // buffer boundaries are dropped by symphonia and logged at
             // debug level — better than letting AudioQueueStart fail.
-            if crate::env_flag_cached!("TOUCHHLE_TRACE_AUDIO") {
+            if crate::env_flag_cached!("RINTEDHLE_TRACE_AUDIO") {
                 let head: Vec<String> = data_slice
                     .iter()
                     .take(24)
@@ -1463,7 +1463,7 @@ pub fn decode_buffer_from_bytes(
                 let bpc = format.bits_per_channel;
                 let flags = format.format_flags;
                 log!(
-                    "TOUCHHLE_TRACE_AUDIO: id={} sr={} ch={} bpp={} fpp={} bpc={} flags={:#x} len={} head=[{}]",
+                    "RINTEDHLE_TRACE_AUDIO: id={} sr={} ch={} bpp={} fpp={} bpc={} flags={:#x} len={} head=[{}]",
                     debug_fourcc(fmt_id),
                     sr,
                     ch,

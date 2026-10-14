@@ -28,7 +28,7 @@
 //!   priority band (the same one the UI toolkit's render thread runs at),
 //!   so background work on the device doesn't steal time slices from it.
 //!
-//! Both can be switched off with `--no-perf-hints` / `TOUCHHLE_PERF_HINTS=0`.
+//! Both can be switched off with `--no-perf-hints` / `RINTEDHLE_PERF_HINTS=0`.
 
 use std::time::Duration;
 
@@ -43,7 +43,7 @@ impl PerfHints {
     /// `target_frame_time` is the frame interval the emulator paces to (or
     /// the display's interval if it doesn't pace). `affinity` comes from
     /// `--affinity=` (`big` / `all` / `off` / a CPU list); the
-    /// `TOUCHHLE_AFFINITY` environment variable, when set, takes precedence.
+    /// `RINTEDHLE_AFFINITY` environment variable, when set, takes precedence.
     pub fn new(enabled: bool, target_frame_time: Duration, affinity: Option<&str>) -> PerfHints {
         #[cfg(not(target_os = "android"))]
         {
@@ -127,10 +127,10 @@ mod android {
     /// keeps a homogeneous (all-big or all-mid) device un-pinned when the
     /// "cluster" would be the whole CPU anyway.
     ///
-    /// `affinity_override` comes from `--affinity=`; the `TOUCHHLE_AFFINITY`
+    /// `affinity_override` comes from `--affinity=`; the `RINTEDHLE_AFFINITY`
     /// environment variable, when set, takes precedence over it.
     pub fn pin_to_big_cores(affinity_override: Option<&str>) {
-        let override_ = std::env::var("TOUCHHLE_AFFINITY")
+        let override_ = std::env::var("RINTEDHLE_AFFINITY")
             .ok()
             .filter(|v| !v.trim().is_empty())
             .or_else(|| affinity_override.map(|v| v.to_string()))
@@ -163,7 +163,7 @@ mod android {
             })
             .collect();
         if cores.is_empty() {
-            log!("TOUCHHLE_AFFINITY={override_}: no valid CPU list, ignoring.");
+            log!("RINTEDHLE_AFFINITY={override_}: no valid CPU list, ignoring.");
             return;
         }
         set_affinity(&cores, &format!("CPU list {override_}"));

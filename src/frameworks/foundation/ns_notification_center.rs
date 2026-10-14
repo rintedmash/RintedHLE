@@ -175,7 +175,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 // caller must keep a strong reference to. When a notification matching
 // `name`/`obj` is posted, the system enqueues `block` on `queue` (or
 // invokes it synchronously on the posting thread when `queue` is nil)
-// passing the notification as its only argument. touchHLE has no
+// passing the notification as its only argument. RintedHLE has no
 // `NSOperationQueue` scheduling — we always invoke `block` synchronously
 // from `-postNotification:`, which matches the `queue == nil` semantics
 // Apple documents.

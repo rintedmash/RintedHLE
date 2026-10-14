@@ -867,7 +867,7 @@ fn strftime(
             }
             b'X' => {
                 // %X is the locale's time representation; in the C locale
-                // (touchHLE's only locale) that is exactly %H:%M:%S.
+                // (RintedHLE's only locale) that is exactly %H:%M:%S.
                 let hour = time_val.tm_hour.clamp(0, 23);
                 let minute = time_val.tm_min.clamp(0, 59);
                 let second = time_val.tm_sec.clamp(0, 60);
@@ -1064,7 +1064,7 @@ fn difftime(_env: &mut Environment, time1: time_t, time0: time_t) -> f64 {
 ///
 /// Per Apple's `strftime_l(3)` man page (iPhoneOS man pages), this behaves
 /// exactly like `strftime()` except it formats using the supplied extended
-/// locale instead of the global locale. touchHLE only models the "C"
+/// locale instead of the global locale. RintedHLE only models the "C"
 /// locale, so the locale argument is ignored and we forward to `strftime`.
 /// This symbol is imported by libstdc++/libc++ iostreams (`std::time_put`),
 /// which guest C++ code hits when formatting dates.

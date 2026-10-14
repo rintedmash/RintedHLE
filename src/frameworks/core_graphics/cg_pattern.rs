@@ -15,7 +15,7 @@
 //! by a guest-supplied callback (`drawPattern`). It is used as a "colour"
 //! when stroking or filling paths.
 //!
-//! `touchHLE` does not currently render patterns into the host bitmap, so the
+//! `RintedHLE` does not currently render patterns into the host bitmap, so the
 //! tile geometry/callbacks are stored verbatim and the pattern is treated as
 //! a transparent fill by `CGColorCreateWithPattern`. This is a real CFType
 //! object (it can be retained/released, deallocated correctly, and held by
@@ -87,7 +87,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 (env, this, _cmd);
 
-@implementation _touchHLE_CGPattern: NSObject
+@implementation _RintedHLE_CGPattern: NSObject
 
 - (())dealloc {
     // Invoke the guest's releaseInfo callback (if non-null) before the host
@@ -148,7 +148,7 @@ fn CGPatternCreate(
 
     let class = env
         .objc
-        .get_known_class("_touchHLE_CGPattern", &mut env.mem);
+        .get_known_class("_RintedHLE_CGPattern", &mut env.mem);
     env.objc.alloc_object(
         class,
         Box::new(CGPatternHostObject {

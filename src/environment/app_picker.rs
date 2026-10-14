@@ -67,7 +67,7 @@ pub fn app_picker(options: Options) -> Result<(PathBuf, Vec<String>), String> {
     let apps_dir = paths::user_data_base_path().join(paths::APPS_DIR);
 
     let apps: Result<Vec<AppInfo>, String> = if !apps_dir.is_dir() {
-        Err(format!("The {} directory couldn't be found. Check you're running touchHLE from the right directory.", apps_dir.display()))
+        Err(format!("The {} directory couldn't be found. Check you're running RintedHLE from the right directory.", apps_dir.display()))
     } else {
         enumerate_apps(&apps_dir).map_err(|err| {
             format!(
@@ -165,7 +165,7 @@ fn delete_app(app: &AppInfo) -> Result<(), String> {
         );
     }
 
-    // touchHLE names each database `{namespace}_{file name}`.
+    // RintedHLE names each database `{namespace}_{file name}`.
     let sqlite_dir = paths::user_data_base_path().join(paths::SQLITE_DIR);
     let prefix = format!("{}_", sqlite_namespace(&app.bundle_id));
     if let Ok(entries) = std::fs::read_dir(&sqlite_dir) {
@@ -307,7 +307,7 @@ impl HostObject for AppPickerDelegateHostObject {}
 pub const DYLIB: crate::dyld::HostDylib = crate::dyld::HostDylib {
     // Not a real iOS dylib obviously. This shouldn't really be in the list of
     // dylibs if we can avoid it somehow (TODO?).
-    path: "/.touchHLE/AppPickerHelpers.dylib",
+    path: "/.RintedHLE/AppPickerHelpers.dylib",
     aliases: &[],
     class_exports: &[CLASSES],
     constant_exports: &[],
@@ -321,7 +321,7 @@ const CLASSES: ClassExports = objc_classes! {
 
 (env, this, _cmd);
 
-@implementation _touchHLE_AppPickerDelegate: NSObject
+@implementation _RintedHLE_AppPickerDelegate: NSObject
 
 - (())iconTapped:(id)sender {
     // There is no allocWithZone: that creates AppPickerDelegateHostObject, so
@@ -395,10 +395,10 @@ const CLASSES: ClassExports = objc_classes! {
     // having to re-launch or wait for the option to be applied.
     // SAFETY: calling into the runtime-level API is safe from the UI thread.
     if switch_state {
-        std::env::set_var("TOUCHHLE_ONSCREEN_FPS", "1");
+        std::env::set_var("RINTEDHLE_ONSCREEN_FPS", "1");
         crate::gles::present::set_onscreen_fps_enabled(true);
     } else {
-        std::env::remove_var("TOUCHHLE_ONSCREEN_FPS");
+        std::env::remove_var("RINTEDHLE_ONSCREEN_FPS");
         crate::gles::present::set_onscreen_fps_enabled(false);
     }
 }
@@ -480,17 +480,7 @@ fn show_app_picker_gui(
     }
 
     let icon = {
-        let bytes: &[u8] = match crate::branding() {
-            "" => include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/res/icon.png")),
-            "UNOFFICIAL" => include_bytes!(concat!(
-                env!("CARGO_MANIFEST_DIR"),
-                "/res/icon_unofficial.png"
-            )),
-            "PREVIEW" => {
-                include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/res/icon_preview.png"))
-            }
-            _ => panic!(),
-        };
+        let bytes: &[u8] = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/res/icon.png"));
         let mut image = Image::from_bytes(bytes).unwrap();
         // should match Bundle::load_icon()
         // Use a slightly smaller corner radius for larger icons for a cleaner look.
@@ -518,7 +508,7 @@ fn app_picker_inner(
     let ui_application: id = msg_class![env; UIApplication new];
     let delegate = env
         .objc
-        .get_known_class("_touchHLE_AppPickerDelegate", &mut env.mem);
+        .get_known_class("_RintedHLE_AppPickerDelegate", &mut env.mem);
     let delegate = env.objc.alloc_object(
         delegate,
         Box::<AppPickerDelegateHostObject>::default(),
@@ -606,7 +596,7 @@ fn app_picker_inner(
         let label: id = msg![env; label initWithFrame:label_frame];
         let text = ns_string::from_rust_string(
             env,
-            format!("{HYPERHLE_FORK_NAME} ({})", crate::COMMIT_HASH),
+            format!("{RINTEDHLE_FORK_NAME} ({})", crate::COMMIT_HASH),
         );
         () = msg![env; label setText:text];
         () = msg![env; label setTextAlignment:UITextAlignmentRight];
@@ -625,11 +615,7 @@ fn app_picker_inner(
         label
     };
 
-    let brand_color: id = if crate::branding() == "UNOFFICIAL" {
-        msg_class![env; UIColor redColor]
-    } else {
-        msg_class![env; UIColor grayColor]
-    };
+    let brand_color: id = msg_class![env; UIColor grayColor];
 
     let title_frame = CGRect {
         origin: CGPoint { x: 12.0, y: 8.0 },
@@ -640,7 +626,7 @@ fn app_picker_inner(
     };
     let title: id = msg_class![env; UILabel alloc];
     let title: id = msg![env; title initWithFrame:title_frame];
-    let text = ns_string::from_rust_string(env, HYPERHLE_FORK_NAME.to_string());
+    let text = ns_string::from_rust_string(env, RINTEDHLE_FORK_NAME.to_string());
     () = msg![env; title setText:text];
     () = msg![env; title setTextAlignment:UITextAlignmentCenter];
     let font_size: CGFloat = 28.0;
@@ -763,7 +749,7 @@ fn app_picker_inner(
         );
         PENDING_ARROW_KEY.store(0, Ordering::Relaxed);
     }
-    // If an app is picked, this loop returns. If the user quits touchHLE, the
+    // If an app is picked, this loop returns. If the user quits RintedHLE, the
     // process exits.
     let app_path = loop {
         run_run_loop_single_iteration(env, main_run_loop);
@@ -1129,7 +1115,7 @@ fn app_picker_inner(
         option_args.push("--print-fps".to_string());
         // Also enable the on-screen FPS overlay both via env var and runtime
         // flag so users don't need to set env vars manually.
-        std::env::set_var("TOUCHHLE_ONSCREEN_FPS", "1");
+        std::env::set_var("RINTEDHLE_ONSCREEN_FPS", "1");
         crate::gles::present::set_onscreen_fps_enabled(true);
     }
 
@@ -1165,7 +1151,7 @@ fn app_picker_inner(
     (app_path, option_args)
 }
 
-const HYPERHLE_FORK_NAME: &str = "HyperHLE-Fork";
+const RINTEDHLE_FORK_NAME: &str = "RintedHLE";
 
 const APP_PICKER_VERSION_LABEL_HEIGHT: CGFloat = 15.0;
 const APP_PICKER_VERSION_LABEL_BOTTOM_INSET: CGFloat = 5.0;
@@ -2576,7 +2562,7 @@ fn setup_settings(
     let footer = new_label(
         env,
         rect(0.0, y, width, 18.0),
-        &format!("{HYPERHLE_FORK_NAME} ({})", crate::COMMIT_HASH),
+        &format!("{RINTEDHLE_FORK_NAME} ({})", crate::COMMIT_HASH),
         12.0,
         false,
         gray_text,

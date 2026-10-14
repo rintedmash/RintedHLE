@@ -5,7 +5,7 @@
  */
 //! GLSL ES 1.00 → desktop GLSL 1.20 source translator.
 //!
-//! touchHLE's OpenGL ES 2.0 layer is implemented on top of OpenGL 2.1, which
+//! RintedHLE's OpenGL ES 2.0 layer is implemented on top of OpenGL 2.1, which
 //! does not understand the GLSL ES dialect that ES 2.0 apps ship. The
 //! translation is intentionally minimal — just enough to make the test corpus
 //! we have at hand compile:
@@ -76,9 +76,9 @@ pub fn patch_shadow_samplers_extension(
     };
     let mut output = output
         .replace("sampler2DShadow", "sampler2D")
-        .replace("shadow2DEXT", "touchHLE_shadow2DEXT");
+        .replace("shadow2DEXT", "RintedHLE_shadow2DEXT");
     let helper = format!(
-        "highp float touchHLE_shadow2DEXT(highp sampler2D shadow_map, highp vec3 shadow_coord) {{\n    highp float depth = {sample_function}(shadow_map, shadow_coord.xy).r;\n    return step(shadow_coord.z, depth);\n}}\n\n"
+        "highp float RintedHLE_shadow2DEXT(highp sampler2D shadow_map, highp vec3 shadow_coord) {{\n    highp float depth = {sample_function}(shadow_map, shadow_coord.xy).r;\n    return step(shadow_coord.z, depth);\n}}\n\n"
     );
     let mut offset = 0;
     let mut insertion_point = None;
@@ -384,11 +384,11 @@ mod tests {
         assert!(!patched.contains("GL_EXT_shadow_samplers"));
         assert!(!patched.contains("sampler2DShadow"));
         assert!(patched.contains("uniform highp sampler2D u_shadowMap;"));
-        assert!(patched.contains("touchHLE_shadow2DEXT(u_shadowMap, vec3(0.5))"));
+        assert!(patched.contains("RintedHLE_shadow2DEXT(u_shadowMap, vec3(0.5))"));
         assert!(patched.contains("texture2D(shadow_map, shadow_coord.xy).r"));
         assert!(patched.contains("step(shadow_coord.z, depth)"));
         assert!(
-            patched.find("highp float touchHLE_shadow2DEXT").unwrap()
+            patched.find("highp float RintedHLE_shadow2DEXT").unwrap()
                 < patched.find("void main").unwrap()
         );
     }

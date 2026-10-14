@@ -34,7 +34,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 // CGContext seems to be a CFType-based type, but in our implementation those
 // are just Objective-C types, so we need a class for it, but its name is not
 // visible anywhere.
-@implementation _touchHLE_CGContext: NSObject
+@implementation _RintedHLE_CGContext: NSObject
 
 - (())dealloc {
     let host_obj = env.objc.borrow::<CGContextHostObject>(this);
@@ -264,7 +264,7 @@ fn CGContextSetGrayStrokeColor(
 
 /// `void CGContextSetStrokeColor(CGContextRef c, const CGFloat components[])`
 ///
-/// Colour-space-agnostic stroke colour setter. touchHLE contexts only track
+/// Colour-space-agnostic stroke colour setter. RintedHLE contexts only track
 /// RGBA, so we interpret the components as RGBA (matching the most common
 /// device-RGB usage). `CGContextGetShouldColorSpace`-aware behaviour is not
 /// modelled.
@@ -1223,10 +1223,10 @@ fn CGContextSetFont(env: &mut Environment, context: CGContextRef, font: CGFontRe
     if context.is_null() {
         return;
     }
-    // On real iOS, UIFont and CGFont are toll-free bridged. In HyperHLE they are
+    // On real iOS, UIFont and CGFont are toll-free bridged. In RintedHLE they are
     // separate types. Handle three cases:
-    // 1. Already a _touchHLE_CGFont — use as-is.
-    // 2. A live UIFont — wrap it in a _touchHLE_CGFont on the fly.
+    // 1. Already a _RintedHLE_CGFont — use as-is.
+    // 2. A live UIFont — wrap it in a _RintedHLE_CGFont on the fly.
     // 3. A freed/nil-isa object (use-after-free) — substitute Liberation Sans
     //    so text is at least visible rather than silently dropped.
     let font = if font.is_null() {
@@ -1238,7 +1238,7 @@ fn CGContextSetFont(env: &mut Environment, context: CGContextRef, font: CGFontRe
         // Case 2: live UIFont — convert.
         if let Some(f) = uikit::ui_font::font_from_uifont(env, font) {
             let host_obj = Box::new(CGFontHostObject { font: f });
-            let class = env.objc.get_known_class("_touchHLE_CGFont", &mut env.mem);
+            let class = env.objc.get_known_class("_RintedHLE_CGFont", &mut env.mem);
             env.objc.alloc_object(class, host_obj, &mut env.mem)
         } else {
             font
@@ -1254,7 +1254,7 @@ fn CGContextSetFont(env: &mut Environment, context: CGContextRef, font: CGFontRe
         let host_obj = Box::new(CGFontHostObject {
             font: crate::font::Font::sans_regular(),
         });
-        let class = env.objc.get_known_class("_touchHLE_CGFont", &mut env.mem);
+        let class = env.objc.get_known_class("_RintedHLE_CGFont", &mut env.mem);
         env.objc.alloc_object(class, host_obj, &mut env.mem)
     };
     CGFontRetain(env, font);

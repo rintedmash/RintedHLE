@@ -1,21 +1,21 @@
 #!/bin/sh
 set -e
 
-# Bundles the touchHLE executable with the basic set of files needed for
-# touchHLE to run (the same ones found in the macOS .app bundle or Android APK).
+# Bundles the RintedHLE executable with the basic set of files needed for
+# RintedHLE to run (the same ones found in the macOS .app bundle or Android APK).
 # This does not prepare a full release.
 
 if [ "$#" -eq 1 ]; then
     PATH_TO_BINARY="$1"
     shift
 
-    rm -rf touchHLE_linux_bundle
-    mkdir touchHLE_linux_bundle
-    cp $PATH_TO_BINARY touchHLE_linux_bundle/
-    cp -r ../touchHLE_dylibs touchHLE_linux_bundle/
-    cp -r ../touchHLE_fonts touchHLE_linux_bundle/
-    cp -r ../touchHLE_default_options.txt touchHLE_linux_bundle/
-    cp ../touchHLE_wallpaper.png touchHLE_linux_bundle/
+    rm -rf RintedHLE_linux_bundle
+    mkdir RintedHLE_linux_bundle
+    cp $PATH_TO_BINARY RintedHLE_linux_bundle/
+    cp -r ../RintedHLE_dylibs RintedHLE_linux_bundle/
+    cp -r ../RintedHLE_fonts RintedHLE_linux_bundle/
+    cp -r ../RintedHLE_default_options.txt RintedHLE_linux_bundle/
+    cp ../RintedHLE_wallpaper.png RintedHLE_linux_bundle/
 else
     echo "Incorrect usage."
     exit 1

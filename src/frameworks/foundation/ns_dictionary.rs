@@ -36,7 +36,7 @@ use std::collections::HashMap;
 /// Alias for the return type of the `hash` method of the `NSObject` protocol.
 type Hash = NSUInteger;
 
-/// Belongs to _touchHLE_NSDictionary, also used by _touchHLE_NSSet
+/// Belongs to _RintedHLE_NSDictionary, also used by _RintedHLE_NSSet
 #[derive(Debug, Default)]
 pub(super) struct DictionaryHostObject {
     /// Since we need custom hashing and custom equality, and these both need a
@@ -447,7 +447,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 // - (id)objectForKey:(id)
 // - (NSEnumerator*)keyEnumerator
 // We can pick whichever subclass we want for the various alloc methods.
-// For the time being, that will always be _touchHLE_NSDictionary.
+// For the time being, that will always be _RintedHLE_NSDictionary.
 
 @implementation NSDictionary: NSObject
 
@@ -463,7 +463,7 @@ pub const CLASSES: ClassExports = objc_classes! {
             this
         );
     }
-    msg_class![env; _touchHLE_NSDictionary allocWithZone:zone]
+    msg_class![env; _RintedHLE_NSDictionary allocWithZone:zone]
 }
 
 + (id)dictionary {
@@ -1013,7 +1013,7 @@ pub const CLASSES: ClassExports = objc_classes! {
             this
         );
     }
-    msg_class![env; _touchHLE_NSMutableDictionary allocWithZone:zone]
+    msg_class![env; _RintedHLE_NSMutableDictionary allocWithZone:zone]
 }
 
 + (id)dictionaryWithCapacity:(NSUInteger)capacity {
@@ -1070,7 +1070,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 // Our private subclass that is the single implementation of NSDictionary for
 // the time being.
-@implementation _touchHLE_NSDictionary: NSDictionary
+@implementation _RintedHLE_NSDictionary: NSDictionary
 
 + (id)allocWithZone:(NSZonePtr)_zone {
     let host_object = Box::<DictionaryHostObject>::default();
@@ -1290,14 +1290,14 @@ pub const CLASSES: ClassExports = objc_classes! {
 - (id)initWithCoder:(id)coder {
     let class: Class = msg![env; coder class];
     let keyed_unarch_class: Class = msg_class![env; NSKeyedUnarchiver class];
-    let nib_archive_class: Class = msg_class![env; _touchHLE_NIBArchiveDecoder class];
+    let nib_archive_class: Class = msg_class![env; _RintedHLE_NIBArchiveDecoder class];
     let tuples = if env.objc.class_is_subclass_of(class, keyed_unarch_class) {
         ns_keyed_unarchiver::decode_current_dict(env, coder)
     } else if env.objc.class_is_subclass_of(class, nib_archive_class) {
         _nib_archive_decoder::decode_current_dict(env, coder)
     } else {
         log!(
-            "Warning: -[_touchHLE_NSDictionary initWithCoder:] unsupported coder class {:?}; \
+            "Warning: -[_RintedHLE_NSDictionary initWithCoder:] unsupported coder class {:?}; \
              returning empty dictionary.",
             class
         );
@@ -1327,7 +1327,7 @@ pub const CLASSES: ClassExports = objc_classes! {
         ns_keyed_archiver::encode_objects_as_uid_array(env, coder, "NS.objects", &objects);
     } else {
         log!(
-            "Warning: -[_touchHLE_NSDictionary encodeWithCoder:] unsupported coder class {:?}",
+            "Warning: -[_RintedHLE_NSDictionary encodeWithCoder:] unsupported coder class {:?}",
             class
         );
     }
@@ -1337,7 +1337,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 // Our private subclass that is the single implementation of
 // NSMutableDictionary for the time being.
-@implementation _touchHLE_NSMutableDictionary: NSMutableDictionary
+@implementation _RintedHLE_NSMutableDictionary: NSMutableDictionary
 
 + (id)allocWithZone:(NSZonePtr)_zone {
     let host_object = Box::<DictionaryHostObject>::default();
@@ -1379,7 +1379,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 - (id)initWithCoder:(id)coder {
     let class: Class = msg![env; coder class];
     let keyed_unarch_class: Class = msg_class![env; NSKeyedUnarchiver class];
-    let nib_archive_class: Class = msg_class![env; _touchHLE_NIBArchiveDecoder class];
+    let nib_archive_class: Class = msg_class![env; _RintedHLE_NIBArchiveDecoder class];
     let tuples = if env.objc.class_is_subclass_of(class, keyed_unarch_class) {
         // It seems that every NSDictionary item in an NSKeyedArchiver plist
         // looks like:
@@ -1724,7 +1724,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 // Special variant for use by CFDictionary with NULL callbacks: objects aren't
 // necessarily Objective-C objects and won't be retained/released.
 // TODO: refactor with lookup/insert methods to use callbacks
-@implementation _touchHLE_NSMutableDictionary_non_retaining: _touchHLE_NSMutableDictionary
+@implementation _RintedHLE_NSMutableDictionary_non_retaining: _RintedHLE_NSMutableDictionary
 
 + (id)allocWithZone:(NSZonePtr)_zone {
     let host_object = Box::<CFDictionaryHostObject>::default();
@@ -1737,7 +1737,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     if !key_callbacks.is_null() {
         if value_callbacks.is_null() {
             log!(
-                "Warning: _touchHLE_NSMutableDictionary_non_retaining initWithKeyCallbacks: \
+                "Warning: _RintedHLE_NSMutableDictionary_non_retaining initWithKeyCallbacks: \
                  value_callbacks is NULL while key_callbacks is set; using default value callbacks."
             );
         } else {
@@ -1756,21 +1756,21 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 - (id)initWithObjectsAndKeys:(id)_first_object, ..._dots {
     log!(
-        "Warning: -[_touchHLE_NSMutableDictionary_non_retaining initWithObjectsAndKeys:] \
+        "Warning: -[_RintedHLE_NSMutableDictionary_non_retaining initWithObjectsAndKeys:] \
          is not implemented; returning empty CF dictionary."
     );
     this
 }
 - (id)description {
     log!(
-        "Warning: -[_touchHLE_NSMutableDictionary_non_retaining description] \
+        "Warning: -[_RintedHLE_NSMutableDictionary_non_retaining description] \
          is not implemented; returning empty string."
     );
     from_rust_string(env, String::new())
 }
 - (id)copyWithZone:(NSZonePtr)_zone {
     log!(
-        "Warning: -[_touchHLE_NSMutableDictionary_non_retaining copyWithZone:] \
+        "Warning: -[_RintedHLE_NSMutableDictionary_non_retaining copyWithZone:] \
          is not implemented; returning self (no copy)."
     );
     retain(env, this);
@@ -1778,7 +1778,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 }
 - (id)mutableCopyWithZone:(NSZonePtr)_zone {
     log!(
-        "Warning: -[_touchHLE_NSMutableDictionary_non_retaining mutableCopyWithZone:] \
+        "Warning: -[_RintedHLE_NSMutableDictionary_non_retaining mutableCopyWithZone:] \
          is not implemented; returning retained self."
     );
     retain(env, this);
@@ -1794,7 +1794,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 - (id)valueForKey:(id)_key {
     log!(
-        "Warning: -[_touchHLE_NSMutableDictionary_non_retaining valueForKey:] \
+        "Warning: -[_RintedHLE_NSMutableDictionary_non_retaining valueForKey:] \
          not supported; returning nil."
     );
     nil
@@ -1804,11 +1804,11 @@ pub const CLASSES: ClassExports = objc_classes! {
          forKey:(id)key {
     // ИСПРАВЛЕНИЕ: Безопасная обработка nil-ключей и объектов (как в основном словаре)
     if object == nil {
-        log!("Warning: [_touchHLE_NSMutableDictionary_non_retaining setObject:forKey:] attempt to insert nil object — ignoring");
+        log!("Warning: [_RintedHLE_NSMutableDictionary_non_retaining setObject:forKey:] attempt to insert nil object — ignoring");
         return;
     }
     if key == nil {
-        log!("Warning: [_touchHLE_NSMutableDictionary_non_retaining setObject:forKey:] attempt to use nil key — ignoring");
+        log!("Warning: [_RintedHLE_NSMutableDictionary_non_retaining setObject:forKey:] attempt to use nil key — ignoring");
         return;
     }
 
@@ -1820,7 +1820,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 - (())removeObjectForKey:(id)key {
     // ИСПРАВЛЕНИЕ: Безопасная обработка nil-ключей
     if key == nil {
-        log!("Warning: [_touchHLE_NSMutableDictionary_non_retaining removeObjectForKey:] key is nil — ignored");
+        log!("Warning: [_RintedHLE_NSMutableDictionary_non_retaining removeObjectForKey:] key is nil — ignored");
         return;
     }
 
@@ -1834,7 +1834,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     let keys: Vec<id> = host_obj.map.values().flatten().map(|&(key, _value)| key).collect();
     *env.objc.borrow_mut(this) = host_obj;
 
-    let array: id = msg_class![env; _touchHLE_NSArray_non_retaining alloc];
+    let array: id = msg_class![env; _RintedHLE_NSArray_non_retaining alloc];
     env.objc.borrow_mut::<ArrayHostObject>(array).array = keys;
     array
 }

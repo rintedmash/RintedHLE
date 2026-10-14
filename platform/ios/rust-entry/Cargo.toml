@@ -1,5 +1,5 @@
 [package]
-name = "touchhle-ios-entry"
+name = "rintedhle-ios-entry"
 version = "0.1.0"
 edition = "2021"
 publish = false
@@ -8,8 +8,8 @@ publish = false
 # The host app dlopens a core rather than linking it, so that one app can ship
 # more than one. Both cores export the same symbols, so they could never have
 # been statically linked into the same binary.
-name = "hyperhle_core"
+name = "rintedhle_core"
 crate-type = ["cdylib"]
 
 [dependencies]
-touchHLE = { path = "../../..", default-features = false, features = ["dynamic-sdl"] }
+RintedHLE = { path = "../../..", default-features = false, features = ["dynamic-sdl"] }

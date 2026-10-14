@@ -23,8 +23,8 @@ use crate::fs::GuestPath;
 use std::collections::HashMap;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::Mutex;
-use touchHLE_openal_soft_wrapper::{al_defines as aldef, al_types as altypes};
-use touchHLE_openal_soft_wrapper as al;
+use RintedHLE_openal_soft_wrapper::{al_defines as aldef, al_types as altypes};
+use RintedHLE_openal_soft_wrapper as al;
 
 const AL_LOOPING: altypes::ALenum = 0x1007;
 const AL_GAIN: altypes::ALenum = 0x100A;

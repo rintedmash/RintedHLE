@@ -97,10 +97,10 @@ fn is_es2_only_texture_parameter(pname: GLenum) -> bool {
 /// enabled. Defaults to `true` on Android, mirroring
 /// [crate::options::Options::fix_texture_min_filter]; the
 /// `--fix-texture-min-filter` / `--no-fix-texture-min-filter` flags and the
-/// `TOUCHHLE_FIX_TEXTURE_MIN_FILTER` environment variable override it.
+/// `RINTEDHLE_FIX_TEXTURE_MIN_FILTER` environment variable override it.
 fn fix_texture_min_filter_enabled() -> bool {
     static POLICY: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-    *POLICY.get_or_init(|| match std::env::var("TOUCHHLE_FIX_TEXTURE_MIN_FILTER").as_deref() {
+    *POLICY.get_or_init(|| match std::env::var("RINTEDHLE_FIX_TEXTURE_MIN_FILTER").as_deref() {
         Ok("0") => false,
         Ok("1") => true,
         _ => cfg!(target_os = "android"),

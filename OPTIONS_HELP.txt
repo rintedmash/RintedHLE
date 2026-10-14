@@ -18,12 +18,12 @@ View options:
         --landscape-right means rotate 90° clockwise from portrait.
         --upside-down means rotate 180° from portrait (portrait upside-down).
 
-        Usually apps that require landscape mode will tell touchHLE about this,
+        Usually apps that require landscape mode will tell RintedHLE about this,
         and it will automatically rotate the window, but some apps neglect to
         do this. These options may be useful in that case.
 
     --scale-hack=...
-        Set a scaling factor for the window. touchHLE will attempt to run the
+        Set a scaling factor for the window. RintedHLE will attempt to run the
         app with an increased internal resolution. This is a hack and there's
         no guarantee it will work correctly for all apps.
 
@@ -33,7 +33,7 @@ View options:
         This is a natural number that is at least 1.
 
     --ui-scale=...
-        Set a resolution multiplier for the user interface that touchHLE
+        Set a resolution multiplier for the user interface that RintedHLE
         itself renders (the app picker and UIKit-based app UIs). Layer
         bitmaps (including text) are rasterized at N times their logical
         size and composited into a proportionally larger framebuffer, which
@@ -74,7 +74,7 @@ Device options:
 
         A model's hardware identifier (e.g. "iphone4,1") is also accepted.
 
-        Use "auto" to let touchHLE inspect your host display's resolution,
+        Use "auto" to let RintedHLE inspect your host display's resolution,
         expose that resolution directly to the app, and still pick the device
         family whose bundled resources are the closest match. The chosen family
         is still validated against what the app bundle supports, so an
@@ -92,7 +92,7 @@ Device options:
         auto-detection.
     --ios-version=MAJOR.MINOR[.PATCH]
         Select the iOS version reported to the game. The default is "Latest",
-        currently the highest compatibility version exposed by HyperHLE.
+        currently the highest compatibility version exposed by RintedHLE.
 
 
 Game controller options:
@@ -109,7 +109,7 @@ Game controller options:
         Disables mapping of analog stick input to simulated rotation of the
         device.
 
-        By default, if touchHLE detects a game controller, its analog sticks
+        By default, if RintedHLE detects a game controller, its analog sticks
         will be used for simulated accelerometer tilt controls. When this
         happens, the real accelerometer (e.g. on an Android phone), if present,
         is ignored. By setting this option, the real accelerometer can be used
@@ -117,7 +117,7 @@ Game controller options:
         that integrates both an accelerometer and a game controller, or if you
         do not want to disconnect your game controller.
 
-        Note that touchHLE does not currently support accelerometers contained
+        Note that RintedHLE does not currently support accelerometers contained
         within game controllers.
 
     --x-tilt-range=...
@@ -173,7 +173,7 @@ Game controller options:
         For example, --button-to-touch=A,470,310 will make the A button simulate
         tapping in the bottom-right corner of the screen, for a landscape game.
 
-        Except where specified in touchHLE_default_options.txt, this is not used
+        Except where specified in RintedHLE_default_options.txt, this is not used
         by default. There is however a virtual cursor that is controlled by the
         right analog stick (tap/hold by pressing the stick or right shoulder
         button).
@@ -194,7 +194,7 @@ Game controller options:
         Note that this option takes precedence over any D-pad buttons defined
         with --button-to-touch.
 
-        Except where specified in touchHLE_default_options.txt, this is not used
+        Except where specified in RintedHLE_default_options.txt, this is not used
         by default. There is however a virtual cursor that is controlled by the
         right analog stick (tap/hold by pressing the stick or right shoulder
         button).
@@ -213,7 +213,7 @@ Game controller options:
         stick to control a touch within a 100x100 pixel region starting at
         (10,10) on the screen.
 
-        Except where specified in touchHLE_default_options.txt, this is not used
+        Except where specified in RintedHLE_default_options.txt, this is not used
         by default. There is however a virtual cursor that is controlled by the
         right analog stick (tap/hold by pressing the stick or right shoulder
         button).
@@ -241,18 +241,18 @@ Game controller options:
 
 Graphics driver options:
     --gles2-compat
-        Enables touchHLE's experimental OpenGL ES 2.0 subset using the desktop
+        Enables RintedHLE's experimental OpenGL ES 2.0 subset using the desktop
         OpenGL 2.1 compatibility backend. This is an app-specific option and
         is not a complete implementation of OpenGL ES 2.0.
 
     --gles1=...
-        Force touchHLE to use a particular OpenGL ES 1.1 implementation.
+        Force RintedHLE to use a particular OpenGL ES 1.1 implementation.
         This may be useful for troubleshooting graphics driver issues.
 
-        --gles1=gles1_on_gl2 will use touchHLE's GLES1-on-GL2 layer.
+        --gles1=gles1_on_gl2 will use RintedHLE's GLES1-on-GL2 layer.
         --gles1=gles1_native will use native OpenGL ES 1.1.
 
-        When this option isn't in use, touchHLE will try each in order and use
+        When this option isn't in use, RintedHLE will try each in order and use
         the first one that works.
 
 Debugging options:
@@ -261,10 +261,10 @@ Debugging options:
         callbacks, rather than using the fast direct access path (page tables).
 
     --gdb=...
-        Starts touchHLE in debugging mode, listening for GDB remote serial
+        Starts RintedHLE in debugging mode, listening for GDB remote serial
         protocol connections over TCP on the specified host and port.
 
-        You can then connect to touchHLE with GDB and make use of its features
+        You can then connect to RintedHLE with GDB and make use of its features
         to inspect memory and registers, set up software breakpoints, and
         continue or step execution.
 
@@ -301,14 +301,14 @@ Other options:
         language is supported, is determined entirely by the app.
 
     --headless
-        Run in headless mode. touchHLE will not create a window, so there will
+        Run in headless mode. RintedHLE will not create a window, so there will
         be no graphical output and no input. Only useful for command-line apps.
         Implies --no-error-popup.
 
     --args
         All arguments following this option will be passed to the app (via C's
-        argc/argv) rather than processed by touchHLE. This option can't be used
-        via touchHLE_options.txt or touchHLE_default_options.txt.
+        argc/argv) rather than processed by RintedHLE. This option can't be used
+        via RintedHLE_options.txt or RintedHLE_default_options.txt.
 
     --print-fps
         Logs the current framerate (FPS) to the console once per second.
@@ -316,7 +316,7 @@ Other options:
     --fps-limit=...
         Modify or disable the framerate (FPS) limit.
 
-        By default, touchHLE limits the framerate of an app to 60fps, because
+        By default, RintedHLE limits the framerate of an app to 60fps, because
         this is required for accurate emulation. Some apps can however run
         correctly at a higher framerate than normal.
 
@@ -344,7 +344,7 @@ Other options:
 
         'auto' (default): present on the GPU (the renderbuffer is copied to a
         texture and drawn into the window). If the first frames come out
-        black while the renderbuffer clearly has content, HyperHLE assumes the
+        black while the renderbuffer clearly has content, RintedHLE assumes the
         host driver mishandles this path and switches to 'readback' for the
         rest of the session (a message is logged).
 
@@ -357,7 +357,7 @@ Other options:
         which makes it a useful workaround for buggy vendor OpenGL ES 1.1
         drivers.
 
-        The environment variable TOUCHHLE_PRESENT_MODE accepts the same
+        The environment variable RINTEDHLE_PRESENT_MODE accepts the same
         values; the option takes precedence over it.
 
     --present-finish
@@ -365,14 +365,14 @@ Other options:
         window. Only useful for host drivers that fail to order that copy after
         the app's draws (symptom: stale or partially drawn frames). It costs a
         GPU pipeline stall per frame, so it is off by default. Can also be
-        enabled with TOUCHHLE_PRESENT_FINISH=1; --no-present-finish turns it
+        enabled with RINTEDHLE_PRESENT_FINISH=1; --no-present-finish turns it
         off again.
 
     --vsync=...
         Whether presenting a frame waits for the display's vertical refresh.
         One of:
 
-        'auto' (default): on Android, off — HyperHLE paces frames itself (see
+        'auto' (default): on Android, off — RintedHLE paces frames itself (see
         --fps-limit) and the Android compositor is synchronised to the display
         anyway, so a blocking swap can only stall the emulator (a frame that
         takes slightly longer than one refresh then costs two, i.e. 60 FPS
@@ -382,7 +382,7 @@ Other options:
 
         'off': swaps never wait (swap interval 0).
 
-        The environment variable TOUCHHLE_VSYNC accepts the same values; the
+        The environment variable RINTEDHLE_VSYNC accepts the same values; the
         option takes precedence over it. --vsync and --no-vsync are shorthands
         for 'on' and 'off'.
 
@@ -393,14 +393,14 @@ Other options:
         CPU governor keeps the core clocked for the emulated workload instead
         of for the idle time between frames, which otherwise tends to make a
         game that could run at 60 FPS settle at 30. Can also be disabled with
-        TOUCHHLE_PERF_HINTS=0; --perf-hints turns it back on.
+        RINTEDHLE_PERF_HINTS=0; --perf-hints turns it back on.
 
     --mach-semaphore-spurious-wake=MILLISECONDS
         Make a blocking semaphore_wait() give up after MILLISECONDS and return
         KERN_SUCCESS as if it had been signalled. 0 disables it (the default).
 
         This is a last-resort workaround for an app whose worker thread parks
-        on a Mach semaphore that never gets signalled under touchHLE's
+        on a Mach semaphore that never gets signalled under RintedHLE's
         cooperative scheduler, and whose wait loop re-checks its own state on
         wake (FMOD's worker threads in Minecraft: Story Mode).
 
@@ -426,7 +426,7 @@ Other options:
         pipeline.
 
     --allow-network-access
-        Allow apps running in touchHLE to access the Internet and the local network.
+        Allow apps running in RintedHLE to access the Internet and the local network.
 
     --ignore-gl-errors
         Ignore host OpenGL errors as queried by glGetError function.
@@ -457,7 +457,7 @@ Other options:
         Workaround for apps that rely on the default ES 1.1
         GL_TEXTURE_MIN_FILTER (GL_NEAREST_MIPMAP_LINEAR) being usable
         on a level-0-only texture. With this flag, after every
-        glTexImage2D(level=0) call HyperHLE issues an extra
+        glTexImage2D(level=0) call RintedHLE issues an extra
         glTexParameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR) so that
         strict drivers (notably Qualcomm Adreno's native ES 1.1 path)
         don't sample the texture as opaque black just because no
@@ -495,7 +495,7 @@ Other options:
         automatically. Disabled globally; the bundled default-options file
         enables it for GTA III. To enable it manually for a run, pass this
         flag after the app path. For example:
-        touchHLE GTA3.app --fix-movie-player
+        RintedHLE GTA3.app --fix-movie-player
 
     --no-fix-movie-player
         Use the legacy MPMoviePlayerController behavior, even if the fix was
@@ -505,7 +505,7 @@ Other options:
         Use UIKit's actual autorotation state to decide whether EAGL needs an
         extra 180-degree presentation compensation. This fixes iPad games that
         should only get the compensation when UIKit really rotated their root
-        view. Without this flag, HyperHLE keeps the legacy iPad/non-portrait
+        view. Without this flag, RintedHLE keeps the legacy iPad/non-portrait
         heuristic. Disabled globally; the bundled default-options file enables
         this together with --fix-movie-player for GTA III.
 

@@ -1179,7 +1179,7 @@ fn __vsnprintf_chk(
 /// app is built with hardening. `strlen` is the compiler-known size of the
 /// destination buffer; `maxlen` is the user-supplied `n` parameter. The
 /// real runtime aborts the process with `__chk_fail()` when `maxlen >
-/// strlen`. For touchHLE we log loudly and clamp `maxlen` so we don't take
+/// strlen`. For RintedHLE we log loudly and clamp `maxlen` so we don't take
 /// down the host process, then delegate to the underlying `vsnprintf`.
 fn __snprintf_chk(
     env: &mut Environment,
@@ -1268,7 +1268,7 @@ fn __sprintf_chk(
     vsnprintf(env, dest, strlen, format, args.start())
 }
 
-// Locale-aware printf variants from `xlocale.h`. touchHLE only supports a
+// Locale-aware printf variants from `xlocale.h`. RintedHLE only supports a
 // single (C / system default) locale, so we ignore the `locale_t` argument
 // and dispatch to the locale-less implementation.
 

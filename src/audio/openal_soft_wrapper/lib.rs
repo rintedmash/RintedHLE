@@ -27,7 +27,7 @@
 // уже объявлены с *mut — это была единственная расхожденность.
 // ============================================================
 
-// Allow the crate to have a non-snake-case name (touchHLE).
+// Allow the crate to have a non-snake-case name (RintedHLE).
 // This also allows items in the crate to have non-snake-case names.
 #![allow(non_snake_case)]
 

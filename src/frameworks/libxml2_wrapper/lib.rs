@@ -9,8 +9,8 @@
 //! This crate is intentionally a thin pass-through: the higher-level
 //! host-shim for the iPhone OS apps lives in `src/frameworks/libxml2.rs`
 //! in the main crate.  Keeping the cmake build and the bindings in their
-//! own crate matches the pattern used by `touchHLE_dynarmic_wrapper` and
-//! `touchHLE_openal_soft_wrapper`.
+//! own crate matches the pattern used by `RintedHLE_dynarmic_wrapper` and
+//! `RintedHLE_openal_soft_wrapper`.
 
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]

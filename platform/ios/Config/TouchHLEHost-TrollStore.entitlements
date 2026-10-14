@@ -5,7 +5,7 @@
 
     Applied by: platform/ios/scripts/package-ipa.sh --trollstore
 
-    These are kept out of TouchHLEHost.entitlements because the memory
+    These are kept out of RintedHLEHost.entitlements because the memory
     entitlements below need provisioning-profile support that a free Apple
     account does not have. Including them in the Xcode/AltStore build would
     break signing there, while TrollStore grants them unconditionally.

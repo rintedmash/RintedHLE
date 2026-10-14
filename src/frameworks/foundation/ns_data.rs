@@ -185,7 +185,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     let path_str = to_rust_string(env, path);
     let bytes = env.fs.read(GuestPath::new(&path_str)).ok();
     let lower_path = path_str.to_ascii_lowercase();
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_RESOURCES")
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_RESOURCES")
         && [".fnt", ".png", ".plist", ".jpg", ".jpeg"]
             .iter()
             .any(|extension| lower_path.ends_with(extension))

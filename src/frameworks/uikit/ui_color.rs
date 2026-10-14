@@ -36,7 +36,7 @@ fn get_standard_color(
     if let Some(&existing) = env.framework_state.uikit.ui_color.standard_colors.get(&sel) {
         existing
     } else {
-        let new: id = msg_class![env; _touchHLE_UIColor_Static alloc];
+        let new: id = msg_class![env; _RintedHLE_UIColor_Static alloc];
         let new: id = msg![env; new initWithRed:r green:g blue:b alpha:a];
         env.framework_state
             .uikit
@@ -516,7 +516,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 @implementation UICachedDeviceWhiteColor: UIColor
 @end
 
-@implementation _touchHLE_UIColor_Static: UIColor
+@implementation _RintedHLE_UIColor_Static: UIColor
 
 + (id)allocWithZone:(NSZonePtr)_zone {
     let host_object = Box::new(UIColorHostObject {

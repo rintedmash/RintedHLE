@@ -6,7 +6,7 @@
 //! In-emulator game trainer ("Cheat Engine"-style), driven either by the
 //! on-screen overlay UI (see [crate::trainer_ui]) or by text hack files.
 //!
-//! Hack files live under `touchHLE_hacks/` in the user data directory:
+//! Hack files live under `RintedHLE_hacks/` in the user data directory:
 //!
 //! - `hacks.txt` — global file. Lines are either app-scoped
 //!   `com.example.App: 0x1234=100` (the format used by
@@ -235,7 +235,7 @@ pub struct Trainer {
     dump_counter: u32,
 }
 
-const HACKS_DIR: &str = "touchHLE_hacks";
+const HACKS_DIR: &str = "RintedHLE_hacks";
 const GLOBAL_HACKS_FILE: &str = "hacks.txt";
 /// Don't try to search allocations larger than this (they are rarely game
 /// state and scanning them is slow).
@@ -1018,7 +1018,7 @@ fn search_all(
     results
 }
 
-/// Directory for hack/dump files: `<user data>/touchHLE_hacks/`.
+/// Directory for hack/dump files: `<user data>/RintedHLE_hacks/`.
 fn paths_hacks_dir() -> PathBuf {
     crate::paths::user_data_base_path().join(HACKS_DIR)
 }

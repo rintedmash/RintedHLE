@@ -10,7 +10,7 @@ import UIKit
 // that would otherwise fail to resolve at all.
 
 /// `NavigationStack` on iOS 16+, `NavigationView` in stack style on iOS 15.
-private struct TouchHLENavigationContainer<Content: View>: View {
+private struct RintedHLENavigationContainer<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
@@ -26,7 +26,7 @@ private struct TouchHLENavigationContainer<Content: View>: View {
 }
 
 /// `ContentUnavailableView` on iOS 17+, a hand-rolled equivalent below it.
-private struct TouchHLEEmptyState: View {
+private struct RintedHLEEmptyState: View {
     let title: String
     let systemImage: String
     let description: String
@@ -59,7 +59,7 @@ extension View {
     /// `onChange(of:)` without tripping the iOS 17 two-parameter signature,
     /// which does not exist on iOS 15 or 16.
     @ViewBuilder
-    func touchHLEOnChange<Value: Equatable>(
+    func RintedHLEOnChange<Value: Equatable>(
         of value: Value,
         perform action: @escaping (Value) -> Void
     ) -> some View {
@@ -72,7 +72,7 @@ extension View {
 }
 
 /// Interface and device orientations are mirrored for the landscape cases.
-private func touchHLEDeviceOrientation(
+private func RintedHLEDeviceOrientation(
     for mask: UIInterfaceOrientationMask
 ) -> UIDeviceOrientation? {
     if mask.contains(.landscapeLeft) {
@@ -92,7 +92,7 @@ private func touchHLEDeviceOrientation(
 /// where the only lever is the device orientation UIKit follows, so set that
 /// and re-ask UIKit to rotate.
 @MainActor
-private func touchHLEApplyOrientation(
+private func RintedHLEApplyOrientation(
     _ mask: UIInterfaceOrientationMask,
     viewController: UIViewController?,
     scene: UIWindowScene?
@@ -106,7 +106,7 @@ private func touchHLEApplyOrientation(
         // start a rotation before iOS 16. `responds(to:)` keeps this a no-op
         // rather than a crash if that ever stops being true.
         let device = UIDevice.current
-        if let deviceOrientation = touchHLEDeviceOrientation(for: mask),
+        if let deviceOrientation = RintedHLEDeviceOrientation(for: mask),
            device.responds(to: NSSelectorFromString("setOrientation:")) {
             device.setValue(deviceOrientation.rawValue, forKey: "orientation")
         }
@@ -203,7 +203,7 @@ private final class GameLibrary: ObservableObject {
     /// Prefer this port's metadata parser, which catches malformed-bundle
     /// panics before they reach Swift, regardless of the selected gameplay core.
     private var metadataCore: EmulatorCore? {
-        let preferred: CoreKind = CoreKind.hyperHLE.isAvailable ? .hyperHLE : CoreSelection.defaultKind
+        let preferred: CoreKind = CoreKind.RintedHLE.isAvailable ? .RintedHLE : CoreSelection.defaultKind
         if let core = try? EmulatorCore.load(preferred) {
             return core
         }
@@ -216,7 +216,7 @@ private final class GameLibrary: ObservableObject {
 
     init() {
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        appsDirectory = documents.appendingPathComponent("touchHLE_apps", isDirectory: true)
+        appsDirectory = documents.appendingPathComponent("RintedHLE_apps", isDirectory: true)
         migrateLegacyNetworkSetting(in: documents)
         reload()
     }
@@ -306,7 +306,7 @@ private final class GameLibrary: ObservableObject {
         analogTilt: Bool
     ) {
         guard !isLaunching, !isImporting, heldLaunch == nil else { return }
-        guard touchhle_ios_jit_available() else {
+        guard rintedhle_ios_jit_available() else {
             heldLaunch = HeldLaunch(
                 game: game,
                 scaleHack: scaleHack,
@@ -360,16 +360,16 @@ private final class GameLibrary: ObservableObject {
             guard let self else { return }
             let launchOrientation = game.launchOrientation(
                 override: orientation,
-                currentInterfaceOrientation: TouchHLENativeHost.currentInterfaceOrientation
+                currentInterfaceOrientation: RintedHLENativeHost.currentInterfaceOrientation
             )
-            TouchHLENativeHost.hideHostWindow()
-            TouchHLENativeHost.prepareGameControls(
+            RintedHLENativeHost.hideHostWindow()
+            RintedHLENativeHost.prepareGameControls(
                 launchOrientation: launchOrientation
             ) { [weak self] in
                 guard let self else { return }
                 let result = EmulatorCore.withRunning(core) {
                     game.url.path.withCString { path in
-                        touchhle_ios_launch_game(
+                        rintedhle_ios_launch_game(
                             core.runGame,
                             path,
                             Int32(scaleHack),
@@ -380,8 +380,8 @@ private final class GameLibrary: ObservableObject {
                     }
                 }
 
-                TouchHLENativeHost.hideGameControls()
-                TouchHLENativeHost.restoreHostWindow()
+                RintedHLENativeHost.hideGameControls()
+                RintedHLENativeHost.restoreHostWindow()
                 self.isLaunching = false
                 if result != 0 {
                     self.launchError = "\(core.kind.displayName) could not start this game. The diagnostic log has been saved in Files."
@@ -495,7 +495,7 @@ private final class GameLibrary: ObservableObject {
         let defaults = UserDefaults.standard
         guard defaults.object(forKey: "networkAccess") == nil else { return }
 
-        let legacyURL = documents.appendingPathComponent(".touchHLE_network_access")
+        let legacyURL = documents.appendingPathComponent(".RintedHLE_network_access")
         guard let value = try? String(contentsOf: legacyURL, encoding: .utf8) else { return }
         defaults.set(value.trimmingCharacters(in: .whitespacesAndNewlines) == "enabled", forKey: "networkAccess")
     }
@@ -617,9 +617,9 @@ private final class GameControlsViewController: UIViewController {
     }
 }
 
-@objc(TouchHLENativeHost)
-final class TouchHLENativeHost: NSObject {
-    private static let shared = TouchHLENativeHost()
+@objc(RintedHLENativeHost)
+final class RintedHLENativeHost: NSObject {
+    private static let shared = RintedHLENativeHost()
     private var window: UIWindow?
     private var gameControlsWindow: GameControlsWindow?
 
@@ -637,7 +637,7 @@ final class TouchHLENativeHost: NSObject {
     static func restoreHostWindow() {
         guard let window = shared.window else { return }
         window.makeKeyAndVisible()
-        touchHLEApplyOrientation(
+        RintedHLEApplyOrientation(
             .portrait,
             viewController: window.rootViewController,
             scene: window.windowScene
@@ -694,7 +694,7 @@ final class TouchHLENativeHost: NSObject {
 
         let controlsWindow = GameControlsWindow(windowScene: windowScene)
         controlsWindow.windowLevel = UIWindow.Level.normal + 3
-        controlsWindow.accessibilityIdentifier = "touchHLE.gameControls"
+        controlsWindow.accessibilityIdentifier = "RintedHLE.gameControls"
         controlsWindow.backgroundColor = .clear
 
         let viewController = GameControlsViewController()
@@ -718,7 +718,7 @@ final class TouchHLENativeHost: NSObject {
         controlsWindow.isHidden = false
         gameControlsWindow = controlsWindow
 
-        touchHLEApplyOrientation(
+        RintedHLEApplyOrientation(
             launchOrientationMask,
             viewController: viewController,
             scene: windowScene
@@ -753,14 +753,14 @@ final class TouchHLENativeHost: NSObject {
             gameControlsWindow?.layoutIfNeeded()
             if let viewController = gameControlsWindow?.rootViewController as? GameControlsViewController {
                 viewController.allowedOrientations = orientationMask
-                touchHLEApplyOrientation(
+                RintedHLEApplyOrientation(
                     orientationMask,
                     viewController: viewController,
                     scene: nil
                 )
             }
             print(
-                "touchHLE game surface ready: orientation=\(windowScene.interfaceOrientation.rawValue) " +
+                "RintedHLE game surface ready: orientation=\(windowScene.interfaceOrientation.rawValue) " +
                 "bounds=\(Int(bounds.width))x\(Int(bounds.height))"
             )
             // `interfaceOrientation` flips as soon as the rotation is applied,
@@ -816,12 +816,12 @@ private struct LibraryView: View {
     private static let ipaType = UTType(filenameExtension: "ipa") ?? .archive
 
     var body: some View {
-        TouchHLENavigationContainer {
+        RintedHLENavigationContainer {
             ZStack {
                 LibraryBackground()
 
                 if library.games.isEmpty {
-                    TouchHLEEmptyState(
+                    RintedHLEEmptyState(
                         title: "No Games Yet",
                         systemImage: "gamecontroller",
                         description: "Import a 32-bit iPhone game to add it to your library."
@@ -887,7 +887,7 @@ private struct LibraryView: View {
                         .padding(.vertical, 13)
                 }
                 .buttonStyle(.plain)
-                .touchHLEImportButtonStyle()
+                .RintedHLEImportButtonStyle()
                 .padding(.bottom, 8)
             }
             .fileImporter(
@@ -946,11 +946,11 @@ private struct LibraryView: View {
                             .font(.headline)
                     }
                     .padding(24)
-                    .touchHLELaunchOverlayStyle()
+                    .RintedHLELaunchOverlayStyle()
                 }
             }
         }
-        .touchHLEOnChange(of: scenePhase) { newPhase in
+        .RintedHLEOnChange(of: scenePhase) { newPhase in
             if newPhase == .active {
                 library.reload()
             }
@@ -1008,7 +1008,7 @@ private enum JITMethod {
     case external
 
     static var current: JITMethod {
-        if touchhle_ios_jit_available() && !touchhle_ios_jit_is_from_debugger() {
+        if rintedhle_ios_jit_available() && !rintedhle_ios_jit_is_from_debugger() {
             return .permanent
         }
         if #available(iOS 17.4, *) {
@@ -1021,11 +1021,11 @@ private enum JITMethod {
     var unavailableMessage: String {
         switch self {
         case .permanent, .stikDebug:
-            return "Games need JIT, and without it HyperHLE closes the moment one starts. "
+            return "Games need JIT, and without it RintedHLE closes the moment one starts. "
                 + "Enable JIT in StikDebug, then start the game again."
         case .external:
-            return "Games need JIT, and without it HyperHLE closes the moment one starts. "
-                + "Enable JIT for HyperHLE in TrollStore, or with AltJIT, then start the "
+            return "Games need JIT, and without it RintedHLE closes the moment one starts. "
+                + "Enable JIT for RintedHLE in TrollStore, or with AltJIT, then start the "
                 + "game again."
         }
     }
@@ -1036,9 +1036,9 @@ private enum JITMethod {
         case .permanent:
             return "This install has permanent JIT, so there is nothing to enable."
         case .stikDebug:
-            return "JIT must be enabled again whenever HyperHLE starts as a new app process."
+            return "JIT must be enabled again whenever RintedHLE starts as a new app process."
         case .external:
-            return "StikDebug needs iOS 17.4 or newer. Enable JIT for HyperHLE in TrollStore, "
+            return "StikDebug needs iOS 17.4 or newer. Enable JIT for RintedHLE in TrollStore, "
                 + "or with AltJIT, each time it starts as a new app process."
         }
     }
@@ -1071,7 +1071,7 @@ private struct EnableJITButton: View {
         } label: {
             Label("Enable JIT", systemImage: "bolt.fill")
         }
-        .accessibilityHint("Opens StikDebug and enables JIT for HyperHLE")
+        .accessibilityHint("Opens StikDebug and enables JIT for RintedHLE")
         .alert("StikDebug Not Available", isPresented: $showingUnavailableAlert) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -1082,7 +1082,7 @@ private struct EnableJITButton: View {
 
 private extension View {
     @ViewBuilder
-    func touchHLEImportButtonStyle() -> some View {
+    func RintedHLEImportButtonStyle() -> some View {
         if #available(iOS 26.0, *) {
             glassEffect(.regular.tint(.blue).interactive(), in: Capsule())
         } else {
@@ -1094,7 +1094,7 @@ private extension View {
     }
 
     @ViewBuilder
-    func touchHLELaunchOverlayStyle() -> some View {
+    func RintedHLELaunchOverlayStyle() -> some View {
         if #available(iOS 26.0, *) {
             glassEffect(.regular, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         } else {
@@ -1231,7 +1231,7 @@ private struct SettingsView: View {
     }
 
     var body: some View {
-        TouchHLENavigationContainer {
+        RintedHLENavigationContainer {
             Form {
                 if CoreKind.installed.count > 1 {
                     Section {
@@ -1404,7 +1404,7 @@ private struct AboutView: View {
     }
 
     var body: some View {
-        TouchHLENavigationContainer {
+        RintedHLENavigationContainer {
             List {
                 Section {
                     VStack(spacing: 14) {
@@ -1423,7 +1423,7 @@ private struct AboutView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
 
                         VStack(spacing: 4) {
-                            Text("HyperHLE")
+                            Text("RintedHLE")
                                 .font(.title2.bold())
                             Text("High-level emulator for early iPhone OS apps")
                                 .font(.subheadline)
@@ -1446,15 +1446,15 @@ private struct AboutView: View {
                 }
 
                 Section("About") {
-                    Text("HyperHLE plays older 32-bit iPhone games on modern devices, without including any Apple software. It is an experimental community project, and no games are included.")
+                    Text("RintedHLE plays older 32-bit iPhone games on modern devices, without including any Apple software. It is an experimental community project, and no games are included.")
 
-                    Link(destination: URL(string: "https://github.com/KlugKlugTG/HyperHLE-Fork")!) {
-                        Label("HyperHLE-Fork on GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
+                    Link(destination: URL(string: "https://github.com/KlugKlugTG/RintedHLE-Fork")!) {
+                        Label("RintedHLE-Fork on GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
                 }
 
                 Section {
-                    Text("HyperHLE is a fork of touchHLE. This iOS app, its build system and its packaging come from Applesauce, an unaffiliated iOS port of touchHLE and HyperHLE.")
+                    Text("RintedHLE is a fork of RintedHLE. This iOS app, its build system and its packaging come from Applesauce, an unaffiliated iOS port of RintedHLE and RintedHLE.")
 
                     Text("None of those projects is connected to this build or endorses it, so please report problems here rather than to them.")
 
@@ -1462,19 +1462,19 @@ private struct AboutView: View {
                         Label("Applesauce", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
 
-                    Link(destination: URL(string: "https://touchhle.org/")!) {
-                        Label("touchHLE Website", systemImage: "safari")
+                    Link(destination: URL(string: "https://github.com/rintedmash/RintedHLE/")!) {
+                        Label("RintedHLE Website", systemImage: "safari")
                     }
 
-                    Link(destination: URL(string: "https://github.com/touchHLE/touchHLE")!) {
-                        Label("touchHLE Upstream", systemImage: "chevron.left.forwardslash.chevron.right")
+                    Link(destination: URL(string: "https://github.com/RintedHLE/RintedHLE")!) {
+                        Label("RintedHLE Upstream", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
 
-                    Link(destination: URL(string: "https://github.com/HyperHLE/HyperHLE")!) {
-                        Label("HyperHLE Core", systemImage: "chevron.left.forwardslash.chevron.right")
+                    Link(destination: URL(string: "https://github.com/RintedHLE/RintedHLE")!) {
+                        Label("RintedHLE Core", systemImage: "chevron.left.forwardslash.chevron.right")
                     }
 
-                    Link(destination: URL(string: "https://appdb.touchhle.org/")!) {
+                    Link(destination: URL(string: "https://appdb.rintedhle.org/")!) {
                         Label("Game Compatibility", systemImage: "checkmark.seal")
                     }
                 } header: {

@@ -23,7 +23,7 @@
 //! Directories only need a corresponding directory in the host filesystem if
 //! they are writeable (i.e. if new files can be created in them).
 //!
-//! See also [crate::paths], which has paths for host files used by touchHLE.
+//! See also [crate::paths], which has paths for host files used by RintedHLE.
 
 mod bundle;
 
@@ -46,7 +46,7 @@ enum FileLocation {
     Path(PathBuf),
     /// Reference to a file inside a `.ipa` file (ZIP archive). Read only.
     IpaFileRef(IpaFileRef),
-    /// Name of a resource file bundled with touchHLE. Read only.
+    /// Name of a resource file bundled with RintedHLE. Read only.
     ResourceFilePath(String),
 }
 
@@ -202,7 +202,7 @@ impl GuestPath {
     /// It's easier to just use `&str`.
     ///
     /// Warning!
-    /// This function should only be used for internal touchHLE
+    /// This function should only be used for internal RintedHLE
     /// purposes.
     /// For Foundation case, use `[NSString stringByAppendingPathComponent:]`
     pub fn join<P: AsRef<str>>(&self, path: P) -> GuestPathBuf {
@@ -427,7 +427,7 @@ fn handle_open_err<T, E: std::fmt::Display, P: std::fmt::Debug>(
 ) -> T {
     match open_result {
         Ok(ok) => ok,
-        Err(e) => panic!("Unexpected I/O failure when trying to access real path {host_path:?}: {e}. This might indicate that files needed by touchHLE are missing, or were moved while it was running."),
+        Err(e) => panic!("Unexpected I/O failure when trying to access real path {host_path:?}: {e}. This might indicate that files needed by RintedHLE are missing, or were moved while it was running."),
     }
 }
 
@@ -437,7 +437,7 @@ fn handle_open_err<T, E: std::fmt::Display, P: std::fmt::Debug>(
 /// non-blocking kernel CSPRNG that draws from a single entropy pool and never
 /// returns an error or a short read (see the `random(4)` manual page). We
 /// mirror that behaviour by pulling bytes from the host operating system's own
-/// `/dev/urandom` when it exists (Android, Linux and macOS — touchHLE's primary
+/// `/dev/urandom` when it exists (Android, Linux and macOS — RintedHLE's primary
 /// targets), falling back to a seeded xorshift64* generator on hosts that lack
 /// the device (e.g. Windows) so a read can never fail.
 #[derive(Debug)]
@@ -937,7 +937,7 @@ impl Fs {
             }
         }
 
-        // Some Free Software libraries are bundled with touchHLE.
+        // Some Free Software libraries are bundled with RintedHLE.
         use paths::DYLIBS_DIR;
         let usr_lib = FsNode::dir()
             .with_child(

@@ -394,7 +394,7 @@ fn serialize_plist(env: &mut Environment, plist: id) -> Value {
     let date_class = env.objc.get_known_class("NSDate", &mut env.mem);
 
     if env.objc.class_is_subclass_of(class, dict_class) {
-        if !env.objc.get_class_name(class).starts_with("_touchHLE_NS") {
+        if !env.objc.get_class_name(class).starts_with("_RintedHLE_NS") {
             log!(
                 "Warning: serialize_plist: dictionary subclass {} is not our \
                  internal implementation; serializing as empty dict.",
@@ -420,7 +420,7 @@ fn serialize_plist(env: &mut Environment, plist: id) -> Value {
                 || !env
                     .objc
                     .get_class_name(key_class)
-                    .starts_with("_touchHLE_NS")
+                    .starts_with("_RintedHLE_NS")
             {
                 log!(
                     "Warning: serialize_plist: dropping non-string or external \
@@ -436,7 +436,7 @@ fn serialize_plist(env: &mut Environment, plist: id) -> Value {
         }
         Value::Dictionary(dict)
     } else if env.objc.class_is_subclass_of(class, arr_class) {
-        if !env.objc.get_class_name(class).starts_with("_touchHLE_NS") {
+        if !env.objc.get_class_name(class).starts_with("_RintedHLE_NS") {
             log!(
                 "Warning: serialize_plist: array subclass {} is not our internal \
                  implementation; serializing as empty array.",
@@ -454,7 +454,7 @@ fn serialize_plist(env: &mut Environment, plist: id) -> Value {
         *env.objc.borrow_mut(plist) = arr_host_obj;
         Value::Array(arr)
     } else if env.objc.class_is_subclass_of(class, str_class) {
-        if !env.objc.get_class_name(class).starts_with("_touchHLE_NS") {
+        if !env.objc.get_class_name(class).starts_with("_RintedHLE_NS") {
             log!(
                 "Warning: serialize_plist: string subclass {} is not our internal \
                  implementation; serializing as empty string.",

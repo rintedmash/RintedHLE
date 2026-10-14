@@ -1,5 +1,5 @@
 /*
- * FBSession stub for touchHLE
+ * FBSession stub for RintedHLE
  */
 
 use crate::objc::{id, msg, nil, objc_classes, ClassExports, HostObject, NSZonePtr};

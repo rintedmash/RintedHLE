@@ -5,7 +5,7 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_uchar};
 
-pub struct TouchHLEIOSGameMetadata {
+pub struct RintedHLEIOSGameMetadata {
     display_name: CString,
     bundle_identifier: CString,
     orientation_capabilities: u32,
@@ -18,8 +18,8 @@ fn c_string(value: String) -> CString {
     CString::new(value.replace('\0', "")).unwrap()
 }
 
-fn run_touchhle(args: Vec<String>) -> i32 {
-    touchHLE::clear_host_exit_request();
+fn run_rintedhle(args: Vec<String>) -> i32 {
+    RintedHLE::clear_host_exit_request();
 
     // The emulator runs on the main thread and this is called from
     // Objective-C. Letting a panic unwind past here is undefined behaviour at
@@ -28,41 +28,41 @@ fn run_touchhle(args: Vec<String>) -> i32 {
     // Turn it into an error return so the host can restore its UI and report
     // it.
     let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        touchHLE::main(args.into_iter())
+        RintedHLE::main(args.into_iter())
     }));
 
     match outcome {
         Ok(Ok(())) => 0,
         Ok(Err(error)) => {
-            eprintln!("touchHLE failed: {error}");
+            eprintln!("RintedHLE failed: {error}");
             1
         }
         Err(_) => {
-            eprintln!("touchHLE panicked; see the log above for the cause");
+            eprintln!("RintedHLE panicked; see the log above for the cause");
             2
         }
     }
 }
 
 #[no_mangle]
-pub extern "C" fn touchhle_ios_request_exit() {
-    touchHLE::request_host_exit();
+pub extern "C" fn rintedhle_ios_request_exit() {
+    RintedHLE::request_host_exit();
 }
 
 #[no_mangle]
-pub extern "C" fn touchhle_ios_current_fps() -> f32 {
-    touchHLE::host_fps()
+pub extern "C" fn rintedhle_ios_current_fps() -> f32 {
+    RintedHLE::host_fps()
 }
 
 #[no_mangle]
-pub extern "C" fn touchhle_ios_run() -> i32 {
-    run_touchhle(vec![String::new()])
+pub extern "C" fn rintedhle_ios_run() -> i32 {
+    run_rintedhle(vec![String::new()])
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn touchhle_ios_game_metadata_create(
+pub unsafe extern "C" fn rintedhle_ios_game_metadata_create(
     path: *const c_char,
-) -> *mut TouchHLEIOSGameMetadata {
+) -> *mut RintedHLEIOSGameMetadata {
     if path.is_null() {
         return std::ptr::null_mut();
     }
@@ -71,7 +71,7 @@ pub unsafe extern "C" fn touchhle_ios_game_metadata_create(
         Ok(path) => std::path::Path::new(path),
         Err(_) => return std::ptr::null_mut(),
     };
-    let metadata = match std::panic::catch_unwind(|| touchHLE::inspect_host_app(path)) {
+    let metadata = match std::panic::catch_unwind(|| RintedHLE::inspect_host_app(path)) {
         Ok(Ok(metadata)) => metadata,
         Ok(Err(error)) => {
             eprintln!("Could not inspect game metadata: {error}");
@@ -83,7 +83,7 @@ pub unsafe extern "C" fn touchhle_ios_game_metadata_create(
         }
     };
 
-    Box::into_raw(Box::new(TouchHLEIOSGameMetadata {
+    Box::into_raw(Box::new(RintedHLEIOSGameMetadata {
         display_name: c_string(metadata.display_name),
         bundle_identifier: c_string(metadata.bundle_identifier),
         orientation_capabilities: metadata.orientation_capabilities,
@@ -94,8 +94,8 @@ pub unsafe extern "C" fn touchhle_ios_game_metadata_create(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn touchhle_ios_game_metadata_display_name(
-    metadata: *const TouchHLEIOSGameMetadata,
+pub unsafe extern "C" fn rintedhle_ios_game_metadata_display_name(
+    metadata: *const RintedHLEIOSGameMetadata,
 ) -> *const c_char {
     metadata
         .as_ref()
@@ -103,8 +103,8 @@ pub unsafe extern "C" fn touchhle_ios_game_metadata_display_name(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn touchhle_ios_game_metadata_bundle_identifier(
-    metadata: *const TouchHLEIOSGameMetadata,
+pub unsafe extern "C" fn rintedhle_ios_game_metadata_bundle_identifier(
+    metadata: *const RintedHLEIOSGameMetadata,
 ) -> *const c_char {
     metadata.as_ref().map_or(std::ptr::null(), |metadata| {
         metadata.bundle_identifier.as_ptr()
@@ -112,8 +112,8 @@ pub unsafe extern "C" fn touchhle_ios_game_metadata_bundle_identifier(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn touchhle_ios_game_metadata_orientation_capabilities(
-    metadata: *const TouchHLEIOSGameMetadata,
+pub unsafe extern "C" fn rintedhle_ios_game_metadata_orientation_capabilities(
+    metadata: *const RintedHLEIOSGameMetadata,
 ) -> u32 {
     metadata
         .as_ref()
@@ -121,8 +121,8 @@ pub unsafe extern "C" fn touchhle_ios_game_metadata_orientation_capabilities(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn touchhle_ios_game_metadata_icon_rgba(
-    metadata: *const TouchHLEIOSGameMetadata,
+pub unsafe extern "C" fn rintedhle_ios_game_metadata_icon_rgba(
+    metadata: *const RintedHLEIOSGameMetadata,
 ) -> *const c_uchar {
     metadata
         .as_ref()
@@ -130,28 +130,28 @@ pub unsafe extern "C" fn touchhle_ios_game_metadata_icon_rgba(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn touchhle_ios_game_metadata_icon_width(
-    metadata: *const TouchHLEIOSGameMetadata,
+pub unsafe extern "C" fn rintedhle_ios_game_metadata_icon_width(
+    metadata: *const RintedHLEIOSGameMetadata,
 ) -> u32 {
     metadata.as_ref().map_or(0, |metadata| metadata.icon_width)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn touchhle_ios_game_metadata_icon_height(
-    metadata: *const TouchHLEIOSGameMetadata,
+pub unsafe extern "C" fn rintedhle_ios_game_metadata_icon_height(
+    metadata: *const RintedHLEIOSGameMetadata,
 ) -> u32 {
     metadata.as_ref().map_or(0, |metadata| metadata.icon_height)
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn touchhle_ios_game_metadata_free(metadata: *mut TouchHLEIOSGameMetadata) {
+pub unsafe extern "C" fn rintedhle_ios_game_metadata_free(metadata: *mut RintedHLEIOSGameMetadata) {
     if !metadata.is_null() {
         drop(Box::from_raw(metadata));
     }
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn touchhle_ios_run_game(
+pub unsafe extern "C" fn rintedhle_ios_run_game(
     path: *const c_char,
     scale_hack: i32,
     orientation: i32,
@@ -159,19 +159,19 @@ pub unsafe extern "C" fn touchhle_ios_run_game(
     analog_stick_tilt_controls: i32,
 ) -> i32 {
     if path.is_null() {
-        eprintln!("touchHLE failed: game path was null");
+        eprintln!("RintedHLE failed: game path was null");
         return 1;
     }
 
     let path = match CStr::from_ptr(path).to_str() {
         Ok(path) => path.to_owned(),
         Err(error) => {
-            eprintln!("touchHLE failed: game path was not UTF-8: {error}");
+            eprintln!("RintedHLE failed: game path was not UTF-8: {error}");
             return 1;
         }
     };
 
-    let mut args = vec!["touchHLE".to_owned(), path];
+    let mut args = vec!["RintedHLE".to_owned(), path];
 
     if (1..=4).contains(&scale_hack) {
         args.push(format!("--scale-hack={scale_hack}"));
@@ -191,5 +191,5 @@ pub unsafe extern "C" fn touchhle_ios_run_game(
         args.push("--disable-analog-stick-tilt-controls".to_owned());
     }
 
-    run_touchhle(args)
+    run_rintedhle(args)
 }

@@ -548,7 +548,7 @@ impl Mem {
                 // Insert a sentinel to emit the notice only once.
                 set.insert(0xFFFF_FFFE);
                 log!(
-                    "touchHLE::mem: further NULL-PAGE {} warnings silenced \
+                    "RintedHLE::mem: further NULL-PAGE {} warnings silenced \
                      after {} unique sites",
                     if is_write { "WRITE" } else { "READ" },
                     MAX_UNIQUE_LOGS
@@ -561,7 +561,7 @@ impl Mem {
             // Huge size is almost always a corrupted/-1 length; capture a
             // backtrace to identify the offending host function.
             log!(
-                "touchHLE::mem: backtrace for huge-size NULL-PAGE/OOB access:\n{}",
+                "RintedHLE::mem: backtrace for huge-size NULL-PAGE/OOB access:\n{}",
                 std::backtrace::Backtrace::force_capture()
             );
         }
@@ -578,7 +578,7 @@ impl Mem {
             " — returning stub page"
         };
         log!(
-            "touchHLE::mem: NULL-PAGE {} at 0x{:08x} (size: 0x{:x}) from {}{} \
+            "RintedHLE::mem: NULL-PAGE {} at 0x{:08x} (size: 0x{:x}) from {}{} \
              (unique sites logged: {}/{})",
             op_type,
             at,
@@ -613,7 +613,7 @@ impl Mem {
         let thread = crate::environment::LAST_HOST_CALL_THREAD.load(Ordering::Relaxed);
         let symbol = Self::last_host_call_symbol();
         log!(
-            "touchHLE::mem:   guest PC={:#x} LR={:#x} (thread {}); host fn \
+            "RintedHLE::mem:   guest PC={:#x} LR={:#x} (thread {}); host fn \
              {} called with:{}; code at PC: [{}]; code at LR: [{}]",
             guest_pc,
             guest_lr,
@@ -624,7 +624,7 @@ impl Mem {
             Self::guest_code_dump(mem, guest_lr)
         );
         log!(
-            "touchHLE::mem:   host backtrace:\n{}",
+            "RintedHLE::mem:   host backtrace:\n{}",
             std::backtrace::Backtrace::force_capture()
         );
     }
@@ -878,7 +878,7 @@ impl Mem {
     }
 
     /// Returns whether a host pointer addresses a location inside the guest's
-    /// memory region. Used to sanity-check pointers that touchHLE hands to host
+    /// memory region. Used to sanity-check pointers that RintedHLE hands to host
     /// APIs (e.g. client-side OpenGL vertex arrays): a pointer outside this
     /// range is wild and dereferencing it on the host would crash the emulator.
     pub fn is_host_ptr_in_guest_mem(&self, host_ptr: *const std::ffi::c_void) -> bool {

@@ -3,18 +3,18 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
-//! Paths for host files used by touchHLE: settings, fonts, etc.
+//! Paths for host files used by RintedHLE: settings, fonts, etc.
 //!
 //! There are three categories of files:
 //!
-//! * Resources bundled with touchHLE that neither touchHLE nor the user should
+//! * Resources bundled with RintedHLE that neither RintedHLE nor the user should
 //!   modify: [DYLIBS_DIR], [FONTS_DIR], [DEFAULT_OPTIONS_FILE]. Depending on
 //!   the platform these may or may not be ordinary files, and must be accessed
 //!   through [ResourceFile].
-//! * Files the user is expected to modify, but not touchHLE: [APPS_DIR],
+//! * Files the user is expected to modify, but not RintedHLE: [APPS_DIR],
 //!   [USER_OPTIONS_FILE], [WALLPAPER_FILES]. These are ordinary files and are
 //!   found in [user_data_base_path].
-//! * Files that touchHLE will create and modify, and the user may modify if
+//! * Files that RintedHLE will create and modify, and the user may modify if
 //!   they want to: [SANDBOX_DIR], [PHOTO_ALBUM_DIR].
 //!   These are ordinary files and are found in [user_data_base_path].
 //!
@@ -26,30 +26,30 @@ use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 
 /// Name of the directory containing ARMv6 dynamic libraries bundled with
-/// touchHLE.
-pub const DYLIBS_DIR: &str = "touchHLE_dylibs";
+/// RintedHLE.
+pub const DYLIBS_DIR: &str = "RintedHLE_dylibs";
 
-/// Name of the directory containing fonts bundled with touchHLE.
-pub const FONTS_DIR: &str = "touchHLE_fonts";
+/// Name of the directory containing fonts bundled with RintedHLE.
+pub const FONTS_DIR: &str = "RintedHLE_fonts";
 
-/// Name of the file containing touchHLE's default options for various apps.
-pub const DEFAULT_OPTIONS_FILE: &str = "touchHLE_default_options.txt";
+/// Name of the file containing RintedHLE's default options for various apps.
+pub const DEFAULT_OPTIONS_FILE: &str = "RintedHLE_default_options.txt";
 
 /// The default options file to actually read.
 ///
 /// A host that ships more than one emulator core needs one file per core: the
 /// cores understand different options, and an option a core does not recognise
-/// aborts the launch. The iOS host sets `TOUCHHLE_DEFAULT_OPTIONS_FILE` to the
+/// aborts the launch. The iOS host sets `RINTEDHLE_DEFAULT_OPTIONS_FILE` to the
 /// file belonging to the core it loaded.
 pub fn default_options_file() -> String {
-    std::env::var("TOUCHHLE_DEFAULT_OPTIONS_FILE")
+    std::env::var("RINTEDHLE_DEFAULT_OPTIONS_FILE")
         .ok()
         .filter(|name| !name.is_empty())
         .unwrap_or_else(|| DEFAULT_OPTIONS_FILE.to_string())
 }
 
-/// On Apple hosts, if touchHLE is located in an app bundle, return its resource
-/// path. If touchHLE is not located in an app bundle, return
+/// On Apple hosts, if RintedHLE is located in an app bundle, return its resource
+/// path. If RintedHLE is not located in an app bundle, return
 /// [None].
 #[allow(dead_code)]
 fn get_bundled_resources_path() -> Option<PathBuf> {
@@ -65,7 +65,7 @@ fn get_bundled_resources_path() -> Option<PathBuf> {
 }
 
 /// Abstraction over a platform-specific type for accessing a resource bundled
-/// with touchHLE.
+/// with RintedHLE.
 pub struct ResourceFile {
     #[cfg(target_os = "android")]
     file: sdl2::rwops::RWops<'static>,
@@ -101,37 +101,37 @@ impl std::fmt::Debug for ResourceFile {
 }
 
 /// Whether various resources are in user-accessible files. If they aren't,
-/// touchHLE has to be able to display their license terms.
+/// RintedHLE has to be able to display their license terms.
 pub const RESOURCES_ARE_EXTERNAL_FILES: bool =
     cfg!(not(any(target_os = "android", target_os = "ios")));
 
 /// Name of the directory where the user can put apps if they want them to
 /// appear in the app picker.
-pub const APPS_DIR: &str = "touchHLE_apps";
+pub const APPS_DIR: &str = "RintedHLE_apps";
 
 /// Name of the file intended for the user's own options.
-pub const USER_OPTIONS_FILE: &str = "touchHLE_options.txt";
+pub const USER_OPTIONS_FILE: &str = "RintedHLE_options.txt";
 
 /// Names of files the user can put a wallpaper image (for the app picker) in.
 #[allow(unused)]
 pub const WALLPAPER_FILES: &[&str] = &[
-    "touchHLE_wallpaper.png",
-    "touchHLE_wallpaper.jpg",
-    "touchHLE_wallpaper.jpeg",
+    "RintedHLE_wallpaper.png",
+    "RintedHLE_wallpaper.jpg",
+    "RintedHLE_wallpaper.jpeg",
 ];
 
-/// Name of the directory where touchHLE will store sandboxed app data, e.g.
+/// Name of the directory where RintedHLE will store sandboxed app data, e.g.
 /// the `Documents` directory.
-pub const SANDBOX_DIR: &str = "touchHLE_sandbox";
+pub const SANDBOX_DIR: &str = "RintedHLE_sandbox";
 
 /// Name of the directory where redirected/exported SQLite databases live.
-pub const SQLITE_DIR: &str = "touchHLE_sqlite";
+pub const SQLITE_DIR: &str = "RintedHLE_sqlite";
 
-/// Name of the directory where touchHLE will store IMG_####.PNG files saved to
+/// Name of the directory where RintedHLE will store IMG_####.PNG files saved to
 /// the Photo Album.
 pub const PHOTO_ALBUM_DIR: &str = "DCIM/100APPLE";
 
-/// Get a platform-specific base path needed for accessing touchHLE's
+/// Get a platform-specific base path needed for accessing RintedHLE's
 /// user-modifiable files. This is empty on platforms other than Android.
 pub fn user_data_base_path() -> Cow<'static, Path> {
     #[cfg(target_os = "android")]
@@ -162,12 +162,12 @@ pub fn user_data_base_path() -> Cow<'static, Path> {
             return Cow::from(PathBuf::from(home).join("Documents"));
         }
 
-        // When touchHLE is run from a .app bundle on macOS, the user might not
+        // When RintedHLE is run from a .app bundle on macOS, the user might not
         // be able to control the current directory, so user data needs to go in
         // a standard location.
         if get_bundled_resources_path().is_some() {
             return Cow::from(PathBuf::from(
-                sdl2::filesystem::pref_path("touchhle.org", "touchHLE").unwrap(),
+                sdl2::filesystem::pref_path("rintedhle.org", "RintedHLE").unwrap(),
             ));
         }
         Cow::from(Path::new("."))
@@ -181,7 +181,7 @@ pub fn url_for_opening_user_data_dir() -> Result<String, String> {
         // See DocumentsProvider.kt, app/build.gradle and AndroidManifest.xml
         let brand = crate::branding();
         Ok(format!(
-            "content://org.touchhle.android{}{}.provider/root/root",
+            "content://org.rintedhle.android{}{}.provider/root/root",
             if brand.is_empty() { "" } else { "." },
             brand.to_lowercase()
         ))
@@ -211,7 +211,7 @@ pub fn url_for_opening_apps_dir() -> Result<String, String> {
     } else if std::env::consts::OS == "android" {
         let brand = crate::branding();
         Ok(format!(
-            "content://org.touchhle.android{}{}.provider/root/root/{}",
+            "content://org.rintedhle.android{}{}.provider/root/root/{}",
             if brand.is_empty() { "" } else { "." },
             brand.to_lowercase(),
             APPS_DIR
@@ -236,7 +236,7 @@ pub fn url_for_opening_apps_dir() -> Result<String, String> {
 /// cache was removed (both the in-memory tier and this on-disk tier) because
 /// decoded RGBA8 entries used a lot of host memory and disk space.
 pub fn remove_legacy_pvrtc_disk_cache() {
-    let dir = user_data_base_path().join("touchHLE_pvrtc_cache");
+    let dir = user_data_base_path().join("RintedHLE_pvrtc_cache");
     if dir.exists() {
         match std::fs::remove_dir_all(&dir) {
             Ok(()) => log!("Removed legacy PVRTC disk cache directory {}", dir.display()),
@@ -251,7 +251,7 @@ pub fn remove_legacy_pvrtc_disk_cache() {
 
 /// Only meaningful on certain OSes: create the user data directory if it
 /// doesn't exist, and populate it with templates or README files. (On other
-/// platforms these are simply bundled with touchHLE in a ZIP file.)
+/// platforms these are simply bundled with RintedHLE in a ZIP file.)
 pub fn prepopulate_user_data_dir() {
     if !matches!(std::env::consts::OS, "android" | "ios" | "macos") {
         return;
@@ -319,14 +319,14 @@ pub fn prepopulate_user_data_dir() {
     if !apps_dir_readme.is_file() {
         let content = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/touchHLE_apps/README.txt"
+            "/RintedHLE_apps/README.txt"
         ));
         create_file(&apps_dir_readme, content);
     }
 
     let user_options = base_path.join(USER_OPTIONS_FILE);
     if !user_options.is_file() {
-        let content = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/touchHLE_options.txt"));
+        let content = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/RintedHLE_options.txt"));
         create_file(&user_options, content);
     }
 

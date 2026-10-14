@@ -11,7 +11,7 @@
 //! <https://developer.apple.com/documentation/glkit/glkview>
 //! <https://developer.apple.com/documentation/glkit/glkviewcontroller>
 //!
-//! touchHLE does not implement the full GLKit stack, but apps built against
+//! RintedHLE does not implement the full GLKit stack, but apps built against
 //! iOS 5+ commonly link the framework and allocate these classes at startup
 //! (previously this hit the `UnimplementedClass` "SUPER HACK" warning and
 //! left the app without a working render loop). This module provides real
@@ -210,7 +210,7 @@ pub fn GLKMatrix4Invert(
 ) -> GLKMatrix4 {
     static TRACE_COUNT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
     let (inverse, invertible) = invert_matrix4(matrix);
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_GLK")
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_GLK")
         && TRACE_COUNT.fetch_add(1, std::sync::atomic::Ordering::Relaxed) < 8
     {
         log!(
@@ -384,7 +384,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 - (())bindDrawable {
     // Apple docs: binds the underlying framebuffer object so the app can
-    // render into it. touchHLE's EAGL path renders straight into the
+    // render into it. RintedHLE's EAGL path renders straight into the
     // app's own framebuffer/renderbuffer objects, so there is no separate
     // GLKit-managed FBO to bind here.
     log_dbg!("[(GLKView*){:?} bindDrawable] (no-op)", this);

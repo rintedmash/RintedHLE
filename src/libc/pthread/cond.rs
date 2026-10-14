@@ -120,7 +120,7 @@ fn check_or_register_cond(env: &mut Environment, cond: MutPtr<pthread_cond_t>) -
 
 /// Debug: log distinct (thread, op, cond, lr) tuples.
 fn cond_trace(env: &Environment, op: &str, cond: MutPtr<pthread_cond_t>) {
-    if !crate::env_flag_cached!("TOUCHHLE_TRACE_COND") {
+    if !crate::env_flag_cached!("RINTEDHLE_TRACE_COND") {
         return;
     }
     use std::sync::Mutex;

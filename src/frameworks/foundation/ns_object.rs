@@ -43,7 +43,7 @@ pub static DYNAMIC_KVC_STORAGE: Mutex<Vec<(u32, String, u32)>> = Mutex::new(Vec:
 
 // Side-channel storage for `performSelectorOnMainThread:withObject:waitUntilDone:YES` requests
 // scheduled from background threads. Each entry maps a pending NSTimer's id to the host semaphore
-// the background thread is blocked on, so that `_touchHLE_timerFireMethod:` can post the
+// the background thread is blocked on, so that `_RintedHLE_timerFireMethod:` can post the
 // semaphore once the selector has finished running on the main thread. Without this, the
 // `waitUntilDone:YES` argument is effectively ignored and background threads race ahead of the
 // scheduled selector — this manifests, for example, as Call of Duty: Zombies' Marmalade-based
@@ -196,7 +196,7 @@ fn perform_selector_on_thread(
     let user_info = dict_from_keys_and_objects(env, &[(sel_key, sel_str), (arg_key, argument)]);
     let fire_selector = env
         .objc
-        .lookup_selector("_touchHLE_timerFireMethod:")
+        .lookup_selector("_RintedHLE_timerFireMethod:")
         .unwrap();
     let timer: id = msg_class![env;
         NSTimer timerWithTimeInterval:(0.0 as NSTimeInterval)
@@ -389,7 +389,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     let sel_str = selector.as_str(&env.mem);
     let explicit_args = sel_str.chars().filter(|&c| c == ':').count() as NSUInteger;
     let total_args = explicit_args + 2;
-    () = msg![env; sig _touchHLE_setNumberOfArguments:total_args];
+    () = msg![env; sig _RintedHLE_setNumberOfArguments:total_args];
     sig
 }
 
@@ -739,7 +739,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 - (u32)methodForSelector:(SEL)selector {
     let class = crate::objc::ObjC::read_isa(this, &env.mem);
     let implementation = crate::objc::class_getMethodImplementation(env, class, selector);
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_METHOD_FOR_SELECTOR") {
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_METHOD_FOR_SELECTOR") {
         let class_name = env.objc.get_class_name(class).to_owned();
         let selector_name = selector.as_str(&env.mem);
         log!(
@@ -758,7 +758,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     let sel_str = selector.as_str(&env.mem);
     let explicit_args = sel_str.chars().filter(|&c| c == ':').count() as NSUInteger;
     let total_args = explicit_args + 2;
-    () = msg![env; sig _touchHLE_setNumberOfArguments:total_args];
+    () = msg![env; sig _RintedHLE_setNumberOfArguments:total_args];
     sig
 }
 
@@ -811,7 +811,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     let arg_key: id = get_static_str(env, "arg");
     let dict = dict_from_keys_and_objects(env, &[(sel_key, sel_str), (arg_key, arg)]);
 
-    let selector = env.objc.lookup_selector("_touchHLE_timerFireMethod:").unwrap();
+    let selector = env.objc.lookup_selector("_RintedHLE_timerFireMethod:").unwrap();
     let timer:id = msg_class![env;
         NSTimer timerWithTimeInterval:delay
                                target:this
@@ -879,7 +879,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     if wait {
         // `waitUntilDone:YES` from a background thread: schedule the selector to run on the main
         // thread and block the calling thread on a host semaphore that
-        // `_touchHLE_timerFireMethod:` will post once the selector has finished executing.
+        // `_RintedHLE_timerFireMethod:` will post once the selector has finished executing.
         //
         // Games such as Call of Duty: Zombies (Marmalade SDK) rely on this synchronisation to
         // safely hand work off to the main thread via an `s3eAppDelegate.m_Func` slot: the
@@ -899,7 +899,7 @@ pub const CLASSES: ClassExports = objc_classes! {
         let arg_key: id = get_static_str(env, "arg");
         let dict = dict_from_keys_and_objects(env, &[(sel_key, sel_str), (arg_key, arg)]);
 
-        let fire_selector = env.objc.lookup_selector("_touchHLE_timerFireMethod:").unwrap();
+        let fire_selector = env.objc.lookup_selector("_RintedHLE_timerFireMethod:").unwrap();
         let timer: id = msg_class![env;
             NSTimer timerWithTimeInterval:(0.0 as NSTimeInterval)
                                    target:this
@@ -930,7 +930,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     msg![env; this performSelector:sel withObject:arg afterDelay:0.0]
 }
 
-- (())_touchHLE_timerFireMethod:(id)which {
+- (())_RintedHLE_timerFireMethod:(id)which {
     // Pull out any semaphore associated with this timer up-front so we can
     // always post it before returning, regardless of how this method exits.
     // (If we returned early without posting, a thread blocked in
@@ -966,10 +966,10 @@ pub const CLASSES: ClassExports = objc_classes! {
                 .borrow::<crate::frameworks::foundation::ns_timer::NSTimerHostObject>(which);
             (host.target, host.selector, host.repeats, host.due_by.is_some())
         };
-        let fire_sel = env.objc.lookup_selector("_touchHLE_timerFireMethod:").unwrap();
+        let fire_sel = env.objc.lookup_selector("_RintedHLE_timerFireMethod:").unwrap();
         if t_valid && t_target != nil && !t_selector.is_null() && t_selector != fire_sel {
             log_dbg!(
-                "_touchHLE_timerFireMethod: timer {:?} has no userInfo selector; \
+                "_RintedHLE_timerFireMethod: timer {:?} has no userInfo selector; \
                  firing its own selector {} instead.",
                 which,
                 t_selector.as_str(&env.mem)
@@ -982,7 +982,7 @@ pub const CLASSES: ClassExports = objc_classes! {
             }
         } else {
             log_dbg!(
-                "_touchHLE_timerFireMethod: timer {:?} has no stored selector; skipping.",
+                "_RintedHLE_timerFireMethod: timer {:?} has no stored selector; skipping.",
                 which
             );
         }

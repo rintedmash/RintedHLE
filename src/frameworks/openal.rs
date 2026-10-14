@@ -248,13 +248,13 @@ fn alcGetString(
     // call `alcGetString` from inside their audio update loop —
     // allocating a fresh guest cstr each time leaks an unbounded
     // amount of guest memory until the heap is exhausted, which on
-    // Android (where touchHLE has a small fixed guest address space)
+    // Android (where RintedHLE has a small fixed guest address space)
     // crashes the emulator after a few minutes of play.
     //
     // We key the cache on `(device, param)` because the spec lets
     // device-bound queries (`ALC_DEVICE_SPECIFIER`, `ALC_EXTENSIONS`,
     // ...) return a string that depends on the device identity. We
-    // collapse the `device` half to "null" / "non-null" since touchHLE
+    // collapse the `device` half to "null" / "non-null" since RintedHLE
     // exposes exactly one host device per guest device anyway and the
     // contents-of-the-string are the same.
     let cache_key = (
@@ -1344,7 +1344,7 @@ fn alcIsExtensionPresent(
 //   plus `alcMacOSXRenderingQuality` / `alcMacOSXGetRenderingQuality`.
 // - <https://developer.apple.com/library/archive/technotes/tn2199/_index.html>
 //
-// touchHLE backs onto stock OpenAL Soft, which doesn't implement these
+// RintedHLE backs onto stock OpenAL Soft, which doesn't implement these
 // Apple-specific extensions. Per the extension specifications the
 // canonical "not supported" return is AL_NO_ERROR / 0 with the
 // requested data left zeroed — apps detect feature presence via

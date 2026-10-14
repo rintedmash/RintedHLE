@@ -405,7 +405,7 @@ impl MotionFilter {
     }
 
     /// One filter step; `now` is the current instant, `allow_gyro` disables
-    /// integration for the TOUCHHLE_NO_MOTION_GYRO diagnostic mode.
+    /// integration for the RINTEDHLE_NO_MOTION_GYRO diagnostic mode.
     /// Returns (gravity estimate, user acceleration), both device frame.
     fn step(
         &mut self,
@@ -1036,7 +1036,7 @@ const CLASSES: ClassExports = objc_classes! {
 
 // `-[CMMotionManager isMagnetometerActive]` — per
 // <https://developer.apple.com/documentation/coremotion/cmmotionmanager/1616080-magnetometeractive>.
-// touchHLE never enables the magnetometer (we report `isMagnetometerAvailable`
+// RintedHLE never enables the magnetometer (we report `isMagnetometerAvailable`
 // as `NO`), so this always returns `NO`. Apple's documentation requires
 // the property be queryable even when the hardware is absent.
 - (bool)isMagnetometerActive {
@@ -1145,10 +1145,10 @@ const CLASSES: ClassExports = objc_classes! {
     let (attitude_q, gravity_g, user_g) = {
         let accel_t = (accel.x, accel.y, accel.z);
         let gyro_t = (rotation_rate.x, rotation_rate.y, rotation_rate.z);
-        // Diagnostic escape hatch: with TOUCHHLE_NO_MOTION_GYRO set, gyro
+        // Diagnostic escape hatch: with RINTEDHLE_NO_MOTION_GYRO set, gyro
         // integration is disabled (useful on hosts whose gyro signal is
         // unusable; gravity-only operation then applies).
-        let allow_gyro = !crate::env_flag_cached!("TOUCHHLE_NO_MOTION_GYRO");
+        let allow_gyro = !crate::env_flag_cached!("RINTEDHLE_NO_MOTION_GYRO");
         let host = env.objc.borrow_mut::<CMMotionManagerHostObject>(this);
         let filter = host
             .attitude_state

@@ -179,7 +179,7 @@ pub struct ifaddrs {
     pub ifa_data: u32,
 }
 // SAFETY: the struct is plain data; every field is either a scalar or a guest
-// pointer that touchHLE's pointer type already validates.
+// pointer that RintedHLE's pointer type already validates.
 unsafe impl SafeRead for ifaddrs {}
 
 // ---------------------------------------------------------------------------
@@ -338,7 +338,7 @@ const IF_NAMESIZE: usize = 16;
 // Fake interface table
 // ---------------------------------------------------------------------------
 //
-// touchHLE doesn't expose host networking to the guest (`getifaddrs()`
+// RintedHLE doesn't expose host networking to the guest (`getifaddrs()`
 // returns an empty list), but a completely empty interface table breaks
 // some apps: e.g. Turbo Dismount's prime31 SocialNetworking plugin calls
 // `if_nametoindex()` on a Wi-Fi/3G probe, treats a 0 return as a hard

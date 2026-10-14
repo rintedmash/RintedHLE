@@ -3,7 +3,7 @@ set -eu
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 REPO=$(CDPATH= cd -- "$ROOT/../.." && pwd)
-APP="$REPO/build/host-iphoneos/Build/Products/Release-iphoneos/HyperHLE.app"
+APP="$REPO/build/host-iphoneos/Build/Products/Release-iphoneos/RintedHLE.app"
 
 # Packaging modes:
 #
@@ -60,15 +60,15 @@ done
 case "$MODE" in
     unsigned)
         ENTITLEMENTS=
-        DEFAULT_OUTPUT="$REPO/dist/HyperHLE-iOS-unsigned.ipa"
+        DEFAULT_OUTPUT="$REPO/dist/RintedHLE-iOS-unsigned.ipa"
         ;;
     trollstore)
-        ENTITLEMENTS="$ROOT/Config/TouchHLEHost-TrollStore.entitlements"
-        DEFAULT_OUTPUT="$REPO/dist/HyperHLE-iOS-trollstore.ipa"
+        ENTITLEMENTS="$ROOT/Config/RintedHLEHost-TrollStore.entitlements"
+        DEFAULT_OUTPUT="$REPO/dist/RintedHLE-iOS-trollstore.ipa"
         ;;
     permanent)
-        ENTITLEMENTS="$ROOT/Config/TouchHLEHost-TrollStore-PermanentJIT.entitlements"
-        DEFAULT_OUTPUT="$REPO/dist/HyperHLE-iOS-trollstore-permanent-jit.ipa"
+        ENTITLEMENTS="$ROOT/Config/RintedHLEHost-TrollStore-PermanentJIT.entitlements"
+        DEFAULT_OUTPUT="$REPO/dist/RintedHLE-iOS-trollstore-permanent-jit.ipa"
         ;;
 esac
 
@@ -108,24 +108,24 @@ if codesign -dv "$APP" >/dev/null 2>&1; then
     exit 1
 fi
 
-STAGE=$(mktemp -d "${TMPDIR:-/tmp}/hyperhle-ipa.XXXXXX")
+STAGE=$(mktemp -d "${TMPDIR:-/tmp}/rintedhle-ipa.XXXXXX")
 trap 'rm -rf "$STAGE"' EXIT HUP INT TERM
 
 mkdir -p "$STAGE/Payload" "$(dirname -- "$OUTPUT")"
-ditto "$APP" "$STAGE/Payload/HyperHLE.app"
+ditto "$APP" "$STAGE/Payload/RintedHLE.app"
 STRIP_TOOL=$(xcrun --find strip)
-"$STRIP_TOOL" -S -x "$STAGE/Payload/HyperHLE.app/HyperHLE"
+"$STRIP_TOOL" -S -x "$STAGE/Payload/RintedHLE.app/RintedHLE"
 
 if [ -n "$ENTITLEMENTS" ]; then
-    ldid "-S$ENTITLEMENTS" "$STAGE/Payload/HyperHLE.app/HyperHLE"
+    ldid "-S$ENTITLEMENTS" "$STAGE/Payload/RintedHLE.app/RintedHLE"
     echo "Fakesigned with entitlements from $ENTITLEMENTS"
 fi
 
 (
     cd "$STAGE"
-    /usr/bin/zip -qry "$STAGE/HyperHLE.ipa" Payload
+    /usr/bin/zip -qry "$STAGE/RintedHLE.ipa" Payload
 )
-mv -f "$STAGE/HyperHLE.ipa" "$OUTPUT"
+mv -f "$STAGE/RintedHLE.ipa" "$OUTPUT"
 
 if [ -n "$ENTITLEMENTS" ]; then
     echo "Created fakesigned IPA: $OUTPUT"

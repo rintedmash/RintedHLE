@@ -114,9 +114,9 @@ int test_performSelectorOnMainThread_mainThreadDeferred(void) {
 int test_UIApplication_canOpenURL_own_registered_scheme(void) {
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   UIApplication *application = [[UIApplication alloc] init];
-  NSURL *registered = [NSURL URLWithString:@"HYPERHLE-TEST://callback"];
+  NSURL *registered = [NSURL URLWithString:@"RINTEDHLE-TEST://callback"];
   NSURL *unregistered =
-      [NSURL URLWithString:@"hyperhle-unregistered://callback"];
+      [NSURL URLWithString:@"rintedhle-unregistered://callback"];
   if (application == nil || registered == nil || unregistered == nil) {
     [pool drain];
     return -1;
@@ -134,7 +134,7 @@ int test_UIApplication_canOpenURL_own_registered_scheme(void) {
 }
 
 int test_NSBundle_subbundleCacheRetainsAutoreleasedBundle(void) {
-  NSString *identifier = @"org.touchhle.TestResources";
+  NSString *identifier = @"org.rintedhle.TestResources";
   NSAutoreleasePool *innerPool = [[NSAutoreleasePool alloc] init];
   NSString *path = [[NSBundle mainBundle] pathForResource:@"TestResources"
                                                    ofType:@"bundle"];
@@ -4995,10 +4995,10 @@ int test_NSString_stringByReplacingOccurrencesOfString() {
   // Simple replacement
   NSString *str = [NSString stringWithUTF8String:"hello world"];
   NSString *target = [NSString stringWithUTF8String:"world"];
-  NSString *replacement = [NSString stringWithUTF8String:"touchHLE"];
+  NSString *replacement = [NSString stringWithUTF8String:"RintedHLE"];
   NSString *res = [str stringByReplacingOccurrencesOfString:target
                                                  withString:replacement];
-  NSString *expected = [NSString stringWithUTF8String:"hello touchHLE"];
+  NSString *expected = [NSString stringWithUTF8String:"hello RintedHLE"];
   if (![res isEqualToString:expected]) {
     [pool drain];
     return -1;

@@ -50,7 +50,7 @@
 
 /*
  * No-op replacement for the default xmlGenericErrorFunc.  libxml2 calls
- * this with printf-style variadic arguments; we drop them so the touchHLE
+ * this with printf-style variadic arguments; we drop them so the RintedHLE
  * console doesn't get spammed with parse errors that the guest can still
  * retrieve via xmlGetLastError().
  */

@@ -7,7 +7,7 @@
 //! Quick-and-dirty decoding of miscellaneous formats (MP3, AAC, CAF) to linear
 //! PCM.
 //!
-//! This should be the only module in touchHLE that makes use of [symphonia].
+//! This should be the only module in RintedHLE that makes use of [symphonia].
 //!
 //! Note on the Symphonia 0.6 API (which differs substantially from 0.5):
 //!

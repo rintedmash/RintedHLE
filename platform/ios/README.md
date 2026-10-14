@@ -1,27 +1,27 @@
-# HyperHLE for iOS
+# RintedHLE for iOS
 
-A native iOS app that runs the HyperHLE core on modern iPhones and iPads. It
+A native iOS app that runs the RintedHLE core on modern iPhones and iPads. It
 plays supported 32-bit iPhone OS games through high-level emulation and the
 Dynarmic JIT. No games or Apple software are included.
 
 The iOS app, its build scripts and its packaging come from
 [Applesauce](https://github.com/johnny901901901/Applesauce), an unaffiliated
-iOS port of touchHLE and HyperHLE. This directory is that host app, rebranded
+iOS port of RintedHLE and RintedHLE. This directory is that host app, rebranded
 and built against this repository's core. Applesauce is not connected to this
 fork, so report problems here rather than there.
 
 ## Downloads
 
-Every run of the [HyperHLE CI workflow](https://github.com/KlugKlugTG/HyperHLE-Fork/actions/workflows/HyperHLE_release.yml)
+Every run of the [RintedHLE CI workflow](https://github.com/rintedmash/RintedHLE/actions/workflows/RintedHLE_release.yml)
 uploads the three IPAs below as separate artifacts, and
-[releases](https://github.com/KlugKlugTG/HyperHLE-Fork/releases) attach them
+[releases](https://github.com/rintedmash/RintedHLE/releases) attach them
 too:
 
 | Your iOS | IPA | How JIT gets enabled |
 | --- | --- | --- |
-| 17.4 or newer | `HyperHLE-iOS-unsigned.ipa` | Sideload (AltStore, SideStore, Sideloadly, Xcode), then StikDebug's bolt button in the app |
-| 15.0–17.0, TrollStore installed | `HyperHLE-iOS-trollstore.ipa` | TrollStore's **Enable JIT**, before each session |
-| 15.0–17.0, TrollStore, **A11 or older** | `HyperHLE-iOS-trollstore-permanent-jit.ipa` | Already on, and stays on |
+| 17.4 or newer | `RintedHLE-iOS-unsigned.ipa` | Sideload (AltStore, SideStore, Sideloadly, Xcode), then StikDebug's bolt button in the app |
+| 15.0–17.0, TrollStore installed | `RintedHLE-iOS-trollstore.ipa` | TrollStore's **Enable JIT**, before each session |
+| 15.0–17.0, TrollStore, **A11 or older** | `RintedHLE-iOS-trollstore-permanent-jit.ipa` | Already on, and stays on |
 | 17.0.1–17.3 | — | Only AltJIT with a computer attached |
 
 The app's version follows the repository's release tags: a release build
@@ -43,10 +43,10 @@ Dynarmic needs executable memory, so JIT has to be enabled whenever the app
 starts as a new process:
 
 - **StikDebug (iOS 17.4+):** pair StikDebug with your device, connect its
-  loopback VPN, then tap the bolt button in the HyperHLE library.
-- **TrollStore (iOS 15.0–17.0):** use TrollStore's **Enable JIT** on HyperHLE
+  loopback VPN, then tap the bolt button in the RintedHLE library.
+- **TrollStore (iOS 15.0–17.0):** use TrollStore's **Enable JIT** on RintedHLE
   before starting a game.
-- **AltJIT:** in AltStore, long-press HyperHLE under **My Apps** and choose
+- **AltJIT:** in AltStore, long-press RintedHLE under **My Apps** and choose
   **Enable JIT**.
 
 ## Importing games
@@ -55,7 +55,7 @@ Tap **Import Game** and pick a decrypted 32-bit `.ipa` from Files. The app reads
 its name and icon and adds it to the library. Saves and imported games live in
 the app's Documents folder, which the Files app shows under **On My iPhone**.
 
-Per-game options from `touchHLE_default_options.txt` apply as on other
+Per-game options from `RintedHLE_default_options.txt` apply as on other
 platforms. On iOS, `--ios-es2-direct-present` additionally presents an OpenGL
 ES 2.0 drawable directly even when it is not the fullscreen layer (The Sims
 Medieval needs it).
@@ -63,7 +63,7 @@ Medieval needs it).
 ## Building
 
 Requirements: macOS with a recent Xcode, Rust via rustup, CMake, Ninja,
-Python 3, Boost headers in `vendor/boost` (or `TOUCHHLE_BOOST_ROOT`), and
+Python 3, Boost headers in `vendor/boost` (or `RINTEDHLE_BOOST_ROOT`), and
 `ldid` for the TrollStore IPAs.
 
 ```sh
@@ -84,7 +84,7 @@ The IPAs land in `dist/`. Check them with `platform/ios/scripts/verify-ipa.sh`
 
 How the pieces fit together:
 
-- The core is built from `platform/ios/rust-entry` as `libhyperhle_core.dylib`
+- The core is built from `platform/ios/rust-entry` as `librintedhle_core.dylib`
   with the `dynamic-sdl` feature, and the app loads it with `dlopen`.
 - SDL2 is built as a shared library both the app and the core link against.
   SDL's UIKit backend needs a few changes for this host
@@ -93,20 +93,20 @@ How the pieces fit together:
 - Dynarmic needs the iOS JIT changes in `patches/dynarmic-ios-jit.patch`
   (MAP_JIT memory with separate writable and executable views). They are
   applied to a copy of `vendor/dynarmic` in `build/dynarmic-ios-src`, which the
-  build points at through `TOUCHHLE_DYNARMIC_DIR`. The submodules themselves
+  build points at through `RINTEDHLE_DYNARMIC_DIR`. The submodules themselves
   are never modified.
 
 To run on your own device from Xcode, run `build-sdl-shared.sh iphoneos` and
-`build-rust.sh aarch64-apple-ios Debug`, open `TouchHLEHost.xcodeproj`, choose
+`build-rust.sh aarch64-apple-ios Debug`, open `RintedHLEHost.xcodeproj`, choose
 your team under **Signing & Capabilities** (and change the bundle identifier in
 `Config/Build.xcconfig` if needed), then press **Run**.
 
-The host can also ship upstream touchHLE as a second core. Point
-`TOUCHHLE_CORE_REPO` at a touchHLE checkout that has an iOS entry crate (such as
-the `ios-core-dylib` branch of johnny901901901/touchHLE) when running
+The host can also ship upstream RintedHLE as a second core. Point
+`RINTEDHLE_CORE_REPO` at a RintedHLE checkout that has an iOS entry crate (such as
+the `ios-core-dylib` branch of johnny901901901/RintedHLE) when running
 `build-host.sh`, and the in-app core picker appears.
 
 ## License
 
-MPL-2.0, like the rest of HyperHLE, subject to the third-party licences of the
+MPL-2.0, like the rest of RintedHLE, subject to the third-party licences of the
 bundled components.

@@ -98,16 +98,16 @@ fn effective_eagl_api(
     prefer_gles2_context: bool,
     force_gles1_context: bool,
 ) -> EAGLRenderingAPI {
-    // Hardcoded driver pin: TOUCHHLE_FORCE_EAGL_API forces the reported/
+    // Hardcoded driver pin: RINTEDHLE_FORCE_EAGL_API forces the reported/
     // effective EAGL rendering API (1, 2 or 3) regardless of what the guest
     // app requested. This pins the GPU driver surface the app sees, mirroring
-    // TOUCHHLE_FORCE_GLES1 on the context-creation side.
-    if let Ok(forced) = std::env::var("TOUCHHLE_FORCE_EAGL_API") {
+    // RINTEDHLE_FORCE_GLES1 on the context-creation side.
+    if let Ok(forced) = std::env::var("RINTEDHLE_FORCE_EAGL_API") {
         let forced = forced.trim();
         if let Ok(v) = forced.parse::<EAGLRenderingAPI>() {
             if (1..=3).contains(&v) && v != requested {
                 log!(
-                    "EAGL: TOUCHHLE_FORCE_EAGL_API active, overriding requested API {} with {}",
+                    "EAGL: RINTEDHLE_FORCE_EAGL_API active, overriding requested API {} with {}",
                     requested,
                     v
                 );
@@ -555,10 +555,10 @@ pub const CLASSES: ClassExports = objc_classes! {
     // Apple's `EAGLContext` documentation for
     // `-renderbufferStorage:fromDrawable:` states that passing `nil` for the
     // drawable "deletes any earlier binding" of the currently bound
-    // renderbuffer to a drawable and returns `YES`. touchHLE used to
+    // renderbuffer to a drawable and returns `YES`. RintedHLE used to
     // assert against this case (`drawable != nil`), which crashed apps
     // that legitimately unbind during teardown (e.g. Resident Evil 4 —
-    // HyperHLE log #5 — calls `renderbufferStorage:fromDrawable:nil`
+    // RintedHLE log #5 — calls `renderbufferStorage:fromDrawable:nil`
     // while tearing down its EAGL surface during a scene transition).
     //
     // Spec behaviour: look up the currently bound renderbuffer (via
@@ -652,10 +652,10 @@ pub const CLASSES: ClassExports = objc_classes! {
 
             // Apple's `-renderbufferStorage:fromDrawable:` derives the
             // renderbuffer size from the CAEAGLayer's bounds. Some apps (e.g.
-            // Beyond Gravity — HyperHLE log #1) momentarily present a layer
+            // Beyond Gravity — RintedHLE log #1) momentarily present a layer
             // whose `bounds.size` is bogus (non-finite, negative, or zero)
             // during an unbind/rebind cycle while tearing down and recreating
-            // their EAGL surface. touchHLE used to `assert!` the size was in a
+            // their EAGL surface. RintedHLE used to `assert!` the size was in a
             // sane range, which aborted the whole emulator. Real iOS never
             // crashes here — it simply allocates a renderbuffer sized to the
             // (screen-sized) drawable. Match that by falling back to the main
@@ -741,7 +741,7 @@ pub const CLASSES: ClassExports = objc_classes! {
                 drawable, width, height, contents_scale, scale_hack
             );
 
-            if std::env::var_os("TOUCHHLE_FORCE_LANDSCAPE_RENDERBUFFER").is_some() {
+            if std::env::var_os("RINTEDHLE_FORCE_LANDSCAPE_RENDERBUFFER").is_some() {
                 let is_landscape = env
                     .window
                     .as_ref()
@@ -755,7 +755,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
                 if is_landscape && height > width {
                     log!(
-                        "TOUCHHLE_FORCE_LANDSCAPE_RENDERBUFFER=1: swapping EAGL renderbuffer storage from {}x{} to {}x{}",
+                        "RINTEDHLE_FORCE_LANDSCAPE_RENDERBUFFER=1: swapping EAGL renderbuffer storage from {}x{} to {}x{}",
                         width,
                         height,
                         height,
@@ -764,7 +764,7 @@ pub const CLASSES: ClassExports = objc_classes! {
                     std::mem::swap(&mut width, &mut height);
                 } else {
                     log!(
-                        "TOUCHHLE_FORCE_LANDSCAPE_RENDERBUFFER=1: keeping EAGL renderbuffer storage at {}x{} (is_landscape={})",
+                        "RINTEDHLE_FORCE_LANDSCAPE_RENDERBUFFER=1: keeping EAGL renderbuffer storage at {}x{} (is_landscape={})",
                         width,
                         height,
                         is_landscape
@@ -935,7 +935,7 @@ pub const CLASSES: ClassExports = objc_classes! {
                 n
             );
         }
-        if n == 3000 && crate::env_flag_cached!("TOUCHHLE_TRACE_FRAME_CALLS") {
+        if n == 3000 && crate::env_flag_cached!("RINTEDHLE_TRACE_FRAME_CALLS") {
             crate::dyld::TRACE_HOST_CALLS.store(400, Ordering::Relaxed);
         }
     }
@@ -1268,12 +1268,12 @@ pub const CLASSES: ClassExports = objc_classes! {
             return false;
         };
         dump_readback_ppm(&pixels_vec, width, height);
-        // DIAG (TOUCHHLE_TRACE_PRESENT=1): is the frame we read back actually
+        // DIAG (RINTEDHLE_TRACE_PRESENT=1): is the frame we read back actually
         // non-black? This tells apart "renderer produced a black frame"
         // (content/loading) from "we present fine but the pixels never reach
         // the window" (compositor/layer bug). Sample the max channel + count
         // of non-zero bytes, rate-limited.
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_PRESENT") {
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_PRESENT") {
             use std::sync::atomic::{AtomicU32, Ordering};
             static N: AtomicU32 = AtomicU32::new(0);
             let n = N.fetch_add(1, Ordering::Relaxed);
@@ -1324,7 +1324,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 fn dump_readback_ppm(pixels: &[u8], width: u32, height: u32) {
     use std::sync::atomic::{AtomicU32, Ordering};
     static CALLS: AtomicU32 = AtomicU32::new(0);
-    if !crate::env_flag_cached!("TOUCHHLE_DUMP_READBACK") {
+    if !crate::env_flag_cached!("RINTEDHLE_DUMP_READBACK") {
         return;
     }
     let n = CALLS.fetch_add(1, Ordering::Relaxed);
@@ -1386,7 +1386,7 @@ unsafe fn present_renderbuffer_readback(env: &mut Environment, renderbuffer: GLu
 /// Implement framerate limiting.
 ///
 /// The real iPhone OS seems to force 60Hz v-sync in `presentRenderbuffer:`.
-/// touchHLE does not force v-sync, and its users might not have 60Hz monitors
+/// RintedHLE does not force v-sync, and its users might not have 60Hz monitors
 /// in any case, so to avoid excessive FPS or games running too fast, we need
 /// to simulate it.
 ///
@@ -1772,7 +1772,7 @@ unsafe fn present_renderbuffer_es2(
         // app's draws by the driver, so no explicit sync is needed here. A
         // glFinish() at this point drains the whole GPU pipeline every frame
         // (the most expensive thing a presenter can do on a tile-based GPU),
-        // so it is opt-in: --present-finish / TOUCHHLE_PRESENT_FINISH=1.
+        // so it is opt-in: --present-finish / RINTEDHLE_PRESENT_FINISH=1.
         if present_finish {
             gles.Finish();
         }
@@ -2498,7 +2498,7 @@ unsafe fn present_renderbuffer(
     // transform to the rootViewController's view so that the app, which
     // typically draws content "upright" inside the EAGL layer's portrait
     // bounds, ends up rotated for landscape display when Core Animation
-    // composites it. touchHLE bypasses CA composition for EAGL apps that
+    // composites it. RintedHLE bypasses CA composition for EAGL apps that
     // call `presentRenderbuffer:` directly, so we have to replicate that
     // additional rotation here. Without it, iPad landscape games (e.g.
     // Plants vs. Zombies HD) render upside-down. iPhone-only landscape
@@ -2520,9 +2520,9 @@ unsafe fn present_renderbuffer(
             crate::window::DeviceOrientation::Portrait
         );
     // PERF: cached read-once flag; present_renderbuffer runs every frame.
-    let rotation_matrix = if crate::env_flag_cached!("TOUCHHLE_DISABLE_PRESENT_ROTATION") {
+    let rotation_matrix = if crate::env_flag_cached!("RINTEDHLE_DISABLE_PRESENT_ROTATION") {
         log_once!(
-            "TOUCHHLE_DISABLE_PRESENT_ROTATION=1: presenting EAGL renderbuffer without texture rotation"
+            "RINTEDHLE_DISABLE_PRESENT_ROTATION=1: presenting EAGL renderbuffer without texture rotation"
         );
         crate::matrix::Matrix::<2>::identity()
     } else if needs_autorotation_compensation {
@@ -2536,12 +2536,12 @@ unsafe fn present_renderbuffer(
     };
     // Fixed present-rotation override: the `--present-rotate=N` option (per-app
     // via the default options file) takes precedence, then the live
-    // TOUCHHLE_PRESENT_ROTATE env var, else the orientation-derived matrix.
+    // RINTEDHLE_PRESENT_ROTATE env var, else the orientation-derived matrix.
     let rotate_override = env
         .options
         .present_rotate
         .map(|d| d.to_string())
-        .or_else(|| crate::env_var_cached!("TOUCHHLE_PRESENT_ROTATE").map(|s| s.to_string()));
+        .or_else(|| crate::env_var_cached!("RINTEDHLE_PRESENT_ROTATE").map(|s| s.to_string()));
     let rotation_matrix = match rotate_override.as_deref() {
         Some("0") => crate::matrix::Matrix::<2>::identity(),
         Some("90") => crate::matrix::Matrix::z_rotation(std::f32::consts::FRAC_PI_2),
@@ -2559,7 +2559,7 @@ unsafe fn present_renderbuffer(
     };
     let virtual_cursor_visible_at = env.window.as_mut().unwrap().virtual_cursor_visible_at();
 
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_PRESENT") {
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_PRESENT") {
         static GEOM_LOGGED: std::sync::Once = std::sync::Once::new();
         GEOM_LOGGED.call_once(|| {
             log!(
@@ -2583,7 +2583,7 @@ unsafe fn present_renderbuffer(
         // left to do here is skip the host-side composition step and pump
         // a single SDL swap so the window keeps animating. Without this
         // guard the emulator used to abort with the panic visible in
-        // HyperHLE log #5 (`opengles.rs:56` — Option::unwrap on a None
+        // RintedHLE log #5 (`opengles.rs:56` — Option::unwrap on a None
         // current_ctx).
         log!(
             "present_renderbuffer: no current GL context for thread {}; \
@@ -2601,9 +2601,9 @@ unsafe fn present_renderbuffer(
 
     invalidate_present_cache_for_context(context_token);
 
-    // DIAG (TOUCHHLE_TRACE_PRESENT=1): dump the raw renderbuffer the game drew,
+    // DIAG (RINTEDHLE_TRACE_PRESENT=1): dump the raw renderbuffer the game drew,
     // at its native size, placed EARLY so later early-returns can't skip it.
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_PRESENT") {
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_PRESENT") {
         use std::sync::atomic::{AtomicU32, Ordering};
         static N: AtomicU32 = AtomicU32::new(0);
         let n = N.fetch_add(1, Ordering::Relaxed);
@@ -2891,7 +2891,7 @@ unsafe fn present_renderbuffer(
     // pipeline drain every frame is the single most expensive thing a
     // presenter can do on a tile-based GPU (it serialises CPU and GPU and
     // defeats the driver's frame pipelining), so it is opt-in now:
-    // --present-finish / TOUCHHLE_PRESENT_FINISH=1.
+    // --present-finish / RINTEDHLE_PRESENT_FINISH=1.
     // Tile-based GPUs resolve the app's draws to the renderbuffer's main
     // memory at well-defined sync points. CopyTex(Sub)Image2D is spec-ordered
     // after the app's draws, but real ES 1.1 surfaces (Adreno/Mali, native or
@@ -2904,12 +2904,12 @@ unsafe fn present_renderbuffer(
     // is reliable, so it stays opt-in there.
     let native_es1 = gles.is_native_es1();
     let finish_before_copy = options.present_finish
-        || (native_es1 && !crate::env_flag_cached!("TOUCHHLE_NO_PRESENT_FINISH"));
+        || (native_es1 && !crate::env_flag_cached!("RINTEDHLE_NO_PRESENT_FINISH"));
     if finish_before_copy && !options.present_finish {
         log_once!(
             "EAGL presenter: native ES1.1 backend - forcing glFinish before the \
              renderbuffer copy (tile-resolve safety for 2D alpha-blended games; \
-             opt out with TOUCHHLE_NO_PRESENT_FINISH=1)."
+             opt out with RINTEDHLE_NO_PRESENT_FINISH=1)."
         );
     }
     if finish_before_copy {
@@ -3429,9 +3429,9 @@ unsafe fn present_renderbuffer(
     gles.StencilMask(!0);
     gles.Disable(gles11::STENCIL_TEST);
 
-    // DIAG (TOUCHHLE_DUMP_RB=1): dump the raw renderbuffer the game drew, at
+    // DIAG (RINTEDHLE_DUMP_RB=1): dump the raw renderbuffer the game drew, at
     // its native size, to compare the game's render against what we present.
-    if crate::env_flag_cached!("TOUCHHLE_DUMP_RB") {
+    if crate::env_flag_cached!("RINTEDHLE_DUMP_RB") {
         use std::sync::atomic::{AtomicU32, Ordering};
         static N: AtomicU32 = AtomicU32::new(0);
         let n = N.fetch_add(1, Ordering::Relaxed);

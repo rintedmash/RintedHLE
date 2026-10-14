@@ -254,7 +254,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 }
 
 // Apple's `autoupdatingCurrentCalendar` returns a calendar that tracks later
-// changes to the user's locale/calendar settings. touchHLE has no live system
+// changes to the user's locale/calendar settings. RintedHLE has no live system
 // settings to track, so behaving like `currentCalendar` is equivalent and
 // avoids returning nil (which apps querying it at launch don't expect).
 + (id)autoupdatingCurrentCalendar {

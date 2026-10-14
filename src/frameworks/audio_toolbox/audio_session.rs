@@ -28,7 +28,7 @@ type AudioSessionPropertyID = u32;
 // --- Fourcc-коды Apple из AudioToolbox/AudioSession.h ---
 // ВНИМАНИЕ: в предыдущей версии этого файла у двух свойств были НЕПРАВИЛЬНЫЕ
 // fourcc'и ('pbuf' и 'cbuf'). Реальные (из SDK) — 'iobd' и 'chbd'.
-// Именно из-за этого в touchHLE_log.txt появлялось
+// Именно из-за этого в RintedHLE_log.txt появлялось
 //   "TODO: AudioSessionSetProperty UNIMPLEMENTED 'iobd'"
 // и игра (RE VS. / biovsus и др.) не могла корректно настроить аудио-сессию.
 const kAudioSessionProperty_PreferredHardwareSampleRate: AudioSessionPropertyID = fourcc(b"hwsr");
@@ -241,7 +241,7 @@ pub fn AudioSessionGetProperty(
             );
         }
         kAudioSessionProperty_AudioInputAvailable => {
-            // touchHLE currently does not emulate microphone input.
+            // RintedHLE currently does not emulate microphone input.
             let value: u32 = 0;
             env.mem.write(out_data.cast(), value);
         }

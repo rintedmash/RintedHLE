@@ -1012,14 +1012,14 @@ pub const CLASSES: ClassExports = objc_classes! {
     env.objc.borrow_mut::<AVPlayerHostObject>(this).rate = 1.0;
     if !start_playback(env, this) {
         let selector = env.objc.register_host_selector(
-            "_touchHLE_finishPlaybackForItem:".to_string(),
+            "_RintedHLE_finishPlaybackForItem:".to_string(),
             &mut env.mem,
         );
         () = msg![env; this performSelector:selector withObject:item afterDelay:0.0_f64];
     }
 }
 
-- (())_touchHLE_finishPlaybackForItem:(id)item {
+- (())_RintedHLE_finishPlaybackForItem:(id)item {
     if item == nil {
         return;
     }

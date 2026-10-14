@@ -39,6 +39,25 @@ impl State {
             .and_then(|file_or_none| file_or_none.as_mut())
     }
 
+    /// Read the entire contents of a file descriptor into a vector.
+    pub(crate) fn read_fd_all(&mut self, fd: FileDescriptor) -> Vec<u8> {
+        match self.file_for_fd(fd) {
+            Some(PosixFileHostObject { file, .. }) => {
+                let mut data = Vec::new();
+                let _ = file.read_to_end(&mut data);
+                data
+            }
+            None => Vec::new(),
+        }
+    }
+
+    /// Write an entire buffer to a file descriptor.
+    pub(crate) fn write_fd_all(&mut self, fd: FileDescriptor, data: &[u8]) {
+        if let Some(PosixFileHostObject { file, .. }) = self.file_for_fd(fd) {
+            let _ = file.write_all(data);
+        }
+    }
+
     /// Whether `fd` refers to a currently-open regular file descriptor (i.e.
     /// not one of the std streams, and not a closed/invalid descriptor).
     pub fn is_fd_open(&self, fd: FileDescriptor) -> bool {
@@ -503,9 +522,9 @@ pub fn open_direct(env: &mut Environment, path: ConstPtr<u8>, flags: i32) -> Fil
     if res == -1 && (flags & O_CREAT) == 0 {
         env.note_missing_unity_player_archive(&path_string);
     }
-    // DIAG (TOUCHHLE_TRACE_OPEN=1): trace every file open with its result, so a
+    // DIAG (RINTEDHLE_TRACE_OPEN=1): trace every file open with its result, so a
     // guest stuck waiting on data can be traced back to the file it wanted.
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_OPEN") {
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_OPEN") {
         log!(
             "OPEN-DIAG t={} req={:?} resolved={:?} flags={:#x} => fd={}",
             env.current_thread,
@@ -534,7 +553,7 @@ pub fn open_direct(env: &mut Environment, path: ConstPtr<u8>, flags: i32) -> Fil
     {
         static RESOURCE_TRACE_COUNT: std::sync::atomic::AtomicUsize =
             std::sync::atomic::AtomicUsize::new(0);
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_RESOURCES")
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_RESOURCES")
             && RESOURCE_TRACE_COUNT.fetch_add(1, std::sync::atomic::Ordering::Relaxed) < 300
         {
             log!(
@@ -1152,7 +1171,7 @@ fn fcntl(
         }
         F_SETFD => {
             let flags: i32 = args.start().next(env);
-            // FD_CLOEXEC (close-on-exec) is a no-op in HyperHLE because the
+            // FD_CLOEXEC (close-on-exec) is a no-op in RintedHLE because the
             // emulator is a single guest process that never calls exec().
             // Per Apple's `man 2 fcntl`, FD_CLOEXEC causes the descriptor to
             // be closed when a new process image is created via exec — this
@@ -1194,7 +1213,7 @@ fn fcntl(
         // ----------------------------------------------------------------
         F_GETLK => {
             // POSIX `fcntl(F_GETLK)` reports whether a lock that would
-            // block the request is held by **another process**. HyperHLE
+            // block the request is held by **another process**. RintedHLE
             // is a single guest process, so there is no external
             // contender — per Apple `man 2 fcntl` we always report
             // F_UNLCK after validating the request struct.
@@ -1210,7 +1229,7 @@ fn fcntl(
         F_SETLK | F_SETLKW => {
             // POSIX advisory locks are owned by the process, not the fd:
             // locks held by the same process **never** conflict with each
-            // other (`man 2 fcntl`, "File Locking"). HyperHLE is a single
+            // other (`man 2 fcntl`, "File Locking"). RintedHLE is a single
             // guest process, so there are no inter-process conflicts to
             // detect. We still validate the request struct and track the
             // lock per-fd so it is released on `close(2)`.
@@ -1432,7 +1451,7 @@ fn fcntl(
 /// <https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/flock.2.html>
 ///
 /// `flock(2)` advisory locks only contend between *different* processes.
-/// HyperHLE is a single guest process, so any number of locks within the
+/// RintedHLE is a single guest process, so any number of locks within the
 /// guest can coexist. We still validate the operation, track the lock
 /// state per fd for diagnostics, and release on `close(2)`.
 fn flock(env: &mut Environment, fd: FileDescriptor, operation: FLockFlag) -> i32 {

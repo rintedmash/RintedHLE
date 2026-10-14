@@ -2,13 +2,13 @@
 //! glyph-capture + blit logic from src/trainer_ui.rs and prints ASCII art so
 //! mirroring/orientation bugs are visible in the test output.
 
-use touchHLE::font::{Font, TextAlignment};
+use RintedHLE::font::{Font, TextAlignment};
 
 const FONT_PX: f32 = 14.0;
 
 #[test]
 fn atlas_orientation_ascii_art() {
-    let bytes = std::fs::read("touchHLE_fonts/LiberationMono-Regular.ttf").unwrap();
+    let bytes = std::fs::read("RintedHLE_fonts/LiberationMono-Regular.ttf").unwrap();
     let font = Font::from_vec(bytes).unwrap();
     let units_per_em = font.units_per_em() as f32;
 

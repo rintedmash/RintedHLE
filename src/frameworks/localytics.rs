@@ -15,7 +15,7 @@ impl HostObject for LocalyticsAmpSessionHostObject {}
 
 pub const CLASSES: ClassExports = objc_classes! {
 
-    // Обязательная строка для макроса в TouchHLE!
+    // Обязательная строка для макроса в RintedHLE!
     (env, this, _cmd);
 
     @implementation LocalyticsAmpSession: NSObject

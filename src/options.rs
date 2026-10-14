@@ -133,7 +133,7 @@ pub struct Options {
     pub stabilize_virtual_cursor: Option<(f32, f32)>,
     pub gles1_implementation: Option<GLESImplementation>,
     /// Allow selected early OpenGL ES 2.0 apps to use the GLES2 subset exposed
-    /// through touchHLE's desktop OpenGL 2.1 compatibility backend.
+    /// through RintedHLE's desktop OpenGL 2.1 compatibility backend.
     pub gles2_compat: bool,
     pub direct_memory_access: bool,
     /// CPU affinity policy for the emulator thread on Android
@@ -146,22 +146,22 @@ pub struct Options {
     pub print_fps: bool,
     pub fps_limit: Option<f64>,
     pub force_composition: bool,
-    /// See [PresentMode]. Can also be set with the `TOUCHHLE_PRESENT_MODE`
+    /// See [PresentMode]. Can also be set with the `RINTEDHLE_PRESENT_MODE`
     /// environment variable (the option takes precedence).
     pub present_mode: PresentMode,
     /// Issue a `glFinish()` before the presented renderbuffer is copied to
     /// the window. Only needed for drivers that don't order the copy after
     /// the app's draws correctly; costs a GPU pipeline stall per frame.
-    /// Can also be enabled with `TOUCHHLE_PRESENT_FINISH=1`.
+    /// Can also be enabled with `RINTEDHLE_PRESENT_FINISH=1`.
     pub present_finish: bool,
-    /// See [VsyncMode]. Can also be set with the `TOUCHHLE_VSYNC` environment
+    /// See [VsyncMode]. Can also be set with the `RINTEDHLE_VSYNC` environment
     /// variable (the option takes precedence).
     pub vsync: VsyncMode,
     /// Android: give the emulator thread a higher scheduling priority and
     /// report its per-frame CPU time to the OS performance hint manager
     /// (ADPF), so the CPU governor keeps the core clocked for the emulated
     /// workload instead of reacting to the idle time between frames. Can be
-    /// disabled with `--no-perf-hints` or `TOUCHHLE_PERF_HINTS=0`.
+    /// disabled with `--no-perf-hints` or `RINTEDHLE_PERF_HINTS=0`.
     pub perf_hints: bool,
     /// Force EAGL `initWithAPI:` to create an OpenGL ES 2.0 context even when
     /// the app requested an OpenGL ES 1.1 context.
@@ -211,7 +211,7 @@ pub struct Options {
     /// working ES 1.1 fixed-function path. On hosts where the ES 2.0 path
     /// misrenders, downgrading the context to ES 1.1 makes such engines take
     /// their ES 1.1 code path instead. Enable with `--force-gles1-context`
-    /// (per-app via the options file) or `TOUCHHLE_FORCE_GLES1_CONTEXT=1`.
+    /// (per-app via the options file) or `RINTEDHLE_FORCE_GLES1_CONTEXT=1`.
     /// Apps that are ES 2.0-only will fail to create a context with this set.
     pub force_gles1_context: bool,
     pub network_access: bool,
@@ -262,7 +262,7 @@ pub struct Options {
     pub fix_texture_min_filter: bool,
     pub zero_stack_after_guest_to_host_call: Option<u32>,
     /// device (FMOD streaming bypass). Opt in with `--fix-music` or
-    /// `TOUCHHLE_GD_MUSIC_BYPASS=1`; off by default so the bypass only
+    /// `RINTEDHLE_GD_MUSIC_BYPASS=1`; off by default so the bypass only
     /// affects Geometry Dash sessions where the user asked for it.
     // TODO: flip to opt-out once track-switch/pause/reset handling is
     // validated against a real run of the game.
@@ -276,7 +276,7 @@ pub struct Options {
     /// libxml2 instead of opaque handles, for games that read node struct
     /// fields directly (`node->name`/`children`/`next`/…). Needed by Where's My
     /// Water (`com.disney.SwampyGame`). Opt in with `--xml-dom-mirror` or
-    /// `TOUCHHLE_XML_MIRROR=1`; off by default so API-only guests are unaffected.
+    /// `RINTEDHLE_XML_MIRROR=1`; off by default so API-only guests are unaffected.
     pub xml_dom_mirror: bool,
 }
 
@@ -313,25 +313,25 @@ impl Default for Options {
             print_fps: false,
             fps_limit: Some(60.0),
             force_composition: false,
-            present_mode: std::env::var("TOUCHHLE_PRESENT_MODE")
+            present_mode: std::env::var("RINTEDHLE_PRESENT_MODE")
                 .ok()
                 .and_then(|value| PresentMode::from_short_name(value.trim()).ok())
                 .unwrap_or(PresentMode::Auto),
-            present_finish: std::env::var_os("TOUCHHLE_PRESENT_FINISH")
+            present_finish: std::env::var_os("RINTEDHLE_PRESENT_FINISH")
                 .map(|value| value != "0")
                 .unwrap_or(false),
-            vsync: std::env::var("TOUCHHLE_VSYNC")
+            vsync: std::env::var("RINTEDHLE_VSYNC")
                 .ok()
                 .and_then(|value| VsyncMode::from_short_name(value.trim()).ok())
                 .unwrap_or(VsyncMode::Auto),
-            perf_hints: std::env::var_os("TOUCHHLE_PERF_HINTS")
+            perf_hints: std::env::var_os("RINTEDHLE_PERF_HINTS")
                 .map(|value| value != "0")
                 .unwrap_or(true),
             prefer_gles2_context: false,
             mach_semaphore_spurious_wake_ms: None,
             present_rotate: None,
             rotation_fix: false,
-            force_gles1_context: std::env::var("TOUCHHLE_FORCE_GLES1_CONTEXT")
+            force_gles1_context: std::env::var("RINTEDHLE_FORCE_GLES1_CONTEXT")
                 .map(|value| {
                     let value = value.trim();
                     value != "0" && !value.is_empty()
@@ -357,7 +357,7 @@ impl Default for Options {
             // case). Default the fix-up to ON so games work out of the
             // box on Android — users can still disable it via
             // `--fix-texture-min-filter=false` in
-            // `touchHLE_options.txt` if they hit a game that genuinely
+            // `RintedHLE_options.txt` if they hit a game that genuinely
             // depends on mipmap minification (rare among iOS 2.x/3.x
             // titles). On desktop hosts (where the user is likely
             // running Mesa / Apple PowerVR / NVIDIA / AMD, all
@@ -365,11 +365,11 @@ impl Default for Options {
             // pixel output for the common case.
             fix_texture_min_filter: cfg!(target_os = "android"),
             zero_stack_after_guest_to_host_call: None,
-            gd_music_bypass: std::env::var_os("TOUCHHLE_GD_MUSIC_BYPASS")
+            gd_music_bypass: std::env::var_os("RINTEDHLE_GD_MUSIC_BYPASS")
                 .map(|value| value != "0")
                 .unwrap_or(false),
             fix_movie_player: false,
-            xml_dom_mirror: std::env::var_os("TOUCHHLE_XML_MIRROR")
+            xml_dom_mirror: std::env::var_os("RINTEDHLE_XML_MIRROR")
                 .map(|value| value != "0")
                 .unwrap_or(false),
         }
@@ -609,7 +609,7 @@ impl Options {
             // rotation (e.g. Minecraft: Story Mode) otherwise render a portrait
             // frame that gets stretched into the landscape window. The GLES
             // layer reads this via the env var, so set it here.
-            std::env::set_var("TOUCHHLE_LANDSCAPE_UISCREEN_BOUNDS", "1");
+            std::env::set_var("RINTEDHLE_LANDSCAPE_UISCREEN_BOUNDS", "1");
         } else if let Some(value) = arg.strip_prefix("--present-rotate=") {
             let deg: u32 = value
                 .parse()
@@ -639,7 +639,7 @@ impl Options {
             self.force_gles1_context = true;
             // GLES-native backend selection and EAGL both read this env var
             // (the GLES backend layer has no `Options` access).
-            std::env::set_var("TOUCHHLE_FORCE_GLES1_CONTEXT", "1");
+            std::env::set_var("RINTEDHLE_FORCE_GLES1_CONTEXT", "1");
         } else if arg == "--allow-network-access" {
             self.network_access = true;
         } else if arg == "--no-error-popup" {
@@ -662,13 +662,13 @@ impl Options {
             self.fix_texture_min_filter = true;
             // GLES1Native reads this as its source of truth (it has no
             // `Options` access from inside the GL call path).
-            std::env::set_var("TOUCHHLE_FIX_TEXTURE_MIN_FILTER", "1");
+            std::env::set_var("RINTEDHLE_FIX_TEXTURE_MIN_FILTER", "1");
         } else if arg == "--no-fix-texture-min-filter" {
             // Off-switch for the Android default. Useful when an iOS
             // title actually relies on mipmap minification and the
             // forced `GL_LINEAR` would visibly degrade quality.
             self.fix_texture_min_filter = false;
-            std::env::set_var("TOUCHHLE_FIX_TEXTURE_MIN_FILTER", "0");
+            std::env::set_var("RINTEDHLE_FIX_TEXTURE_MIN_FILTER", "0");
         } else if let Some(value) = arg.strip_prefix("--zero-stack-after-guest-to-host-call=") {
             self.zero_stack_after_guest_to_host_call = Some(value.parse().map_err(|_| {
                 "Invalid value for --zero-stack-after-guest-to-host-call=".to_string()
@@ -747,7 +747,7 @@ fn parse_dump_options(options: &str) -> Result<DumpingOptions, String> {
             // Dumps linked symbols, classes and selectors for the given app
             dumping_options.linking_info = true;
         } else if opt == "symbols" {
-            // Dumps touchHLE provided symbols and exits
+            // Dumps RintedHLE provided symbols and exits
             dumping_options.symbols = true;
         } else {
             return Err(format!("Unrecognized option {opt} for --dump=..."));

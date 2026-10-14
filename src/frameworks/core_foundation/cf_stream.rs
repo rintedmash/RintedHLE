@@ -85,7 +85,7 @@ pub const kCFStreamSocketSecurityLevelNegotiatedSSL: &str =
 // CFFTPStream property keys, per Apple's CFFTPStream reference:
 // <https://developer.apple.com/documentation/cfnetwork/cfftpstream>.
 // These are CFString constants used to configure FTP read/write streams
-// (e.g. via `CFReadStreamSetProperty`). touchHLE does not implement real FTP
+// (e.g. via `CFReadStreamSetProperty`). RintedHLE does not implement real FTP
 // networking, but exporting the constants keeps guest apps that merely
 // reference these symbols (e.g. "PotaTossSocial", whose networking layer links
 // against `kCFStreamPropertyFTPAttemptPersistentConnection`) from hitting an
@@ -304,7 +304,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 (env, this, _cmd);
 
-@implementation _touchHLE_CFReadStream: NSObject
+@implementation _RintedHLE_CFReadStream: NSObject
 - (())dealloc {
     let buffer = env.objc.borrow_mut::<CFReadStreamHostObject>(this).buffer.take();
     if let Some(buffer) = buffer {
@@ -314,7 +314,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 }
 @end
 
-@implementation _touchHLE_CFWriteStream: NSObject
+@implementation _RintedHLE_CFWriteStream: NSObject
 - (())dealloc {
     env.objc.dealloc_object(this, &mut env.mem)
 }
@@ -327,7 +327,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 fn alloc_read_stream(env: &mut Environment) -> CFReadStreamRef {
     let class = env
         .objc
-        .get_known_class("_touchHLE_CFReadStream", &mut env.mem);
+        .get_known_class("_RintedHLE_CFReadStream", &mut env.mem);
     env.objc.alloc_object(
         class,
         Box::new(CFReadStreamHostObject {
@@ -343,7 +343,7 @@ fn alloc_read_stream(env: &mut Environment) -> CFReadStreamRef {
 fn alloc_write_stream(env: &mut Environment) -> CFWriteStreamRef {
     let class = env
         .objc
-        .get_known_class("_touchHLE_CFWriteStream", &mut env.mem);
+        .get_known_class("_RintedHLE_CFWriteStream", &mut env.mem);
     env.objc.alloc_object(
         class,
         Box::new(CFWriteStreamHostObject {
@@ -545,7 +545,7 @@ fn CFReadStreamOpen(env: &mut Environment, stream: CFReadStreamRef) -> bool {
 
 // MARK: - CFNetwork bridge (real host objects instead of dummy handles)
 
-/// Allocate a `_touchHLE_CFReadStream` for CFNetwork's dummy handle.
+/// Allocate a `_RintedHLE_CFReadStream` for CFNetwork's dummy handle.
 pub(crate) fn alloc_read_stream_for_cf_network(env: &mut Environment) -> u32 {
     alloc_read_stream(env).to_bits() as _
 }

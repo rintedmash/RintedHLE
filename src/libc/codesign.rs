@@ -5,7 +5,7 @@
  */
 //! The `csops(2)` code-signing inspection API.
 //!
-//! touchHLE does not execute Apple's code-signing machinery, but it does load
+//! RintedHLE does not execute Apple's code-signing machinery, but it does load
 //! the guest executable as a real Mach-O image. This implementation exposes the
 //! stable, read-only `CS_OPS_STATUS` operation instead of using dyld's generic
 //! return-zero fallback. The reported flags describe an already-loaded app

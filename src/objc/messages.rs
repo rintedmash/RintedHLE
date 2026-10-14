@@ -229,12 +229,12 @@ fn objc_msgSend_inner(
         selector.as_str(&env.mem),
         receiver
     );
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_MSGS") && receiver != nil {
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_MSGS") && receiver != nil {
         use std::sync::Mutex;
         static SEEN: Mutex<Option<std::collections::HashSet<(Class, SEL)>>> = Mutex::new(None);
         let class = ObjC::read_isa(receiver, &env.mem);
         let sel_name = selector.as_str(&env.mem);
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_IVARS")
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_IVARS")
             && sel_name == "execute"
             && env.objc.get_class_name(class).contains("CallFunc")
         {
@@ -281,7 +281,7 @@ fn objc_msgSend_inner(
             );
         }
     }
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_MENU")
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_MENU")
         && receiver != nil
         && selector.as_str(&env.mem) == "itemForTouch:"
     {
@@ -768,7 +768,7 @@ Type mismatch when sending message {} to {:?}!
                     // We can't create a new stack frame, because that would
                     // interfere with pass-through of stack arguments.
                     IMP::Guest(guest_imp) => {
-                        if crate::env_flag_cached!("TOUCHHLE_TRACE_COCOS_SCALE") {
+                        if crate::env_flag_cached!("RINTEDHLE_TRACE_COCOS_SCALE") {
                             let selector_name = selector.as_str(&env.mem);
                             let class_name = env.objc.get_class_name(class).to_owned();
                             if class_name.starts_with("CC")
@@ -1630,7 +1630,7 @@ fn try_nsarray_indexed_subscript_interpose(
 // ============================================================================
 //
 // Some games bundle Google's GDataXML classes. Those classes directly
-// dereference libxml2's xmlNode/xmlAttr structs, but touchHLE's libxml2 shim
+// dereference libxml2's xmlNode/xmlAttr structs, but RintedHLE's libxml2 shim
 // intentionally gives the guest opaque handle IDs instead of guest-visible
 // structs. Trying to fake libxml2 structs in libxml2.rs can make the guest walk
 // bad/cyclic XML graphs. Intercepting the tiny GDataXML surface the game uses
@@ -2293,7 +2293,7 @@ pub(super) fn objc_msgSend(env: &mut Environment, receiver: id, selector: SEL) {
 }
 
 #[allow(non_snake_case)]
-pub(crate) fn _touchHLE_objc_msgSend_tolerant(env: &mut Environment, receiver: id, selector: SEL) {
+pub(crate) fn _RintedHLE_objc_msgSend_tolerant(env: &mut Environment, receiver: id, selector: SEL) {
     objc_msgSend_inner(
         env, receiver, selector, /* super2: */ None, /* tolerate_type_mismatch: */ true,
         /* skip_initialize: */ false,
@@ -2302,7 +2302,7 @@ pub(crate) fn _touchHLE_objc_msgSend_tolerant(env: &mut Environment, receiver: i
 
 /// Variant of `objc_msgSend` that does not trigger `+initialize`.
 #[allow(non_snake_case)]
-pub(crate) fn _touchHLE_objc_msgSend_no_initialize(
+pub(crate) fn _RintedHLE_objc_msgSend_no_initialize(
     env: &mut Environment,
     receiver: id,
     selector: SEL,
@@ -2338,7 +2338,7 @@ pub(super) fn objc_msgSend_stret(
 }
 
 #[allow(non_snake_case)]
-pub(crate) fn _touchHLE_objc_msgSend_stret_tolerant(
+pub(crate) fn _RintedHLE_objc_msgSend_stret_tolerant(
     env: &mut Environment,
     _stret: MutVoidPtr,
     receiver: id,
@@ -2500,10 +2500,10 @@ where
     R: GuestRet,
 {
     if R::SIZE_IN_MEM.is_some() {
-        (_touchHLE_objc_msgSend_stret_tolerant as fn(&mut Environment, MutVoidPtr, id, SEL))
+        (_RintedHLE_objc_msgSend_stret_tolerant as fn(&mut Environment, MutVoidPtr, id, SEL))
             .call_from_host(env, args)
     } else {
-        (_touchHLE_objc_msgSend_tolerant as fn(&mut Environment, id, SEL)).call_from_host(env, args)
+        (_RintedHLE_objc_msgSend_tolerant as fn(&mut Environment, id, SEL)).call_from_host(env, args)
     }
 }
 
@@ -2524,7 +2524,7 @@ where
     );
     // Provide type info for dynamic type checking.
     env.objc.message_type_info = Some(<(R, P) as MsgSendSignature>::type_info());
-    (_touchHLE_objc_msgSend_no_initialize as fn(&mut Environment, id, SEL))
+    (_RintedHLE_objc_msgSend_no_initialize as fn(&mut Environment, id, SEL))
         .call_from_host(env, args)
 }
 

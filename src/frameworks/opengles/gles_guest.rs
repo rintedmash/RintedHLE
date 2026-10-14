@@ -14,7 +14,7 @@ use crate::objc::nil;
 use crate::Environment;
 use std::collections::HashMap;
 use std::slice::from_raw_parts;
-use touchHLE_gl_bindings::gles11::{
+use RintedHLE_gl_bindings::gles11::{
     ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER_BINDING, WRITE_ONLY_OES,
 };
 
@@ -43,7 +43,7 @@ const SUPPORTED_COMPRESSED_TEXTURE_FORMATS: &[GLenum] = &[
 ];
 
 fn trace_potatogold_render() -> bool {
-    crate::env_flag_cached!("TOUCHHLE_TRACE_POTATOGOLD_RENDER")
+    crate::env_flag_cached!("RINTEDHLE_TRACE_POTATOGOLD_RENDER")
 }
 
 const TEXTURE_CUBE_MAP: GLenum = 0x8513;
@@ -112,7 +112,7 @@ where
     // calling thread. The guard above already short-circuits the common
     // case where the *guest* never made a context current, but on edge
     // cases (e.g. context destroyed mid-call, headless GLES driver missing,
-    // see HyperHLE log #5) we may still hit None here. Treat it the same
+    // see RintedHLE log #5) we may still hit None here. Treat it the same
     // as the no-context branch above: log once and return the default.
     let Some(mut gles) = super::sync_context(
         &mut env.framework_state.opengles,
@@ -227,7 +227,7 @@ where
     let trace = env.options.trace_gl_errors;
     let caller = std::panic::Location::caller();
     // _no_skip historically panicked if there was no current context,
-    // but real games (HyperHLE log #5 / Resident Evil 4) hit this on
+    // but real games (RintedHLE log #5 / Resident Evil 4) hit this on
     // worker threads that issue GL calls after `setCurrentContext:nil`.
     // Apple's documented behaviour is "GL calls silently fail" — mirror
     // that by returning the type's default instead of aborting the
@@ -556,7 +556,7 @@ fn glGetString(env: &mut Environment, name: GLenum) -> ConstPtr<GLubyte> {
             gles11::RENDERER => b"PowerVR MBXLite with VGPLite",
             gles11::VERSION => b"OpenGL ES-CM 1.1 (76)",
             // Includes GL_OES_matrix_palette: the real PowerVR SGX in the
-            // iPhone 3GS exposes it, and touchHLE now emulates palette
+            // iPhone 3GS exposes it, and RintedHLE now emulates palette
             // skinning CPU-side (see gles1_on_gl2's skin_vertices). Games such
             // as LEGO Ninjago: Rise of the Snakes feature-test this string and
             // use the palette path for skinned character meshes.
@@ -709,7 +709,7 @@ fn glViewport(env: &mut Environment, x: GLint, y: GLint, width: GLsizei, height:
     {
         log!("UltraHLE MinionJump: viewport swap 768x1024 -> 1024x768");
         (0, 0, 1024, 768)
-    } else if crate::env_flag_cached!("TOUCHHLE_FORCE_IPAD_LANDSCAPE_SCREEN")
+    } else if crate::env_flag_cached!("RINTEDHLE_FORCE_IPAD_LANDSCAPE_SCREEN")
         && x == 0
         && y == 0
         && width == 768
@@ -723,7 +723,7 @@ fn glViewport(env: &mut Environment, x: GLint, y: GLint, width: GLsizei, height:
     // ULTRAHLE_MINIONJUMP_VIEWPORT_END
     let (mut x, mut y, mut width, mut height) = (x, y, width, height);
 
-    if crate::env_flag_cached!("TOUCHHLE_FORCE_LANDSCAPE_VIEWPORT") {
+    if crate::env_flag_cached!("RINTEDHLE_FORCE_LANDSCAPE_VIEWPORT") {
         // PotatoGold/adrastea-style landscape apps can end up with a 20px
         // status-bar-shortened portrait-derived viewport, e.g. 460x320,
         // even after UIScreen/EAGL have been made landscape. That leaves the
@@ -736,7 +736,7 @@ fn glViewport(env: &mut Environment, x: GLint, y: GLint, width: GLsizei, height:
 
         if should_force {
             log!(
-                "TOUCHHLE_FORCE_LANDSCAPE_VIEWPORT=1: overriding glViewport({}, {}, {}, {}) to glViewport(0, 0, 480, 320)",
+                "RINTEDHLE_FORCE_LANDSCAPE_VIEWPORT=1: overriding glViewport({}, {}, {}, {}) to glViewport(0, 0, 480, 320)",
                 x,
                 y,
                 width,
@@ -989,7 +989,7 @@ fn glBindBuffer(env: &mut Environment, target: GLenum, buffer: GLuint) {
             ELEMENT_ARRAY_BUFFER => shadow.record_element_array_buffer_binding(buffer),
             _ => (),
         }
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_BUFFER_BINDINGS") {
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_BUFFER_BINDINGS") {
             use std::sync::atomic::{AtomicUsize, Ordering};
             static COUNT: AtomicUsize = AtomicUsize::new(0);
             if COUNT.fetch_add(1, Ordering::Relaxed) < 256 {
@@ -1010,7 +1010,7 @@ fn glBindBuffer(env: &mut Environment, target: GLenum, buffer: GLuint) {
     })
 }
 /// DIAG: host-side cache of ARRAY_BUFFER contents keyed by buffer name, so
-/// TOUCHHLE_TRACE_DRAW can read actual vertex (texcoord) values at draw time.
+/// RINTEDHLE_TRACE_DRAW can read actual vertex (texcoord) values at draw time.
 fn diag_buffer_cache() -> &'static std::sync::Mutex<HashMap<GLuint, Vec<u8>>> {
     static CACHE: std::sync::OnceLock<std::sync::Mutex<HashMap<GLuint, Vec<u8>>>> =
         std::sync::OnceLock::new();
@@ -1025,7 +1025,7 @@ unsafe fn debug_log_buffer_upload(
     size: GuestGLsizeiptr,
     data: ConstPtr<GLvoid>,
 ) {
-    if !crate::env_flag_cached!("TOUCHHLE_DEBUG_ES2_DRAW") {
+    if !crate::env_flag_cached!("RINTEDHLE_DEBUG_ES2_DRAW") {
         return;
     }
     static COUNT: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
@@ -1074,7 +1074,7 @@ fn glBufferData(
 ) {
     with_ctx_and_mem(env, |gles, mem| unsafe {
         debug_log_buffer_upload(gles, mem, "BufferData", target, 0, size, data);
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_DRAW") && target == ARRAY_BUFFER && !data.is_null()
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_DRAW") && target == ARRAY_BUFFER && !data.is_null()
         {
             let mut bound: GLint = 0;
             gles.GetIntegerv(0x8894 /*ARRAY_BUFFER_BINDING*/, &mut bound);
@@ -1083,7 +1083,7 @@ fn glBufferData(
                 diag_buffer_cache().lock().unwrap().insert(bound as GLuint, bytes);
             }
         }
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_DRAW")
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_DRAW")
             && target == ARRAY_BUFFER
             && !data.is_null()
             && (1..=256).contains(&size)
@@ -1118,7 +1118,7 @@ fn glBufferSubData(
 ) {
     with_ctx_and_mem(env, |gles, mem| unsafe {
         debug_log_buffer_upload(gles, mem, "BufferSubData", target, offset, size, data);
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_DRAW") && target == ARRAY_BUFFER && !data.is_null()
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_DRAW") && target == ARRAY_BUFFER && !data.is_null()
         {
             let mut bound: GLint = 0;
             gles.GetIntegerv(0x8894 /*ARRAY_BUFFER_BINDING*/, &mut bound);
@@ -1429,10 +1429,10 @@ fn glCompressedTexSubImage2D(
                     height as u32,
                     is_opaque,
                 );
-                // DIAG (TOUCHHLE_DUMP_TEX=1): dump a few decoded PVRTC atlases
+                // DIAG (RINTEDHLE_DUMP_TEX=1): dump a few decoded PVRTC atlases
                 // (RGBA) so we can see whether the decoder output is correct
                 // vs scrambled/blank — the suspected source of texture glitches.
-                if crate::env_flag_cached!("TOUCHHLE_DUMP_TEX") {
+                if crate::env_flag_cached!("RINTEDHLE_DUMP_TEX") {
                     use std::sync::atomic::{AtomicU32, Ordering};
                     static N: AtomicU32 = AtomicU32::new(0);
                     let k = N.fetch_add(1, Ordering::Relaxed);
@@ -1475,7 +1475,7 @@ fn glCompressedTexSubImage2D(
         // DIAG: a PVRTC sub-update that did NOT take the decode path above
         // (partial / non-full-level) falls through to the raw driver call on
         // RGBA storage, which fails → that region of the atlas stays blank.
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_TEX") {
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_TEX") {
             let is_pvrtc = crate::gles::util::pvrtc_format_properties(format).is_some();
             log!(
                 "TEX-DIAG SUBIMAGE-FALLTHROUGH format={:#x} pvrtc={} off=({},{}) {}x{} image_size={} level_known={}",
@@ -1764,7 +1764,7 @@ fn glGetBufferPointervOES(
 /// attribute arrays whose pointer is not actually inside guest memory.
 ///
 /// When no buffer object is bound for an attribute array, the host GL driver
-/// reads the vertex data straight from the pointer touchHLE gave it. That
+/// reads the vertex data straight from the pointer RintedHLE gave it. That
 /// pointer is only safe if it addresses guest memory. A guest can leave an
 /// array enabled with a bogus pointer — e.g. a stale offset into a vertex
 /// buffer that was unbound or deleted before the draw (observed in My Talking
@@ -1914,10 +1914,10 @@ fn glDrawArrays(env: &mut Environment, mode: GLenum, first: GLint, count: GLsize
         return;
     }
     with_ctx_mem_and_shadow(env, |gles, mem, shadow| unsafe {
-        // DIAG (TOUCHHLE_TRACE_DRAW=1): dump the vertex-attribute + texture
+        // DIAG (RINTEDHLE_TRACE_DRAW=1): dump the vertex-attribute + texture
         // state for the first several draws, to see whether the texcoord
         // attribute (A1 / loc 1) is actually fed and a texture is bound.
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_DRAW") {
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_DRAW") {
             use std::sync::atomic::{AtomicU32, Ordering};
             static DN: AtomicU32 = AtomicU32::new(0);
             let dn = DN.fetch_add(1, Ordering::Relaxed);
@@ -2015,11 +2015,11 @@ fn glDrawArrays(env: &mut Environment, mode: GLenum, first: GLint, count: GLsize
         }
         let disabled_arrays = guard_client_vertex_arrays(gles, mem, shadow);
         let fog_state_backup = clamp_fog_state_values(gles, shadow);
-        if crate::env_flag_cached!("TOUCHHLE_POTATO_NATIVE_GLES2_PC_STATE") {
+        if crate::env_flag_cached!("RINTEDHLE_POTATO_NATIVE_GLES2_PC_STATE") {
             static SEEN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
             if !SEEN.swap(true, std::sync::atomic::Ordering::Relaxed) {
                 log!(
-                    "TOUCHHLE_POTATO_NATIVE_GLES2_PC_STATE=1: disabling strict native GLES2 scissor/depth/cull state before Potato draws [this log will only be shown once]"
+                    "RINTEDHLE_POTATO_NATIVE_GLES2_PC_STATE=1: disabling strict native GLES2 scissor/depth/cull state before Potato draws [this log will only be shown once]"
                 );
             }
 
@@ -2039,10 +2039,10 @@ fn glDrawArrays(env: &mut Environment, mode: GLenum, first: GLint, count: GLsize
 }
 
 /// One-shot state dump at the first larger indexed draw, gated by
-/// `TOUCHHLE_DEBUG_ES2_DRAW`. Helps diagnose "render loop alive but
+/// `RINTEDHLE_DEBUG_ES2_DRAW`. Helps diagnose "render loop alive but
 /// renderbuffer stays black" situations.
 unsafe fn log_es2_draw_state_once(gles: &mut dyn GLES, shadow: &GLShadowState, mem: &Mem) {
-    if !crate::env_flag_cached!("TOUCHHLE_DEBUG_ES2_DRAW") {
+    if !crate::env_flag_cached!("RINTEDHLE_DEBUG_ES2_DRAW") {
         return;
     }
     static SEEN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
@@ -2259,7 +2259,7 @@ fn glDrawElements(
             );
             return;
         }
-        if count > 3 && crate::env_flag_cached!("TOUCHHLE_DEBUG_ES2_DRAW") {
+        if count > 3 && crate::env_flag_cached!("RINTEDHLE_DEBUG_ES2_DRAW") {
             log!(
                 "ES2 first larger indexed draw: mode=0x{:x} count={} type=0x{:x} indices=0x{:x}",
                 mode,
@@ -2271,11 +2271,11 @@ fn glDrawElements(
         }
         let disabled_arrays = guard_client_vertex_arrays(gles, mem, shadow);
         let fog_state_backup = clamp_fog_state_values(gles, shadow);
-        if crate::env_flag_cached!("TOUCHHLE_POTATO_NATIVE_GLES2_PC_STATE") {
+        if crate::env_flag_cached!("RINTEDHLE_POTATO_NATIVE_GLES2_PC_STATE") {
             static SEEN: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
             if !SEEN.swap(true, std::sync::atomic::Ordering::Relaxed) {
                 log!(
-                    "TOUCHHLE_POTATO_NATIVE_GLES2_PC_STATE=1: disabling strict native GLES2 scissor/depth/cull state before Potato draws [this log will only be shown once]"
+                    "RINTEDHLE_POTATO_NATIVE_GLES2_PC_STATE=1: disabling strict native GLES2 scissor/depth/cull state before Potato draws [this log will only be shown once]"
                 );
             }
 
@@ -2289,7 +2289,7 @@ fn glDrawElements(
         let indices =
             translate_pointer_or_offset_to_host(gles, mem, shadow, indices, ELEMENT_ARRAY_BUFFER);
         gles.DrawElements(mode, count, type_, indices);
-        if count > 3 && crate::env_flag_cached!("TOUCHHLE_DEBUG_ES2_DRAW") {
+        if count > 3 && crate::env_flag_cached!("RINTEDHLE_DEBUG_ES2_DRAW") {
             static FB_DUMPED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
             if !FB_DUMPED.swap(true, std::sync::atomic::Ordering::Relaxed) {
                 let mut vp = [0 as GLint; 4];
@@ -2635,7 +2635,7 @@ fn glBindTexture(env: &mut Environment, target: GLenum, texture: GLuint) {
 /// level 0 uploaded becomes "incomplete" the moment the guest sets a mipmap
 /// min-filter, and sampling such a texture returns black — which made the
 /// LEGO Ninjago title menu render as a uniform-black quad on Mali-G57 MC2,
-/// even though the LEGO splash logo (whose textures kept the touchHLE-forced
+/// even though the LEGO splash logo (whose textures kept the RintedHLE-forced
 /// GL_LINEAR override from glTexImage2D) rendered fine.
 fn demipmap_filter_value(pname: GLenum, param: GLint) -> GLint {
     if pname != gles11::TEXTURE_MIN_FILTER {
@@ -2712,7 +2712,7 @@ fn glTexParameterx(env: &mut Environment, target: GLenum, pname: GLenum, param: 
 }
 fn glTexParameteriv(env: &mut Environment, target: GLenum, pname: GLenum, params: ConstPtr<GLint>) {
     if pname == gles11::TEXTURE_CROP_RECT_OES {
-        if !crate::env_flag_cached!("TOUCHHLE_ENABLE_TEXTURE_CROP_RECT") {
+        if !crate::env_flag_cached!("RINTEDHLE_ENABLE_TEXTURE_CROP_RECT") {
             return;
         }
 
@@ -2724,7 +2724,7 @@ fn glTexParameteriv(env: &mut Environment, target: GLenum, pname: GLenum, params
                 if !SEEN.swap(true, Ordering::Relaxed) {
                     let crop = from_raw_parts(params_ptr, 4);
                     log!(
-                        "TOUCHHLE_ENABLE_TEXTURE_CROP_RECT=1: first glTexParameteriv(GL_TEXTURE_CROP_RECT_OES) = [{}, {}, {}, {}]",
+                        "RINTEDHLE_ENABLE_TEXTURE_CROP_RECT=1: first glTexParameteriv(GL_TEXTURE_CROP_RECT_OES) = [{}, {}, {}, {}]",
                         crop[0],
                         crop[1],
                         crop[2],
@@ -2758,7 +2758,7 @@ fn glTexParameterfv(
     params: ConstPtr<GLfloat>,
 ) {
     if pname == gles11::TEXTURE_CROP_RECT_OES {
-        if !crate::env_flag_cached!("TOUCHHLE_ENABLE_TEXTURE_CROP_RECT") {
+        if !crate::env_flag_cached!("RINTEDHLE_ENABLE_TEXTURE_CROP_RECT") {
             return;
         }
 
@@ -2770,7 +2770,7 @@ fn glTexParameterfv(
                 if !SEEN.swap(true, Ordering::Relaxed) {
                     let crop = from_raw_parts(params_ptr, 4);
                     log!(
-                        "TOUCHHLE_ENABLE_TEXTURE_CROP_RECT=1: first glTexParameterfv(GL_TEXTURE_CROP_RECT_OES) = [{}, {}, {}, {}]",
+                        "RINTEDHLE_ENABLE_TEXTURE_CROP_RECT=1: first glTexParameterfv(GL_TEXTURE_CROP_RECT_OES) = [{}, {}, {}, {}]",
                         crop[0],
                         crop[1],
                         crop[2],
@@ -2804,7 +2804,7 @@ fn glTexParameterxv(
     params: ConstPtr<GLfixed>,
 ) {
     if pname == gles11::TEXTURE_CROP_RECT_OES {
-        if !crate::env_flag_cached!("TOUCHHLE_ENABLE_TEXTURE_CROP_RECT") {
+        if !crate::env_flag_cached!("RINTEDHLE_ENABLE_TEXTURE_CROP_RECT") {
             return;
         }
 
@@ -2816,7 +2816,7 @@ fn glTexParameterxv(
                 if !SEEN.swap(true, Ordering::Relaxed) {
                     let crop = from_raw_parts(params_ptr, 4);
                     log!(
-                        "TOUCHHLE_ENABLE_TEXTURE_CROP_RECT=1: first glTexParameterxv(GL_TEXTURE_CROP_RECT_OES) = [{}, {}, {}, {}]",
+                        "RINTEDHLE_ENABLE_TEXTURE_CROP_RECT=1: first glTexParameterxv(GL_TEXTURE_CROP_RECT_OES) = [{}, {}, {}, {}]",
                         crop[0],
                         crop[1],
                         crop[2],
@@ -2944,7 +2944,7 @@ fn glTexImage2D(
         if let Some(texture) = bound_texture {
             shadow.forget_pvrtc_texture_level(target, texture, level);
         }
-        if crate::env_flag_cached!("TOUCHHLE_DEBUG_ES2_DRAW") {
+        if crate::env_flag_cached!("RINTEDHLE_DEBUG_ES2_DRAW") {
             static TEX_DUMP_COUNT: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
             let n = TEX_DUMP_COUNT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
             if n < 8 && !pixels.is_null() && level == 0 {
@@ -3032,7 +3032,7 @@ fn glCompressedTexImage2D(
             );
         }
     }
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_TEX") {
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_TEX") {
         log!(
             "TEX-DIAG glCompressedTexImage2D target={:#x} level={} internalformat={:#x} {}x{} border={} image_size={} data={:#x}",
             target, level, internalformat, width, height, border, image_size, data.to_bits()
@@ -3051,7 +3051,7 @@ fn glCompressedTexImage2D(
         // paletted upload that follows a failed glTexImage2D would report
         // a misleading "compressed upload failed" on the very first call —
         // that's exactly what was happening on Mali-G57 with Temple Run
-        // (HyperHLE log: 1024x1024 RGBA8 upload immediately followed by
+        // (RintedHLE log: 1024x1024 RGBA8 upload immediately followed by
         // 256x256 PVRTC upload, both blamed on the PVRTC path).
         let mut drained = 0u32;
         loop {
@@ -3892,10 +3892,10 @@ fn unmap_buffer(env: &mut Environment, target: GLenum, oes: bool) -> GLboolean {
             buffer_size,
         );
     }
-    // DIAG: cache the unmapped buffer content so TOUCHHLE_TRACE_DRAW can read
+    // DIAG: cache the unmapped buffer content so RINTEDHLE_TRACE_DRAW can read
     // texcoords at draw time (the game streams its vertex data via map/unmap,
     // not glBufferData, so it was otherwise invisible to the cache).
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_DRAW") && target == ARRAY_BUFFER {
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_DRAW") && target == ARRAY_BUFFER {
         let bytes = env
             .mem
             .bytes_at(guest_buffer.cast(), buffer_size as GuestUSize)
@@ -3996,7 +3996,7 @@ fn glGetUniformLocation(env: &mut Environment, program: GLuint, name: ConstPtr<G
     with_ctx_and_mem_no_skip(env, |gles, mem| unsafe {
         let cstr = read_guest_cstring(mem, name);
         let loc = gles.GetUniformLocation(program, cstr.as_ptr());
-        if crate::env_flag_cached!("TOUCHHLE_DEBUG_ES2_DRAW") {
+        if crate::env_flag_cached!("RINTEDHLE_DEBUG_ES2_DRAW") {
             static SEEN: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
             let n = SEEN.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
             if n < 64 {
@@ -4045,7 +4045,7 @@ fn glUniformMatrix4fv(
     with_ctx_and_mem(env, |gles, mem| unsafe {
         let n = (count as usize) * 16;
         let ptr = mem.ptr_at(value, n.try_into().unwrap_or(0));
-        if crate::env_flag_cached!("TOUCHHLE_DEBUG_ES2_DRAW") && location >= 0 {
+        if crate::env_flag_cached!("RINTEDHLE_DEBUG_ES2_DRAW") && location >= 0 {
             static SEEN: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
             let seen = SEEN.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
             if seen < 8 {
@@ -5774,7 +5774,7 @@ fn glShaderSource(
         shader,
         String::from_utf8_lossy(cs.as_bytes()).into_owned(),
     );
-    if crate::env_flag_cached!("TOUCHHLE_DUMP_SHADER_SOURCE") {
+    if crate::env_flag_cached!("RINTEDHLE_DUMP_SHADER_SOURCE") {
         let _ = std::fs::write(format!("shader_dump_{}.glsl", shader), cs.as_bytes());
     }
     with_ctx_and_mem(env, |gles, _mem| unsafe {
@@ -5907,7 +5907,7 @@ fn glUniform4f(
     v3: GLfloat,
 ) {
     with_ctx_and_mem(env, |gles, _mem| unsafe {
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_DRAW") && location >= 0 {
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_DRAW") && location >= 0 {
             use std::sync::atomic::{AtomicU32, Ordering};
             static UN: AtomicU32 = AtomicU32::new(0);
             let un = UN.fetch_add(1, Ordering::Relaxed);
@@ -5971,7 +5971,7 @@ fn glUniform4fv(env: &mut Environment, location: GLint, count: GLsizei, value: C
     with_ctx_and_mem(env, |gles, mem| unsafe {
         let n = (count as usize) * 4;
         let ptr = mem.ptr_at(value, n.try_into().unwrap_or(0));
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_DRAW") && location >= 0 {
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_DRAW") && location >= 0 {
             use std::sync::atomic::{AtomicU32, Ordering};
             static UN: AtomicU32 = AtomicU32::new(0);
             let un = UN.fetch_add(1, Ordering::Relaxed);
@@ -5981,10 +5981,10 @@ fn glUniform4fv(env: &mut Environment, location: GLint, count: GLsizei, value: C
                 log!("UNIFORM4FV loc={} count={} vals={:?}", location, count, v);
             }
         }
-        // EXPERIMENT (TOUCHHLE_FORCE_IDENTITY_TC): rewrite a shear-looking
+        // EXPERIMENT (RINTEDHLE_FORCE_IDENTITY_TC): rewrite a shear-looking
         // texcoord-matrix uniform [1,-0,1,1] to identity [1,0,0,1] to test
         // whether the shear is what breaks textured rendering.
-        if count == 1 && crate::env_flag_cached!("TOUCHHLE_FORCE_IDENTITY_TC") {
+        if count == 1 && crate::env_flag_cached!("RINTEDHLE_FORCE_IDENTITY_TC") {
             let mut v = [0.0f32; 4];
             std::ptr::copy_nonoverlapping(ptr, v.as_mut_ptr(), 4);
             if v[0] == 1.0 && v[1] == 0.0 && v[2] == 1.0 && v[3] == 1.0 {
@@ -7433,7 +7433,7 @@ fn glGetTransformFeedbackVarying(
 
 /// `void glGetBufferPointerv(GLenum target, GLenum pname, void **params)` —
 /// ES 3.0 §6.1.15. The only valid `pname` is `GL_BUFFER_MAP_POINTER`, which
-/// is NULL unless the buffer is currently mapped. touchHLE exposes buffer
+/// is NULL unless the buffer is currently mapped. RintedHLE exposes buffer
 /// mappings to the guest via glMapBufferOES (which hands the app a *guest*
 /// pointer and keeps its own host<->guest mirror), so the raw host pointer
 /// the driver returns is not meaningful in the guest address space. We still
@@ -8573,7 +8573,7 @@ mod shader_preprocessor_normalization_tests {
     #[test]
     fn normalizes_directive_spanning_concatenated_source_strings() {
         // Guest code often calls glShaderSource with count > 1, splitting the
-        // source into several strings. touchHLE concatenates them before
+        // source into several strings. RintedHLE concatenates them before
         // normalization; verify that a directive whose trailing `//comment`
         // only becomes adjacent *after* concatenation is still fixed up.
         // Real case: Gameloft's "9mm" glues `#endif//...` at a chunk boundary,

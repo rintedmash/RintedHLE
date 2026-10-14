@@ -17,7 +17,7 @@ from conftest import (
     make_text_update,
 )
 
-REAL_HEADER = "touchHLE UNOFFICIAL 8d65eca — https://touchhle.org/"
+REAL_HEADER = "RintedHLE 8d65eca — https://github.com/rintedmash/RintedHLE/"
 
 
 def last_reply(update):

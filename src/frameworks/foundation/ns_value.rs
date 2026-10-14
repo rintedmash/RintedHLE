@@ -904,7 +904,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 // NSCoding implementation
 - (id)initWithCoder:(id)coder {
     let class: Class = msg![env; coder class];
-    let nib_archive_class: Class = msg_class![env; _touchHLE_NIBArchiveDecoder class];
+    let nib_archive_class: Class = msg_class![env; _RintedHLE_NIBArchiveDecoder class];
     if env.objc.class_is_subclass_of(class, nib_archive_class) {
         let new_num = _nib_archive_decoder::decode_current_number(env, coder);
         release(env, this);

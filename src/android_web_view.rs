@@ -9,7 +9,7 @@
 //! layered on top of the SDL surface, so pages load with a real engine
 //! (HTML/CSS/JS, HTTPS, links, scrolling, back/forward). All calls go through
 //! hand-rolled JNI (no `jni` crate dependency) into static methods on
-//! `MainActivity` — see `android/app/src/main/java/org/touchhle/android/`.
+//! `MainActivity` — see `android/app/src/main/java/org/rintedhle/android/`.
 //!
 //! The MainActivity class reference and the method IDs of every bridge method
 //! are resolved once at startup by `populate_jni_cache`, on the real
@@ -130,7 +130,7 @@ mod imp {
         }
 
         fn find_main_activity_class(&self) -> Option<*mut c_void> {
-            let name = CString::new("org/touchhle/android/MainActivity").ok()?;
+            let name = CString::new("org/rintedhle/android/MainActivity").ok()?;
             let Some(f): Option<
                 unsafe extern "C" fn(*mut c_void, *const c_char) -> *mut c_void,
             > = self.slot(slots::FIND_CLASS)
@@ -204,7 +204,7 @@ mod imp {
         /// FindClass and therefore no class-loader resolution. FindClass is
         /// only a fallback: it resolves the class against the calling Java
         /// frame's class loader, which is not reliable from the native
-        /// frames touchHLE runs in.
+        /// frames RintedHLE runs in.
         fn main_activity_global_class(&self) -> Option<*mut c_void> {
             let mut local = std::ptr::null_mut();
             let activity = unsafe { SDL_AndroidGetActivity() };

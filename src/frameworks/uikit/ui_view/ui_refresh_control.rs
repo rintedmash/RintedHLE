@@ -6,7 +6,7 @@
 //! `UIRefreshControl` (iOS 6+): the pull-to-refresh control used with
 //! table/collection views.
 //!
-//! touchHLE does not simulate pull-to-refresh gestures, so the control
+//! RintedHLE does not simulate pull-to-refresh gestures, so the control
 //! exists, round-trips its state (`refreshing`, `attributedTitle`) and
 //! never fires its `valueChanged` handler. Apps that only check
 //! `isRefreshing` after calling `beginRefreshing`/`endRefreshing` work

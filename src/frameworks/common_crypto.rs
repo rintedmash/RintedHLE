@@ -1430,7 +1430,7 @@ fn CCHmac(
 // =========================================================================
 // MARK: - Security framework stubs (Keychain Services)
 // =========================================================================
-// These are no-ops — touchHLE has no keychain. Apps that use keychain
+// These are no-ops — RintedHLE has no keychain. Apps that use keychain
 // for license checks or settings will gracefully handle errSecItemNotFound.
 
 // OSStatus error codes

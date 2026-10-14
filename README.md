@@ -1,3 +1,7 @@
 # RintedHLE
 
-RintedHLE is a fork of _HyperHLE-Fork_, which is a fork of HyperHLE, which in itself is a fork of _touchHLE_, an iOS high-level emulator. That's just... hard to believe, honestly.
+RintedHLE is a high-level emulator (HLE) for iPhone OS apps, built on the
+excellent [touchHLE] emulator. It is an independent fork with its own branding,
+features and release process.
+
+[touchHLE]: https://github.com/touchHLE/touchHLE

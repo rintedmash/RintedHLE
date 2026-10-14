@@ -163,7 +163,7 @@ pub const FUNCTIONS: FunctionExports = &[
 ];
 
 // Добавляем объявление DYLIB прямо сюда, как это принято в других модулях
-// touchHLE
+// RintedHLE
 pub const DYLIB: HostDylib = HostDylib {
     path: "/usr/lib/libbz2.1.0.dylib",
     aliases: &["/usr/lib/libbz2.dylib"], // На всякий случай добавим алиас

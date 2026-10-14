@@ -25,7 +25,7 @@ const GLOB_APPEND: GlobFlagType = 0x1;
 const GLOB_MARK: GlobFlagType = 0x4;
 const GLOB_NOCHECK: GlobFlagType = 0x10;
 
-// Error codes follow the BSD/Darwin glob.h convention (touchHLE targets
+// Error codes follow the BSD/Darwin glob.h convention (RintedHLE targets
 // iOS): GLOB_NOSPACE (-1), GLOB_ABORTED (-2), GLOB_NOMATCH (-3).
 // (-4 is GLOB_NOSYS on Darwin, not GLOB_NOSPACE.)
 const GLOB_NOMATCH: i32 = -3;

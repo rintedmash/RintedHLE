@@ -1,5 +1,5 @@
 /*
- * Implementation of UIImage for iOS 2.0 - 4.3.5 targeting TouchHLE.
+ * Implementation of UIImage for iOS 2.0 - 4.3.5 targeting RintedHLE.
  */
 
 use crate::dyld::{export_c_func, FunctionExports};
@@ -48,7 +48,7 @@ struct UIImageHostObject {
     /// Image scale factor (`1.0` for standard, `2.0` for @2x, `3.0` for @3x).
     /// UIKit reports `-[UIImage size]` in points (pixels / scale); honouring
     /// this keeps layout and hit-testing correct when a Retina-only app's
-    /// @2x/@3x asset is loaded on touchHLE's 1x device.
+    /// @2x/@3x asset is loaded on RintedHLE's 1x device.
     scale: CGFloat,
 }
 impl HostObject for UIImageHostObject {}
@@ -87,7 +87,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     // Like UIKit, accept names without an extension (".png" is implied) and
     // fall back to the "~iphone" and @2x/@3x variants.
     //
-    // The @2x/@3x fallback is important even though touchHLE emulates a 1x
+    // The @2x/@3x fallback is important even though RintedHLE emulates a 1x
     // device: modern iPhone-only apps (iOS 7+) frequently ship ONLY the
     // Retina (@2x/@3x) assets and no 1x copy at all, because every device
     // they support is Retina. Without this fallback those apps fail to load
@@ -172,7 +172,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 // iOS 4.0+
 + (id)imageWithCGImage:(CGImageRef)cg_image scale:(CGFloat)_scale orientation:(NSInteger)orientation {
-    // touchHLE's UIImage doesn't honour the scale factor (the app already
+    // RintedHLE's UIImage doesn't honour the scale factor (the app already
     // assumes the image's pixel dimensions are correct), so we just call
     // the regular initializer and store the orientation. Apps on iOS 5/6
     // (e.g. ketchapp's "2 Cars") rely on this overload existing —
@@ -211,7 +211,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     let path_str = ns_string::to_rust_string(env, path);
     let bytes = env.fs.read(GuestPath::new(&path_str));
     let lower_path = path_str.to_ascii_lowercase();
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_RESOURCES")
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_RESOURCES")
         && [".fnt", ".png", ".plist", ".jpg", ".jpeg"]
             .iter()
             .any(|extension| lower_path.ends_with(extension))

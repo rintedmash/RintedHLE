@@ -7,7 +7,7 @@
 //! `SKPaymentQueue` — StoreKit in-app purchase queue.
 //!
 //! With IAP emulation enabled (Cheat Engine `IAP` toggle or the
-//! `TOUCHHLE_IAP_EMULATION` environment variable), `addPayment:` completes the
+//! `RINTEDHLE_IAP_EMULATION` environment variable), `addPayment:` completes the
 //! transaction locally as `SKPaymentTransactionStatePurchased`, so games that
 //! gate content behind StoreKit unlock it without any App Store contact.
 //! The emulator never contacts Apple or creates a genuine signed receipt.
@@ -30,8 +30,8 @@ use crate::objc::{
 };
 use crate::Environment;
 
-const PURCHASE_PRODUCT_IDENTIFIERS_KEY: &str = "touchHLE.IAP.EmulatedProductIdentifiers.v1";
-const PURCHASE_TRANSACTION_IDENTIFIERS_KEY: &str = "touchHLE.IAP.EmulatedTransactionIdentifiers.v1";
+const PURCHASE_PRODUCT_IDENTIFIERS_KEY: &str = "RintedHLE.IAP.EmulatedProductIdentifiers.v1";
+const PURCHASE_TRANSACTION_IDENTIFIERS_KEY: &str = "RintedHLE.IAP.EmulatedTransactionIdentifiers.v1";
 
 // MARK: - Per-process state
 
@@ -77,7 +77,7 @@ fn next_transaction_identifier(env: &mut Environment, prefix: &str) -> (String, 
         .unwrap_or_default()
         .as_nanos();
     let identifier = format!(
-        "touchHLE.{}.{}.{}.{}",
+        "RintedHLE.{}.{}.{}.{}",
         env.bundle.bundle_identifier(),
         prefix,
         timestamp,
@@ -759,7 +759,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     // their server). We cannot produce a genuinely signed App Store receipt,
     // but a stable opaque blob passes the presence checks, so games credit
     // the purchase instead of silently granting nothing.
-    let mut blob = b"touchHLE-IAP-receipt/v1:".to_vec();
+    let mut blob = b"RintedHLE-IAP-receipt/v1:".to_vec();
     blob.extend_from_slice(identifier.as_bytes());
     let len = blob.len() as NSUInteger;
     let bytes = env.mem.alloc(len);

@@ -13,7 +13,7 @@
 //!     an `NSPointerFunctions` options mask.
 //!
 //! The two overwhelmingly common constructors are `+strongObjectsPointerArray`
-//! and `+weakObjectsPointerArray`. touchHLE has no zeroing-weak runtime, so —
+//! and `+weakObjectsPointerArray`. RintedHLE has no zeroing-weak runtime, so —
 //! exactly like our `NSHashTable` implementation — weak references degrade to
 //! strong ones: we retain every stored object and release it on removal /
 //! replacement / dealloc. This keeps the pointers valid (avoiding the
@@ -34,7 +34,7 @@ use crate::objc::{
 };
 
 // `NSPointerFunctionsOptions` (subset). Apple `<Foundation/NSPointerFunctions.h>`.
-// touchHLE always uses strong-object personality, so these are exposed for the
+// RintedHLE always uses strong-object personality, so these are exposed for the
 // public type signatures only and do not switch behaviour.
 pub type NSPointerFunctionsOptions = NSUInteger;
 

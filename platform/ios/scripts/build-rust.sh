@@ -6,11 +6,11 @@ REPO=$(CDPATH= cd -- "$ROOT/../.." && pwd)
 TARGET=${1:-aarch64-apple-ios-sim}
 CONFIGURATION=${2:-Debug}
 
-# Which emulator core to build. This repository holds HyperHLE; point
-# TOUCHHLE_CORE_REPO at a checkout of another core (an upstream touchHLE tree,
-# say) to build that one instead. Its dylib is copied in beside HyperHLE's so
+# Which emulator core to build. This repository holds RintedHLE; point
+# RINTEDHLE_CORE_REPO at a checkout of another core (an upstream RintedHLE tree,
+# say) to build that one instead. Its dylib is copied in beside RintedHLE's so
 # the app can ship both and load whichever a game is set to use.
-CORE_REPO=${TOUCHHLE_CORE_REPO:-"$REPO"}
+CORE_REPO=${RINTEDHLE_CORE_REPO:-"$REPO"}
 CORE_REPO=$(CDPATH= cd -- "$CORE_REPO" && pwd)
 CORE_ENTRY="$CORE_REPO/platform/ios/rust-entry/Cargo.toml"
 if [ ! -f "$CORE_ENTRY" ]; then
@@ -37,8 +37,8 @@ case "$CONFIGURATION" in
 esac
 
 CARGO_TARGET_DIR="$CORE_REPO/build/rust-ios-native"
-TOUCHHLE_BOOST_ROOT=${TOUCHHLE_BOOST_ROOT:-"$REPO/vendor/boost"}
-CMAKE_TOOLCHAIN_FILE="$ROOT/cmake/TouchHLEiOS.cmake"
+RINTEDHLE_BOOST_ROOT=${RINTEDHLE_BOOST_ROOT:-"$REPO/vendor/boost"}
+CMAKE_TOOLCHAIN_FILE="$ROOT/cmake/RintedHLEiOS.cmake"
 CMAKE_GENERATOR=Ninja
 CMAKE="$ROOT/scripts/cmake-ios.sh"
 DEVELOPER_DIR=${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}
@@ -89,9 +89,9 @@ for command in cargo cmake ninja xcrun; do
     fi
 done
 
-if [ ! -d "$TOUCHHLE_BOOST_ROOT/boost" ]; then
-    echo "Boost headers were not found at $TOUCHHLE_BOOST_ROOT" >&2
-    echo "Extract Boost into vendor/boost or set TOUCHHLE_BOOST_ROOT." >&2
+if [ ! -d "$RINTEDHLE_BOOST_ROOT/boost" ]; then
+    echo "Boost headers were not found at $RINTEDHLE_BOOST_ROOT" >&2
+    echo "Extract Boost into vendor/boost or set RINTEDHLE_BOOST_ROOT." >&2
     exit 1
 fi
 
@@ -108,19 +108,19 @@ case "$TARGET" in
         ;;
 esac
 
-export CARGO_TARGET_DIR TOUCHHLE_BOOST_ROOT
+export CARGO_TARGET_DIR RINTEDHLE_BOOST_ROOT
 
 # This repository's Dynarmic submodule lacks the changes the iOS JIT needs
 # (MAP_JIT memory with separate writable and executable views, and so on).
-# Build HyperHLE's core from a patched copy, so the submodule the other
+# Build RintedHLE's core from a patched copy, so the submodule the other
 # platforms build from stays untouched. Another core brings its own Dynarmic.
 if [ "$CORE_REPO" = "$REPO" ]; then
-    TOUCHHLE_DYNARMIC_DIR=$(sh "$ROOT/scripts/patched-source.sh" \
+    RINTEDHLE_DYNARMIC_DIR=$(sh "$ROOT/scripts/patched-source.sh" \
         "$REPO/vendor/dynarmic" "$ROOT/patches/dynarmic-ios-jit.patch" \
         "$REPO/build/dynarmic-ios-src")
-    export TOUCHHLE_DYNARMIC_DIR
+    export RINTEDHLE_DYNARMIC_DIR
 else
-    unset TOUCHHLE_DYNARMIC_DIR
+    unset RINTEDHLE_DYNARMIC_DIR
 fi
 export CMAKE_TOOLCHAIN_FILE CMAKE_GENERATOR CMAKE DEVELOPER_DIR IPHONEOS_DEPLOYMENT_TARGET
 export CFLAGS CXXFLAGS

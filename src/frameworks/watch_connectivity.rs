@@ -6,7 +6,7 @@
 //! `WatchConnectivity.framework` — the iPhone side of Apple Watch
 //! communication (iOS 9 and later).
 //!
-//! touchHLE has no paired Apple Watch, so what this framework models is
+//! RintedHLE has no paired Apple Watch, so what this framework models is
 //! precisely what a real iPhone without one does. That distinction
 //! matters, because apps use this framework as a feature gate:
 //!
@@ -156,7 +156,7 @@ fn delegate_responds(env: &mut Environment, delegate: id, name: &str) -> bool {
 
 /// Call a 32-bit ARM block with one object argument. The invoke function
 /// pointer lives at word 3 of the block, and the block itself is the
-/// implicit first argument, as elsewhere in touchHLE.
+/// implicit first argument, as elsewhere in RintedHLE.
 fn invoke_block_with_object(env: &mut Environment, block: id, argument: id) {
     if block == nil {
         return;
@@ -234,7 +234,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     }
     let session: id = msg![env; this new];
     // The singleton must survive autorelease pool drains; it is never
-    // released, like other framework singletons in touchHLE.
+    // released, like other framework singletons in RintedHLE.
     retain(env, session);
     env.framework_state.watch_connectivity.default_session = Some(session);
     session

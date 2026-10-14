@@ -58,6 +58,7 @@ pub mod time;
 pub mod unistd;
 pub mod uuid;
 pub mod wchar;
+pub mod zlib;
 
 pub const DYLIB: crate::dyld::HostDylib = crate::dyld::HostDylib {
     path: "/usr/lib/libSystem.B.dylib",
@@ -159,6 +160,7 @@ pub const DYLIB: crate::dyld::HostDylib = crate::dyld::HostDylib {
         unistd::FUNCTIONS,
         uuid::FUNCTIONS,
         wchar::FUNCTIONS,
+        zlib::ZLIB_FUNCTIONS,
     ],
 };
 
@@ -189,4 +191,5 @@ pub struct State {
     mach_ports: mach::mach_port::State,
     mach_error: mach::error::State,
     mmap: mmap::State,
+    zlib: zlib::State,
 }

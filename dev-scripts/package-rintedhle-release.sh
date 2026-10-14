@@ -1,5 +1,5 @@
 #!/bin/sh
-# Package HyperHLE release zips and write release notes for action-gh-release.
+# Package RintedHLE release zips and write release notes for action-gh-release.
 set -eu
 
 VERSION="$1"
@@ -15,8 +15,8 @@ cd "$ROOT"
 
 windows_exe=""
 for candidate in \
-    artifacts/windows/touchHLE.exe \
-    artifacts/windows/touchHLE_windows_bundle/touchHLE.exe
+    artifacts/windows/RintedHLE.exe \
+    artifacts/windows/RintedHLE_windows_bundle/RintedHLE.exe
 do
     if [ -e "$candidate" ]; then
         windows_exe="$candidate"
@@ -26,8 +26,8 @@ done
 
 linux_bin=""
 for candidate in \
-    artifacts/linux/touchHLE \
-    artifacts/linux/touchHLE_linux_bundle/touchHLE
+    artifacts/linux/RintedHLE \
+    artifacts/linux/RintedHLE_linux_bundle/RintedHLE
 do
     if [ -e "$candidate" ]; then
         linux_bin="$candidate"
@@ -37,8 +37,8 @@ done
 
 macos_dmg=""
 for candidate in \
-    artifacts/macos/HyperHLE.dmg \
-    artifacts/macos/touchHLE.dmg
+    artifacts/macos/RintedHLE.dmg \
+    artifacts/macos/RintedHLE.dmg
 do
     if [ -e "$candidate" ]; then
         macos_dmg="$candidate"
@@ -48,8 +48,8 @@ done
 
 android_apk=""
 for candidate in \
-    artifacts/android/HyperHLE-Fork.apk \
-    artifacts/android/touchHLE.apk
+    artifacts/android/RintedHLE.apk \
+    artifacts/android/RintedHLE.apk
 do
     if [ -e "$candidate" ]; then
         android_apk="$candidate"
@@ -64,14 +64,14 @@ for path in "$macos_dmg" "$android_apk"; do
     fi
 done
 if [ -z "$windows_exe" ]; then
-    echo "Missing build artifact (all platform builds must succeed): artifacts/windows/touchHLE.exe" >&2
+    echo "Missing build artifact (all platform builds must succeed): artifacts/windows/RintedHLE.exe" >&2
     exit 1
 fi
 if [ -z "$linux_bin" ]; then
-    echo "Missing build artifact (all platform builds must succeed): artifacts/linux/touchHLE" >&2
+    echo "Missing build artifact (all platform builds must succeed): artifacts/linux/RintedHLE" >&2
     exit 1
 fi
-ios_ipas="HyperHLE-iOS-unsigned.ipa HyperHLE-iOS-trollstore.ipa HyperHLE-iOS-trollstore-permanent-jit.ipa"
+ios_ipas="RintedHLE-iOS-unsigned.ipa RintedHLE-iOS-trollstore.ipa RintedHLE-iOS-trollstore-permanent-jit.ipa"
 for ipa in $ios_ipas; do
     if [ ! -f "artifacts/ios/$ipa" ]; then
         echo "Missing build artifact (all platform builds must succeed): artifacts/ios/$ipa" >&2
@@ -81,13 +81,13 @@ done
 
 if [ -z "$CHANGELOG_FROM" ]; then
     # The newest release tag older than VERSION (versions roll over at 12, see
-    # hyperhle-should-release.sh, so it can't simply be computed).
+    # rintedhle-should-release.sh, so it can't simply be computed).
     CHANGELOG_FROM="$(
         { git tag -l 'v[0-9]*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$'; echo "$VERSION"; } |
             sort -u -V | grep -x -B 1 -F "$VERSION" | grep -v -x -F "$VERSION" || true
     )"
     if [ -z "$CHANGELOG_FROM" ]; then
-        CHANGELOG_FROM="$(git rev-list -n 1 HEAD -- dev-scripts/hyperhle-should-release.sh)"
+        CHANGELOG_FROM="$(git rev-list -n 1 HEAD -- dev-scripts/rintedhle-should-release.sh)"
     fi
 fi
 
@@ -148,8 +148,8 @@ write_changelog() {
 }
 
 {
-    printf '%s\n\n' "HyperHLE ${VERSION}"
-    if [ "${FORCE_HYPERHLE_RELEASE:-}" = "true" ]; then
+    printf '%s\n\n' "RintedHLE ${VERSION}"
+    if [ "${FORCE_RINTEDHLE_RELEASE:-}" = "true" ]; then
         printf '%s\n\n' "_Manual release — changelog shows the latest 6 commits._"
     fi
     printf '%s\n\n' "## Changelog"
@@ -165,7 +165,7 @@ write_changelog() {
 cd "$ROOT/dev-scripts"
 ./prepare-release.sh --prepare-files
 
-prefix="HyperHLE"
+prefix="RintedHLE"
 
 ./prepare-release.sh --create-zip-macos "$ROOT/$macos_dmg" \
     -o "$ROOT/release/${prefix}_macOS_x86_64.zip"
@@ -177,7 +177,7 @@ prefix="HyperHLE"
 ./prepare-release.sh --create-zip-linux \
     "$ROOT/$linux_bin" \
     -o "$ROOT/release/${prefix}_Linux_x86_64.zip"
-# The iOS IPAs are attached as they are (see build-ios in HyperHLE_release.yml).
+# The iOS IPAs are attached as they are (see build-ios in RintedHLE_release.yml).
 for ipa in $ios_ipas; do
     cp "$ROOT/artifacts/ios/$ipa" "$ROOT/release/$ipa"
 done

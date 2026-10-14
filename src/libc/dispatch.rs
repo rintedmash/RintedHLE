@@ -5,7 +5,7 @@
  */
 //! Grand Central Dispatch (GCD) — `dispatch/dispatch.h`
 //!
-//! touchHLE is single-threaded from the guest's perspective, so most
+//! RintedHLE is single-threaded from the guest's perspective, so most
 //! concurrency primitives can be dramatically simplified:
 //!   - `dispatch_once` just calls the block once and marks the token.
 //!   - `dispatch_async` / `dispatch_sync` call the block immediately.
@@ -83,7 +83,7 @@ pub const DISPATCH_APPLY_AUTO: &str = "DISPATCH_APPLY_AUTO";
 /// emit a non-lazy binding to `_dispatch_main_q` directly instead of going
 /// through `dispatch_get_main_queue()`.
 ///
-/// On touchHLE the main queue is represented by the sentinel value
+/// On RintedHLE the main queue is represented by the sentinel value
 /// [MAIN_QUEUE_PTR] (`0x1`). Resolving the constant to that sentinel makes
 /// `dispatch_async(_dispatch_main_q, …)` and similar binary-direct uses go
 /// through the same code path as `dispatch_get_main_queue()`.
@@ -238,12 +238,12 @@ fn dispatch_queue_attr_make_with_qos_class(
     // Apple docs (<dispatch/queue.h>):
     //   "Returns an attribute value which may be provided to
     //   dispatch_queue_create to hint the system to use the given QoS
-    //   class. Since touchHLE doesn't model thread QoS — it runs
+    //   class. Since RintedHLE doesn't model thread QoS — it runs
     //   everything on the main thread queue — the documented behaviour
     //   we can faithfully implement is to return the input attr
     //   unchanged: any subsequent dispatch_queue_create(label,
     //   returned_attr) then behaves identically to using the original
-    //   attr (which is the only behaviour touchHLE supports today).
+    //   attr (which is the only behaviour RintedHLE supports today).
     //   Edge case per Apple: if qos_class == QOS_CLASS_UNSPECIFIED (0)
     //   AND attr == NULL, returns NULL; same null-pass-through
     //   behaviour falls out naturally from returning attr."
@@ -361,7 +361,7 @@ fn dispatch_apply_f(
 
 /// Convert a `dispatch_time_t` into a delay in seconds, relative to now.
 ///
-/// touchHLE's `dispatch_time(DISPATCH_TIME_NOW, delta)` and
+/// RintedHLE's `dispatch_time(DISPATCH_TIME_NOW, delta)` and
 /// `dispatch_walltime(_, delta)` both return the nanosecond `delta` directly
 /// (because `DISPATCH_TIME_NOW` is 0), so a `when` produced by them is simply
 /// "nanoseconds from now". We clamp to a sane range: never negative, and at
@@ -377,7 +377,7 @@ fn dispatch_after_delay_secs(when: u64) -> f64 {
 /// `dispatch_after(when, queue, block)`
 ///
 /// Crucially this must be *asynchronous*: the block has to run on a later run
-/// loop turn, not inline. Calling it synchronously (as touchHLE used to) breaks
+/// loop turn, not inline. Calling it synchronously (as RintedHLE used to) breaks
 /// the extremely common pattern of a method re-arming itself with
 /// `dispatch_after` (blink/poll/retry animations) — that recurses into itself
 /// without bound and either overflows the native stack or, with the
@@ -401,13 +401,13 @@ fn dispatch_after(
     let block = crate::libc::blocks::_Block_copy(env, block.cast_void().cast_const());
     log_dbg!("dispatch_after: scheduling block {:?} in {}s", block, delay);
     let num: id = msg_class![env; NSNumber numberWithUnsignedInt:(block.to_bits())];
-    let key: id = get_static_str(env, "_touchHLE_dispatch_after_block");
+    let key: id = get_static_str(env, "_RintedHLE_dispatch_after_block");
     let dict: id = dict_from_keys_and_objects(env, &[(key, num)]);
     let sel = env
         .objc
-        .lookup_selector("_touchHLE_dispatchAfterFireBlock:")
+        .lookup_selector("_RintedHLE_dispatchAfterFireBlock:")
         .unwrap();
-    let cls: Class = env.objc.get_known_class("_touchHLE_DispatchAfter", &mut env.mem);
+    let cls: Class = env.objc.get_known_class("_RintedHLE_DispatchAfter", &mut env.mem);
     let _: id = msg_class![env;
         NSTimer scheduledTimerWithTimeInterval:delay
                                        target:cls
@@ -431,14 +431,14 @@ fn dispatch_after_f(
     log_dbg!("dispatch_after_f: scheduling fn {:?} in {}s", work, delay);
     let ctx_num: id = msg_class![env; NSNumber numberWithUnsignedInt:(context.to_bits())];
     let work_num: id = msg_class![env; NSNumber numberWithUnsignedInt:(work.addr_with_thumb_bit())];
-    let ctx_key: id = get_static_str(env, "_touchHLE_dispatch_after_ctx");
-    let work_key: id = get_static_str(env, "_touchHLE_dispatch_after_work");
+    let ctx_key: id = get_static_str(env, "_RintedHLE_dispatch_after_ctx");
+    let work_key: id = get_static_str(env, "_RintedHLE_dispatch_after_work");
     let dict: id = dict_from_keys_and_objects(env, &[(ctx_key, ctx_num), (work_key, work_num)]);
     let sel = env
         .objc
-        .lookup_selector("_touchHLE_dispatchAfterFireFunc:")
+        .lookup_selector("_RintedHLE_dispatchAfterFireFunc:")
         .unwrap();
-    let cls: Class = env.objc.get_known_class("_touchHLE_DispatchAfter", &mut env.mem);
+    let cls: Class = env.objc.get_known_class("_RintedHLE_DispatchAfter", &mut env.mem);
     let _: id = msg_class![env;
         NSTimer scheduledTimerWithTimeInterval:delay
                                        target:cls
@@ -453,11 +453,11 @@ fn dispatch_after_f(
 pub const CLASSES: ClassExports = objc_classes! {
 (env, this, _cmd);
 
-@implementation _touchHLE_DispatchAfter: NSObject
+@implementation _RintedHLE_DispatchAfter: NSObject
 
-+ (())_touchHLE_dispatchAfterFireBlock:(id)timer {
++ (())_RintedHLE_dispatchAfterFireBlock:(id)timer {
     let dict: id = msg![env; timer userInfo];
-    let key: id = get_static_str(env, "_touchHLE_dispatch_after_block");
+    let key: id = get_static_str(env, "_RintedHLE_dispatch_after_block");
     let num: id = msg![env; dict objectForKey:key];
     if num == crate::objc::nil {
         return;
@@ -470,10 +470,10 @@ pub const CLASSES: ClassExports = objc_classes! {
     }
 }
 
-+ (())_touchHLE_dispatchAfterFireFunc:(id)timer {
++ (())_RintedHLE_dispatchAfterFireFunc:(id)timer {
     let dict: id = msg![env; timer userInfo];
-    let ctx_key: id = get_static_str(env, "_touchHLE_dispatch_after_ctx");
-    let work_key: id = get_static_str(env, "_touchHLE_dispatch_after_work");
+    let ctx_key: id = get_static_str(env, "_RintedHLE_dispatch_after_ctx");
+    let work_key: id = get_static_str(env, "_RintedHLE_dispatch_after_work");
     let ctx_num: id = msg![env; dict objectForKey:ctx_key];
     let work_num: id = msg![env; dict objectForKey:work_key];
     if work_num == crate::objc::nil {
@@ -606,28 +606,28 @@ fn dispatch_semaphore_wait(env: &mut Environment, sem: dispatch_semaphore_t, tim
         // Block until signalled. (Must stay a real block: Telltale's
         // JobScheduler counts jobs via dispatch semaphores and does not
         // tolerate a wait returning without a real signal.)
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_DISPATCHSEM") {
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_DISPATCHSEM") {
             log!(
                 "DSEM t={} wait-enter sem={:#x} lr={:#x}",
                 env.current_thread, sem.to_bits(), env.cpu.regs()[14]
             );
         }
         env.sem_decrement(backing, true);
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_DISPATCHSEM") {
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_DISPATCHSEM") {
             log!("DSEM t={} wait-exit sem={:#x}", env.current_thread, sem.to_bits());
         }
         0
     } else {
         // Finite timeout: wait up to `timeout` and return non-zero (timed out)
         // if no signal arrives. This MUST be honored, not treated as infinite:
-        // touchHLE's `dispatch_time(DISPATCH_TIME_NOW, ns)` returns the
+        // RintedHLE's `dispatch_time(DISPATCH_TIME_NOW, ns)` returns the
         // relative nanosecond delta (it adds to a zero base), so `timeout` is
         // that duration. Telltale's `PlatformSemaphore::TimedWait` — the
         // render thread's frame handshake — depends on the wait actually
         // timing out so the render loop can poll and advance; treating it as
         // infinite deadlocked `RenderThread::FinishFrame` (the frozen-spinner
         // hang). Poll like semaphore_timedwait does.
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_DISPATCHSEM") {
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_DISPATCHSEM") {
             log!(
                 "DSEM t={} timedwait-enter sem={:#x} timeout_ns={} lr={:#x}",
                 env.current_thread, sem.to_bits(), timeout, env.cpu.regs()[14]
@@ -656,7 +656,7 @@ fn dispatch_semaphore_signal(env: &mut Environment, sem: dispatch_semaphore_t) -
         log!("dispatch_semaphore_signal: unknown semaphore {:?}", sem);
         return 0;
     };
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_DISPATCHSEM") {
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_DISPATCHSEM") {
         log!(
             "DSEM t={} signal sem={:#x} lr={:#x}",
             env.current_thread, sem.to_bits(), env.cpu.regs()[14]
@@ -796,7 +796,7 @@ fn dispatch_get_context(_env: &mut Environment, _object: MutVoidPtr) -> MutVoidP
 /// Associates `context` with `queue` under the unique pointer `key`. Passing
 /// a NULL `context` clears any existing association (Apple documents NULL as
 /// "remove the value"). The `destructor` is the cleanup callback GCD would run
-/// when the value is replaced or the queue is destroyed; touchHLE does not own
+/// when the value is replaced or the queue is destroyed; RintedHLE does not own
 /// the guest's context allocation, so it is intentionally not invoked.
 /// <https://developer.apple.com/documentation/dispatch/1452828-dispatch_queue_set_specific>
 fn dispatch_queue_set_specific(

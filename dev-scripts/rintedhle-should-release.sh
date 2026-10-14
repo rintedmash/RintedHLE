@@ -1,7 +1,7 @@
 #!/bin/sh
-# Decide whether to publish a HyperHLE release and which vMAJOR.MINOR.PATCH tag
+# Decide whether to publish a RintedHLE release and which vMAJOR.MINOR.PATCH tag
 # to use. A release is due every 6 commits on HEAD since the latest release
-# tag, or since the commit that introduced hyperhle release automation when no
+# tag, or since the commit that introduced rintedhle release automation when no
 # tag exists yet.
 #
 # The second and third numbers count from 0 up to 12 and then carry into the
@@ -14,10 +14,10 @@ set -eu
 RELEASE_EVERY=6
 # Highest value of the second and third numbers; the first is unbounded.
 VERSION_PART_MAX=12
-WORKFLOW_MARKER="dev-scripts/hyperhle-should-release.sh"
+WORKFLOW_MARKER="dev-scripts/rintedhle-should-release.sh"
 
 # Only plain vMAJOR.MINOR.PATCH tags count; anything else (V1, v1.2.3-beta,
-# hyperhle-test-fix-…) would break the arithmetic below.
+# rintedhle-test-fix-…) would break the arithmetic below.
 latest_tag="$(git tag -l 'v[0-9]*' --sort=-v:refname |
     grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)"
 
@@ -49,10 +49,10 @@ fi
 
 version="v${major}.${minor}.${patch}"
 
-if [ "${FORCE_HYPERHLE_RELEASE:-}" = "true" ]; then
+if [ "${FORCE_RINTEDHLE_RELEASE:-}" = "true" ]; then
     should_release=true
 elif [ "${GITHUB_EVENT_NAME:-}" = "workflow_dispatch" ]; then
-    # Manual "Build HyperHLE" runs must never publish files to Releases;
+    # Manual "Build RintedHLE" runs must never publish files to Releases;
     # they only produce build artifacts.
     should_release=false
 elif [ "$commits_since" -lt "$RELEASE_EVERY" ]; then
@@ -64,7 +64,7 @@ else
 fi
 
 if [ "$should_release" = true ]; then
-    if [ "${FORCE_HYPERHLE_RELEASE:-}" = "true" ]; then
+    if [ "${FORCE_RINTEDHLE_RELEASE:-}" = "true" ]; then
         # Manual release: publish script uses git log -n 6 (see changelog_limit).
         changelog_from=""
         changelog_limit=6

@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
   <key>CFBundleIdentifier</key>
-  <string>org.touchhle.TestResources</string>
+  <string>org.rintedhle.TestResources</string>
   <key>CFBundleName</key>
   <string>TestResources</string>
   <key>CFBundlePackageType</key>

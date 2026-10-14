@@ -6,7 +6,7 @@
 //! `CAGradientLayer`.
 //!
 //! Chrome (and other apps) create gradient layers via `+[CAGradientLayer
-//! layer]` for fading toolbar / scroll-edge effects. touchHLE's compositor
+//! layer]` for fading toolbar / scroll-edge effects. RintedHLE's compositor
 //! doesn't render gradients yet, but the layer must be a real `CALayer`
 //! subclass so it composites (showing its background color) and so property
 //! accessors round-trip instead of warning "class is unimplemented".

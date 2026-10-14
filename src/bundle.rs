@@ -75,7 +75,7 @@ impl Bundle {
         self.plist
             .get("CFBundleIdentifier")
             .and_then(|v| v.as_string())
-            .unwrap_or("org.touchhle.app-picker")
+            .unwrap_or("org.rintedhle.app-picker")
     }
 
     pub fn bundle_version(&self) -> &str {

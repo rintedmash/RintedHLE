@@ -5,7 +5,7 @@
  */
 //! `UIBezierPath`.
 //!
-//! A real implementation backed by the `_touchHLE_CGPath` element store, so
+//! A real implementation backed by the `_RintedHLE_CGPath` element store, so
 //! paths created here are usable by Core Graphics callers (CGPathApply,
 //! clipping, fills) rather than being inert stubs.
 
@@ -133,7 +133,7 @@ impl UIBezierPathHostObject {
     }
 
     fn to_cg_path(&self, env: &mut Environment, mutable: bool) -> CGPathRef {
-        let class = env.objc.get_known_class("_touchHLE_CGPath", &mut env.mem);
+        let class = env.objc.get_known_class("_RintedHLE_CGPath", &mut env.mem);
         env.objc.alloc_object(
             class,
             Box::new(CGPathHostObject {
@@ -361,7 +361,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 - (MutVoidPtr)CGPath {
     let host = env.objc.borrow::<UIBezierPathHostObject>(this);
     let elements = host.elements.clone();
-    let class = env.objc.get_known_class("_touchHLE_CGPath", &mut env.mem);
+    let class = env.objc.get_known_class("_RintedHLE_CGPath", &mut env.mem);
     let cg_path = env.objc.alloc_object(
         class,
         Box::new(CGPathHostObject {

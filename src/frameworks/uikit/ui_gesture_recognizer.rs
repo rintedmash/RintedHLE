@@ -225,7 +225,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     cancel_long_press(env, this);
     env.objc.borrow_mut::<UIGestureRecognizerHostObject>(this).number_of_touches_required = value.max(1);
 }
-- (())_touchHLE_longPressTimer:(id)timer { long_press_timer(env, this, timer); }
+- (())_RintedHLE_longPressTimer:(id)timer { long_press_timer(env, this, timer); }
 - (())reset {
     cancel_long_press(env, this);
     env.objc.borrow_mut::<UIGestureRecognizerHostObject>(this).state = UIGestureRecognizerStatePossible;
@@ -614,7 +614,7 @@ fn long_press_touches_inner(env: &mut Environment, recognizer: id, touches: id, 
     } else if h.state == 0 && h.tracking && h.press_timer == nil && n == h.number_of_touches_required as usize
         && h.completed_taps == h.number_of_taps_required {
         let duration = h.minimum_press_duration;
-        let selector = env.objc.lookup_selector("_touchHLE_longPressTimer:").unwrap();
+        let selector = env.objc.lookup_selector("_RintedHLE_longPressTimer:").unwrap();
         let timer: id = msg_class![env; NSTimer scheduledTimerWithTimeInterval:duration target:recognizer selector:selector userInfo:nil repeats:false];
         retain(env, timer);
         env.objc.borrow_mut::<UIGestureRecognizerHostObject>(recognizer).press_timer = timer;

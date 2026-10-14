@@ -3,7 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
-package org.touchhle.android;
+package org.rintedhle.android;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -224,7 +224,7 @@ public class HostMedia {
             }
             final CountDownLatch done = new CountDownLatch(1);
             final AtomicReference<byte[]> photo = new AtomicReference<byte[]>(null);
-            HandlerThread ht = new HandlerThread("HyperHLECamera");
+            HandlerThread ht = new HandlerThread("RintedHLECamera");
             ht.start();
             final Handler handler = new Handler(ht.getLooper());
 
@@ -443,7 +443,7 @@ public class HostMedia {
                         }
                     }
                 }
-            }, "HyperHLE-Mic");
+            }, "RintedHLE-Mic");
             micThread.start();
             return true;
         } catch (Throwable t) {
@@ -484,7 +484,7 @@ public class HostMedia {
      * One-line report of what this device/permission state currently allows.
      * Rust calls it once at startup (android_media::populate_jni_cache) and
      * logs the result, so a "no camera / no microphone" answer can be
-     * attributed from the touchHLE log alone.
+     * attributed from the RintedHLE log alone.
      */
     public static String diagnose() {
         StringBuilder sb = new StringBuilder();

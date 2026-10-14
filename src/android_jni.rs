@@ -5,7 +5,7 @@
  */
 //! Minimal hand-rolled JNI plumbing shared by the Android bridges.
 //!
-//! touchHLE reaches the Android framework from two places (`android_media`
+//! RintedHLE reaches the Android framework from two places (`android_media`
 //! and `android_web_view`) without depending on the `jni` crate, so both walk
 //! the JNI function table by hand. That walk used to be duplicated, and the
 //! two copies disagreed about what a `JNIEnv*` is:

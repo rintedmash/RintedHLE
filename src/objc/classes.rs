@@ -354,7 +354,7 @@ impl ClassHostObject {
                     class,
                     name,
                 );
-                format!("_touchHLE_UnreadableClass_{:08x}", class.to_bits())
+                format!("_RintedHLE_UnreadableClass_{:08x}", class.to_bits())
             }
         };
 
@@ -595,7 +595,7 @@ impl ObjC {
 
         // An empty or otherwise garbage class name never corresponds to a real
         // class. The real Objective-C runtime returns nil for such lookups
-        // (e.g. `objc_getClass("") == nil`). These names show up in touchHLE
+        // (e.g. `objc_getClass("") == nil`). These names show up in RintedHLE
         // when a guest reads a class name (or a `Class` pointer) from
         // uninitialised/corrupt memory — e.g. a NULL-page read returning all
         // zeroes decodes to the empty string. Registering a placeholder class
@@ -689,7 +689,7 @@ impl ObjC {
                 // never aborts the process. Apps frequently reference
                 // classes that don't exist in the iOS version they
                 // actually run on (e.g. UICollectionViewCell on iOS < 6),
-                // or that touchHLE has no host implementation for, and
+                // or that RintedHLE has no host implementation for, and
                 // they expect to either fall back to a default class or
                 // to detect the absence at runtime. Crashing here breaks
                 // perfectly valid apps, so instead we log a loud warning
@@ -902,7 +902,7 @@ impl ObjC {
         while !queue.is_empty() {
             let next = queue.pop_front().unwrap();
             let (need, mut diff) = self.need_ivar_reconciliation(next);
-            if crate::env_flag_cached!("TOUCHHLE_TRACE_IVARS") {
+            if crate::env_flag_cached!("RINTEDHLE_TRACE_IVARS") {
                 let (class_name, superclass, instance_start, instance_size) = {
                     let host = self.borrow::<ClassHostObject>(next);
                     (host.name.clone(), host.superclass, host.instance_start, host.instance_size)
@@ -957,7 +957,7 @@ impl ObjC {
                         if !ivar.offset.is_null() {
                             let old_offset = mem.read(ivar.offset);
                             if let Some(adjusted_offset) = old_offset.checked_add(diff) {
-                                if crate::env_flag_cached!("TOUCHHLE_TRACE_IVARS") && name.starts_with("CC") {
+                                if crate::env_flag_cached!("RINTEDHLE_TRACE_IVARS") && name.starts_with("CC") {
                                     log!(
                                         "IVAR-OFFSET class={} slot={:?} old={} diff={} new={}",
                                         name,
@@ -1212,7 +1212,7 @@ impl ObjC {
         }
     }
 
-    /// Check whether `class` is a placeholder for a class touchHLE/HyperHLE
+    /// Check whether `class` is a placeholder for a class RintedHLE/RintedHLE
     /// does not implement (an `UnimplementedClass` host object).
     pub fn is_unimplemented_class(&self, class: Class) -> bool {
         if class == nil {
@@ -1440,7 +1440,7 @@ pub fn class_getInstanceSize(env: &mut crate::Environment, cls: Class, name: SEL
 //
 // Apple's `Method` is a pointer to the `method_t` entry inside a class's
 // method list; it identifies BOTH the class that defines the method and the
-// selector. touchHLE stores methods in a `HashMap<SEL, IMP>` per class, so we
+// selector. RintedHLE stores methods in a `HashMap<SEL, IMP>` per class, so we
 // materialise a stable 8-byte guest allocation per (defining class, selector)
 // pair — `[u32 class_bits][u32 selector_bits]` — and hand its pointer to the
 // guest as the opaque `Method`. All `method_*` functions decode the handle
@@ -2008,7 +2008,7 @@ pub fn class_replaceMethod(
 /// > `method_setImplementation`.
 ///
 /// We model `IMP` as a guest function pointer (the `Method` type returned
-/// by `class_getInstanceMethod` is touchHLE-specific and is not the same
+/// by `class_getInstanceMethod` is RintedHLE-specific and is not the same
 /// representation as `IMP`). The `types` string is captured into
 /// `guest_method_signatures` so that subsequent dispatch through
 /// `methodSignatureForSelector:` can honour it.
@@ -2093,7 +2093,7 @@ pub fn class_addMethod(
 /// >
 /// > Note: this function searches superclasses for implementations.
 ///
-/// In touchHLE's simplified runtime the returned "Method" value is the
+/// In RintedHLE's simplified runtime the returned "Method" value is the
 /// class pointer itself (matching what `class_getInstanceMethod` returns).
 /// Class methods live on the metaclass, so we resolve the metaclass first
 /// and then walk its chain looking for the selector.
@@ -2155,7 +2155,7 @@ pub fn objc_release(env: &mut crate::Environment, obj: id) -> id {
 /// The context argument is the `id` to release. See
 /// `objc4-866.9/runtime/NSObject.mm` (`_objc_deallocOnMainThreadHelper`).
 ///
-/// Forwarding to `objc_release` is correct because touchHLE serialises the
+/// Forwarding to `objc_release` is correct because RintedHLE serialises the
 /// guest's execution on a single host thread; "release on the main thread"
 /// reduces to "release now".
 #[allow(non_snake_case)]
@@ -2175,7 +2175,7 @@ pub fn ___objc_personality_v0(
     context: MutVoidPtr,
 ) -> i32 {
     log!(
-        "___objc_personality_v0 called! Exception handling is not fully implemented in touchHLE.\n\
+        "___objc_personality_v0 called! Exception handling is not fully implemented in RintedHLE.\n\
         version: {}, actions: {}, class: {:x}, object: {:?}, context: {:?}",
         version,
         actions,
@@ -2192,7 +2192,7 @@ pub fn ___objc_personality_v0(
 /// On a real device, when `objc_msgSend` cannot find an IMP for a given
 /// selector, it dispatches through `_objc_msgForward` which triggers the
 /// full forwarding chain (`forwardingTargetForSelector:`,
-/// `methodSignatureForSelector:`, `forwardInvocation:`). touchHLE does not
+/// `methodSignatureForSelector:`, `forwardInvocation:`). RintedHLE does not
 /// implement this machinery; instead we provide a stub that returns nil (0).
 ///
 /// This is exported so that binaries containing external relocations to
@@ -2246,7 +2246,7 @@ pub fn objc_storeStrong(env: &mut crate::Environment, location: crate::mem::MutP
         return;
     }
     let prev = env.mem.read(location);
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_IVARS")
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_IVARS")
         && TRACE_COUNT.fetch_add(1, std::sync::atomic::Ordering::Relaxed) < 256
     {
         log!("ARC-STORE location={:?} prev={:?} new={:?}", location, prev, obj);
@@ -2274,7 +2274,7 @@ pub fn objc_storeStrong(env: &mut crate::Environment, location: crate::mem::MutP
 /// > respond to `name`, the function returned will be part of the
 /// > runtime's message forwarding machinery.
 ///
-/// touchHLE doesn't model `_objc_msgForward`; if the selector isn't
+/// RintedHLE doesn't model `_objc_msgForward`; if the selector isn't
 /// implemented we return a NULL pointer, which the caller is expected
 /// to compare against and skip the dispatch (Apple binaries doing
 /// `IMP imp = class_getMethodImplementation(cls, sel); if (imp) imp(…)`
@@ -2301,7 +2301,7 @@ pub fn class_getMethodImplementation(
 
 /// `IMP class_getMethodImplementation_stret(Class cls, SEL name)` — same
 /// as above but for selectors whose return type uses `objc_msgSend_stret`
-/// (large struct returns). The IMP slot is the same in touchHLE.
+/// (large struct returns). The IMP slot is the same in RintedHLE.
 pub fn class_getMethodImplementation_stret(
     env: &mut crate::Environment,
     cls: Class,
@@ -2346,7 +2346,7 @@ pub fn objc_alloc(env: &mut crate::Environment, cls: Class) -> id {
 
 /// `id objc_autorelease(id obj)` — ARC/libobjc fast-path autorelease. objc4
 /// implements it as `obj ? obj->autorelease() : nil`: the object is added to
-/// the current autorelease pool and returned unchanged. touchHLE's
+/// the current autorelease pool and returned unchanged. RintedHLE's
 /// `autorelease` helper does exactly this (with a nil fast path), so we
 /// forward to it. This is the real implementation, not a stub: returning 0
 /// here would hand the guest a nil where it expects its object back.
@@ -2362,7 +2362,7 @@ pub fn objc_autorelease(env: &mut crate::Environment, obj: id) -> id {
 /// id objc_retainBlock(id x) { return (id)_Block_copy(x); }
 /// ```
 ///
-/// touchHLE's `_Block_copy` (see `src/libc/blocks.rs`) does not physically
+/// RintedHLE's `_Block_copy` (see `src/libc/blocks.rs`) does not physically
 /// duplicate the block — global blocks (the common case for static literal
 /// blocks) are not reference-counted, and stack-block promotion needs deeper
 /// Block ABI work — so it returns the same pointer. Mirroring that here keeps
@@ -2430,7 +2430,7 @@ pub fn imp_implementationWithBlock(
 /// *not* want an owning reference (e.g. the result is immediately passed on,
 /// or stored `__unsafe_unretained`): it accepts the autoreleased value and
 /// claims it without adding a retain, balancing the optimised return sequence.
-/// In touchHLE's serialised execution model there is no retain/autorelease
+/// In RintedHLE's serialised execution model there is no retain/autorelease
 /// elision to undo, so the correct behaviour is to return the object
 /// unchanged (and nil-safe). See `objc4` `NSObject.mm`,
 /// `objc_unsafeClaimAutoreleasedReturnValue`.
@@ -2443,7 +2443,7 @@ pub fn objc_unsafeClaimAutoreleasedReturnValue(env: &mut crate::Environment, obj
 //
 // These are part of the public Objective-C runtime header
 // (`<objc/runtime.h>`) but were not historically used by the iPhone OS
-// 2.x/3.x apps that touchHLE originally targeted. iOS 6+ binaries
+// 2.x/3.x apps that RintedHLE originally targeted. iOS 6+ binaries
 // reference them through Mach-O imports (often defensively, e.g. for
 // dynamic class registration, KVO swizzling, or analytics SDKs probing
 // for runtime features). Without host implementations the linker leaves
@@ -2459,7 +2459,7 @@ pub fn objc_unsafeClaimAutoreleasedReturnValue(env: &mut crate::Environment, obj
 pub fn class_getName(env: &mut crate::Environment, cls: Class) -> ConstPtr<u8> {
     use crate::mem::Ptr;
     if cls.is_null() {
-        // Apple: returns "nil"; touchHLE returns the empty string
+        // Apple: returns "nil"; RintedHLE returns the empty string
         // pointer to keep the call safe.
         return Ptr::null();
     }
@@ -2561,7 +2561,7 @@ pub fn objc_allocWithZone(
 }
 
 /// `void objc_registerClassPair(Class cls)` — finalise the registration
-/// of a dynamically created class. touchHLE's [`objc_allocateClassPair`]
+/// of a dynamically created class. RintedHLE's [`objc_allocateClassPair`]
 /// already inserts the class into the runtime tables; the matching
 /// `register` call is therefore a no-op that just publishes the class.
 /// <https://developer.apple.com/documentation/objectivec/1418414-objc_registerclasspair>
@@ -2569,7 +2569,7 @@ pub fn objc_registerClassPair(_env: &mut crate::Environment, _cls: Class) {}
 
 /// `void objc_disposeClassPair(Class cls)` — destroys a class created
 /// with [`objc_allocateClassPair`] that has not yet been registered.
-/// touchHLE doesn't reclaim class storage, so we just drop the reference
+/// RintedHLE doesn't reclaim class storage, so we just drop the reference
 /// on the floor (Apple's runtime is also lazy about this for very small
 /// allocations).
 /// <https://developer.apple.com/documentation/objectivec/1418912-objc_disposeclasspair>
@@ -2589,7 +2589,7 @@ pub fn class_setSuperclass(env: &mut crate::Environment, cls: Class, new_super: 
     old
 }
 
-/// `Protocol *objc_getProtocol(const char *name)` — touchHLE doesn't
+/// `Protocol *objc_getProtocol(const char *name)` — RintedHLE doesn't
 /// model protocols separately; return nil so any defensive
 /// `if (proto)` check skips the protocol-specific path.
 pub fn objc_getProtocol(_env: &mut crate::Environment, _name: ConstPtr<u8>) -> id {
@@ -2826,7 +2826,7 @@ pub fn class_copyPropertyList(
 /// > You must free the list with `free()`.
 /// > If `cls` declares no instance methods, returns `NULL` and `*outCount` is 0.
 ///
-/// touchHLE's `class_getInstanceMethod` returns the class pointer (it
+/// RintedHLE's `class_getInstanceMethod` returns the class pointer (it
 /// doesn't model real `Method` structs), so we mirror that by writing the
 /// class pointer once per known selector — callers walking the array can
 /// still use the pointers with `method_getImplementation`/`method_setImplementation`

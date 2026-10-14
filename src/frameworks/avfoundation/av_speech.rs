@@ -5,7 +5,7 @@
  */
 //! `AVSpeechSynthesizer`, `AVSpeechUtterance` and `AVSpeechSynthesisVoice`.
 //!
-//! Text-to-speech from the AVFoundation framework (iOS 7.0+). touchHLE has no
+//! Text-to-speech from the AVFoundation framework (iOS 7.0+). RintedHLE has no
 //! host text-to-speech engine, so no audio is actually rendered, but the full
 //! object model, the utterance queue state machine, and the delegate callbacks
 //! are implemented faithfully so that guest apps observe the documented
@@ -190,7 +190,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 // <https://developer.apple.com/documentation/avfaudio/avspeechsynthesisvoice/currentlanguagecode>
 + (id)currentLanguageCode { // NSString*
-    // touchHLE reports a single stable locale; en-US is a safe default that
+    // RintedHLE reports a single stable locale; en-US is a safe default that
     // every iOS voice table contains.
     ns_string::get_static_str(env, "en-US")
 }
@@ -205,7 +205,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 }
 
 - (id)name { // NSString*
-    ns_string::get_static_str(env, "touchHLE")
+    ns_string::get_static_str(env, "RintedHLE")
 }
 
 - (())dealloc {

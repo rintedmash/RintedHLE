@@ -47,7 +47,7 @@ fn __cxa_finalize(_env: &mut Environment, d: MutVoidPtr) {
         }
     }
     for (_func, _p, _d) in to_run.into_iter().rev() {
-        // touchHLE relies on host-process exit for cleanup; we just drop
+        // RintedHLE relies on host-process exit for cleanup; we just drop
         // the registered destructors.
     }
 }
@@ -59,7 +59,7 @@ fn __cxa_finalize(_env: &mut Environment, d: MutVoidPtr) {
 // successful initialisation the caller invokes `__cxa_guard_release`.
 //
 // On 32-bit ARM the guard is a 64-bit object whose first byte is the
-// "initialised" flag. touchHLE is single-threaded for static init so
+// "initialised" flag. RintedHLE is single-threaded for static init so
 // we don't need locking. We pre-mark it 1 so a re-entrant call sees
 // "already done".
 
@@ -83,7 +83,7 @@ fn __cxa_guard_abort(env: &mut Environment, guard: MutPtr<u8>) {
 
 // === Best-effort frame-pointer recovery ===
 //
-// touchHLE has no real C++ unwinder. Implementing one means parsing
+// RintedHLE has no real C++ unwinder. Implementing one means parsing
 // .gcc_except_table LSDAs, walking the SjLj jmpbuf chain and dispatching
 // to the right `catch` clause. That's a multi-week project.
 //
@@ -274,7 +274,7 @@ pub(crate) fn unwind_to_app_frame(env: &mut Environment) -> Option<GuestFunction
 
 // === Exception-loop detection (shared) ===
 //
-// touchHLE's exception "bypass" can return control to a caller that
+// RintedHLE's exception "bypass" can return control to a caller that
 // immediately re-throws (classic example: `operator new` in a loop that
 // keeps getting NULL from a refused huge `malloc`, throwing `bad_alloc`
 // every iteration — see P. Harvest, which spins on malloc(0x4420000c)).
@@ -354,7 +354,7 @@ fn __cxa_throw(env: &mut Environment, _exc: MutVoidPtr, tinfo: ConstVoidPtr, _dt
     if count <= 3 || count.is_multiple_of(64) {
         log!(
             "Guest threw a C++ exception of type {:?} (consecutive #{}): \
-             touchHLE has no real unwinder, so we unwind to the nearest \
+             RintedHLE has no real unwinder, so we unwind to the nearest \
              app-level frame via the frame-pointer chain.",
             type_name,
             count
@@ -363,7 +363,7 @@ fn __cxa_throw(env: &mut Environment, _exc: MutVoidPtr, tinfo: ConstVoidPtr, _dt
     if count >= THROW_LOOP_LIMIT {
         log!(
             "Warning: Exception loop detected: {} threw {} times in a row. \
-             touchHLE's SjLj bypass is returning into a caller that re-throws \
+             RintedHLE's SjLj bypass is returning into a caller that re-throws \
              every iteration. Returning to caller to break the loop; the \
              guest will likely abort on its own shortly.",
             type_name,
@@ -413,7 +413,7 @@ fn __cxa_pure_virtual(env: &mut Environment) {
 
 /// `__cxa_uncaught_exception` (Itanium C++ ABI; also re-exported by
 /// libc++abi). Returns whether an exception is currently in flight
-/// ("thrown but not yet caught"). touchHLE's exception bypass never
+/// ("thrown but not yet caught"). RintedHLE's exception bypass never
 /// leaves an exception in flight after `__cxa_throw` returns control to
 /// an app frame, so the truthful answer is `false`. libstdc++/libc++
 /// use this in `std::uncaught_exception()` and in stream/destructor
@@ -711,7 +711,7 @@ fn __dynamic_cast(
 ) -> ConstVoidPtr {
     static TRACE_COUNTER: std::sync::atomic::AtomicUsize =
         std::sync::atomic::AtomicUsize::new(0);
-    let trace = std::env::var_os("TOUCHHLE_TRACE_DYNAMIC_CAST").is_some()
+    let trace = std::env::var_os("RINTEDHLE_TRACE_DYNAMIC_CAST").is_some()
         && TRACE_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed) < 64;
     if trace {
         log!(

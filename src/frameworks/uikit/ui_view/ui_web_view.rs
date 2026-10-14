@@ -271,7 +271,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     // Desktop fallback: write the HTML to a temp file and snapshot it.
     if !html_str.is_empty() {
         let idx = SNAP_COUNTER.fetch_add(1, Ordering::Relaxed);
-        let tmp = std::env::temp_dir().join(format!("touchhle_uiwebview_{}.html", idx));
+        let tmp = std::env::temp_dir().join(format!("rintedhle_uiwebview_{}.html", idx));
         if std::fs::write(&tmp, html_str.as_bytes()).is_ok() {
             let url = format!("file://{}", tmp.display());
             let frame: CGRect = msg![env; this frame];
@@ -326,7 +326,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     // Desktop fallback: only HTML payloads can be rendered (temp file route).
     if mime_str.starts_with("text/html") && !payload.is_empty() {
         let idx = SNAP_COUNTER.fetch_add(1, Ordering::Relaxed);
-        let tmp = std::env::temp_dir().join(format!("touchhle_uiwebview_{}.html", idx));
+        let tmp = std::env::temp_dir().join(format!("rintedhle_uiwebview_{}.html", idx));
         if std::fs::write(&tmp, payload.as_bytes()).is_ok() {
             let url = format!("file://{}", tmp.display());
             let frame: CGRect = msg![env; this frame];
@@ -693,7 +693,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 // again — so this handler doubles as a poll: while a load stays deferred,
 // keep retrying on a timer until the overlay can be shown (or we give up
 // and simply report the load as finished).
-- (())touchhleWebViewLoadDidFinish:(id)_timer {
+- (())rintedhleWebViewLoadDidFinish:(id)_timer {
     env.objc.borrow_mut::<UIWebViewHostObject>(this).loading = false;
     let mut poll_again = false;
     if env.objc.borrow::<UIWebViewHostObject>(this).pending_load.is_some() {
@@ -767,7 +767,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 // MARK: - Chromium/CDP bridge: render a URL into the view's layer.contents
 // =========================================================================
 //
-// touchHLE has no HTML rendering engine. As an opportunistic fallback (see
+// RintedHLE has no HTML rendering engine. As an opportunistic fallback (see
 // PR description) we shell out to the host's headless Chromium to rasterise
 // the target URL into a PNG, then install that PNG as the CALayer contents
 // for the UIWebView. This gives apps like Google Mobile a visible web page
@@ -780,7 +780,7 @@ static SNAP_COUNTER: AtomicUsize = AtomicUsize::new(0);
 /// no suitable browser is available — in that case we leave the layer blank.
 fn find_chromium_binary() -> Option<PathBuf> {
     // Allow env var override for advanced users / CI.
-    if let Ok(path) = std::env::var("TOUCHHLE_CHROMIUM") {
+    if let Ok(path) = std::env::var("RINTEDHLE_CHROMIUM") {
         let p = PathBuf::from(path);
         if p.exists() {
             return Some(p);
@@ -811,7 +811,7 @@ fn snapshot_url_with_chromium(url: &str, width: u32, height: u32) -> Option<Vec<
         return None;
     };
     let idx = SNAP_COUNTER.fetch_add(1, Ordering::Relaxed);
-    let tmp = std::env::temp_dir().join(format!("touchhle_uiwebview_{}.png", idx));
+    let tmp = std::env::temp_dir().join(format!("rintedhle_uiwebview_{}.png", idx));
     // Chromium refuses to run as root unless given --no-sandbox.
     let status = Command::new(&chrome)
         .arg("--headless=new")
@@ -898,7 +898,7 @@ fn overlay_show_or_update(env: &mut Environment, this: id) -> Option<i32> {
     if w <= 0 || h <= 0 {
         // The view itself has no extent yet. Apps commonly add the web
         // view to a container and let autoresizing size it — which never
-        // happens here, as touchHLE has no automatic layout pass. If we
+        // happens here, as RintedHLE has no automatic layout pass. If we
         // already have a superview with a usable frame, borrow its
         // geometry instead of staying blank.
         let superview: id = msg![env; this superview];
@@ -1084,12 +1084,12 @@ fn fire_did_start_load(env: &mut Environment, this: id) {
 /// Schedule the async `webViewDidFinishLoad:` callback. On Android a real
 /// page load is in flight, so we delay briefly (matching real-UIWebView
 /// timing); the timer holds a retain of `this` which is released in
-/// `touchhleWebViewLoadDidFinish:`.
+/// `rintedhleWebViewLoadDidFinish:`.
 fn schedule_did_finish_load(env: &mut Environment, this: id) {
     retain(env, this);
     let sel = env
         .objc
-        .register_host_selector("touchhleWebViewLoadDidFinish:".to_string(), &mut env.mem);
+        .register_host_selector("rintedhleWebViewLoadDidFinish:".to_string(), &mut env.mem);
     let _timer: id = msg_class![env;
         NSTimer scheduledTimerWithTimeInterval:0.6
         target:this

@@ -16,7 +16,7 @@
 
 // Each emulator core exports this; the host passes in the one belonging to the
 // core it loaded for this game.
-typedef int32_t (*TouchHLEIOSRunGameFn)(
+typedef int32_t (*RintedHLEIOSRunGameFn)(
     const char *path,
     int32_t scale_hack,
     int32_t orientation,
@@ -38,17 +38,17 @@ typedef int32_t (*TouchHLEIOSRunGameFn)(
 
 // Not declared in the public SDK, but a stable syscall wrapper in libSystem.
 extern int csops(pid_t pid, unsigned int ops, void *useraddr, size_t usersize);
-#define TOUCHHLE_CS_OPS_STATUS 0
-#define TOUCHHLE_CS_DEBUGGED 0x10000000
+#define RINTEDHLE_CS_OPS_STATUS 0
+#define RINTEDHLE_CS_DEBUGGED 0x10000000
 
-bool touchhle_ios_jit_is_from_debugger(void) {
+bool rintedhle_ios_jit_is_from_debugger(void) {
     // dynarmic's code allocator asks for its executable memory by executing
     // `brk #0xf00d` (see oaknut's prepare_jit_region), a trap that only an
     // attached debugger can service. With none attached the trap is fatal the
     // instant a game starts, which reads as the app quitting for no reason.
     unsigned int flags = 0;
-    if (csops(getpid(), TOUCHHLE_CS_OPS_STATUS, &flags, sizeof(flags)) == 0
-        && (flags & TOUCHHLE_CS_DEBUGGED) != 0) {
+    if (csops(getpid(), RINTEDHLE_CS_OPS_STATUS, &flags, sizeof(flags)) == 0
+        && (flags & RINTEDHLE_CS_DEBUGGED) != 0) {
         return true;
     }
 
@@ -70,7 +70,7 @@ bool touchhle_ios_jit_is_from_debugger(void) {
 // SecTask lives in Security.framework but is not declared in the iOS SDK.
 // Resolve it at runtime so a missing symbol degrades to "no entitlement"
 // rather than stopping the app from launching at all.
-static bool touchhle_has_dynamic_codesigning(void) {
+static bool rintedhle_has_dynamic_codesigning(void) {
     typedef CFTypeRef (*create_from_self_fn)(CFAllocatorRef);
     typedef CFTypeRef (*copy_entitlement_fn)(CFTypeRef, CFStringRef, CFErrorRef *);
 
@@ -109,25 +109,25 @@ static bool touchhle_has_dynamic_codesigning(void) {
     return granted;
 }
 
-bool touchhle_ios_jit_available(void) {
-    return touchhle_ios_jit_is_from_debugger() || touchhle_has_dynamic_codesigning();
+bool rintedhle_ios_jit_available(void) {
+    return rintedhle_ios_jit_is_from_debugger() || rintedhle_has_dynamic_codesigning();
 }
 
 // Do NOT add an mmap PROT_WRITE | PROT_EXEC probe here. Per mmap(2), iOS
 // returns a writable-but-not-executable mapping instead of failing when
 // MAP_JIT is absent, so that probe reports success with JIT off. A false "JIT
 // is on" sends the emulator into a guaranteed freeze with no explanation.
-void touchhle_ios_log_jit_status(const char *context) {
+void rintedhle_ios_log_jit_status(const char *context) {
     unsigned int flags = 0;
-    int result = csops(getpid(), TOUCHHLE_CS_OPS_STATUS, &flags, sizeof(flags));
+    int result = csops(getpid(), RINTEDHLE_CS_OPS_STATUS, &flags, sizeof(flags));
     fprintf(
         stderr,
-        "touchHLE JIT [%s]: available=%d debugger=%d entitlement=%d "
+        "RintedHLE JIT [%s]: available=%d debugger=%d entitlement=%d "
         "cs_flags=0x%08x csops=%d/%d\n",
         context ? context : "?",
-        touchhle_ios_jit_available(),
-        touchhle_ios_jit_is_from_debugger(),
-        touchhle_has_dynamic_codesigning(),
+        rintedhle_ios_jit_available(),
+        rintedhle_ios_jit_is_from_debugger(),
+        rintedhle_has_dynamic_codesigning(),
         flags,
         result,
         (result == 0) ? 0 : errno
@@ -143,7 +143,7 @@ static void redirect_diagnostics(void) {
     }
 
     char log_path[PATH_MAX];
-    int length = snprintf(log_path, sizeof(log_path), "%s/Documents/touchhle-host.log", home);
+    int length = snprintf(log_path, sizeof(log_path), "%s/Documents/rintedhle-host.log", home);
     if (length < 0 || (size_t)length >= sizeof(log_path)) {
         return;
     }
@@ -155,7 +155,7 @@ static void redirect_diagnostics(void) {
     length = snprintf(
         previous_path,
         sizeof(previous_path),
-        "%s/Documents/touchhle-host-previous.log",
+        "%s/Documents/rintedhle-host-previous.log",
         home
     );
     if (length > 0 && (size_t)length < sizeof(previous_path)) {
@@ -170,11 +170,11 @@ static void redirect_diagnostics(void) {
     setvbuf(diagnostic_log, NULL, _IONBF, 0);
     dup2(fileno(diagnostic_log), STDOUT_FILENO);
     dup2(fileno(diagnostic_log), STDERR_FILENO);
-    fprintf(stderr, "touchHLE iOS port diagnostics started\n");
+    fprintf(stderr, "RintedHLE iOS port diagnostics started\n");
 }
 
 static void start_native_host(void) {
-    Class host_class = NSClassFromString(@"TouchHLENativeHost");
+    Class host_class = NSClassFromString(@"RintedHLENativeHost");
     SEL selector = NSSelectorFromString(@"start");
     if (host_class == Nil || ![host_class respondsToSelector:selector]) {
         fprintf(stderr, "Could not start the native iOS port UI\n");
@@ -184,8 +184,8 @@ static void start_native_host(void) {
     ((void (*)(id, SEL))objc_msgSend)(host_class, selector);
 }
 
-int32_t touchhle_ios_launch_game(
-    TouchHLEIOSRunGameFn run_game,
+int32_t rintedhle_ios_launch_game(
+    RintedHLEIOSRunGameFn run_game,
     const char *path,
     int32_t scale_hack,
     int32_t orientation,
@@ -193,7 +193,7 @@ int32_t touchhle_ios_launch_game(
     int32_t analog_stick_tilt_controls
 ) {
     if (run_game == NULL) {
-        fprintf(stderr, "touchHLE failed: no emulator core was loaded\n");
+        fprintf(stderr, "RintedHLE failed: no emulator core was loaded\n");
         return 1;
     }
 
@@ -207,10 +207,10 @@ int32_t touchhle_ios_launch_game(
 
     // Breadcrumbs: the emulator runs on the main thread, so if it hangs the UI
     // freezes with it and the log is the only way to see how far it got.
-    touchhle_ios_log_jit_status("game-launch");
+    rintedhle_ios_log_jit_status("game-launch");
     fprintf(
         stderr,
-        "touchHLE: entering emulator: scale_hack=%d orientation=%s network=%d "
+        "RintedHLE: entering emulator: scale_hack=%d orientation=%s network=%d "
         "analog_tilt=%d\n",
         scale_hack,
         orientation_hint,
@@ -229,7 +229,7 @@ int32_t touchhle_ios_launch_game(
     SDL_iPhoneSetEventPump(SDL_FALSE);
     SDL_ResetHint(SDL_HINT_ORIENTATIONS);
 
-    fprintf(stderr, "touchHLE: emulator returned %d\n", result);
+    fprintf(stderr, "RintedHLE: emulator returned %d\n", result);
     return result;
 }
 
@@ -238,7 +238,7 @@ int main(int argc, char *argv[]) {
     (void)argv;
 
     redirect_diagnostics();
-    touchhle_ios_log_jit_status("launch");
+    rintedhle_ios_log_jit_status("launch");
 
     char *base_path = SDL_GetBasePath();
     if (base_path != NULL) {

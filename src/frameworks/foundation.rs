@@ -323,7 +323,7 @@ fn parse_objc_type(env: &mut Environment, mut ptr: ConstPtr<u8>) -> (ConstPtr<u8
 
 /// `NSFoundationVersionNumber` is a global `double` exported by Foundation
 /// that apps use as a runtime OS-version probe (`if (NSFoundationVersionNumber
-/// >= NSFoundationVersionNumber_iPhoneOS_4_0)`). We expose touchHLE's
+/// >= NSFoundationVersionNumber_iPhoneOS_4_0)`). We expose RintedHLE's
 /// nominal "iOS 4.0" identity (build 8A293, see `libc/sys/utsname`) — the
 /// constant `751.32` is the documented Foundation version for iOS 4.0.
 fn ns_foundation_version_number(env: &mut Environment) -> ConstVoidPtr {
@@ -335,7 +335,7 @@ fn ns_foundation_version_number(env: &mut Environment) -> ConstVoidPtr {
 /// CoreFoundation's twin of `NSFoundationVersionNumber`. iOS 4.0 reports
 /// 550.32 (`kCFCoreFoundationVersionNumber_iPhoneOS_4_0`), which keeps
 /// `if (kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iPhoneOS_4_0)`
-/// gates on the iOS-4 branch — matches the rest of touchHLE's identity.
+/// gates on the iOS-4 branch — matches the rest of RintedHLE's identity.
 fn cf_core_foundation_version_number(env: &mut Environment) -> ConstVoidPtr {
     let ptr: MutPtr<u64> = env.mem.alloc(8).cast();
     env.mem.write(ptr, 550.32f64.to_bits());
@@ -1181,7 +1181,7 @@ pub const STUB_CONSTANTS: ConstantExports = &[
     ),
     // -----------------------------------------------------------------
     // UIKit hardware-keyboard input strings (<UIKit/UIKeyCommand.h>).
-    // Apps register UIKeyCommands against these; touchHLE does not deliver
+    // Apps register UIKeyCommands against these; RintedHLE does not deliver
     // hardware-keyboard events, but the symbols must resolve to a stable
     // non-nil NSString so the app's +keyCommands setup does not crash.
     // -----------------------------------------------------------------
@@ -1331,7 +1331,7 @@ pub const STUB_CONSTANTS: ConstantExports = &[
         HostConstant::NSString("com.apple.UIKit.activity.PostToTencentWeibo"),
     ),
     // -----------------------------------------------------------------
-    // Notification names referenced by apps but never posted by touchHLE.
+    // Notification names referenced by apps but never posted by RintedHLE.
     // Registering them as stable NSStrings avoids a NULL relocation crash
     // when the app subscribes via NSNotificationCenter.
     // -----------------------------------------------------------------
@@ -1679,7 +1679,7 @@ pub type NSTimeInterval = f64;
 ///
 /// [`std::time::Duration::from_secs_f64`] panics when handed `NaN`, infinity,
 /// negative values, or values beyond `u64::MAX` seconds. Real iPhone OS apps
-/// have been observed passing all of these — for example HyperHLE log #4
+/// have been observed passing all of these — for example RintedHLE log #4
 /// (Crazy Frog Racer) panicked at `time.rs:964:23` after the first
 /// `NSTimer` fired because the game scheduled a callback with a non-finite
 /// interval, and the Resident Evil 4 / accelerometer paths similarly emit

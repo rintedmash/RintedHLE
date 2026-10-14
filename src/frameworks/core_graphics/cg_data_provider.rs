@@ -68,7 +68,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 // CGDataProvider is a CFType-based type, but in our implementation those
 // are just Objective-C types, so we need a class for it, but its name is not
 // visible anywhere.
-@implementation _touchHLE_CGDataProvider: NSObject
+@implementation _RintedHLE_CGDataProvider: NSObject
 
 - (())dealloc {
     match *env.objc.borrow(this) {
@@ -136,7 +136,7 @@ fn CGDataProviderCreateWithData(
 ) -> CGDataProviderRef {
     let class = env
         .objc
-        .get_known_class("_touchHLE_CGDataProvider", &mut env.mem);
+        .get_known_class("_RintedHLE_CGDataProvider", &mut env.mem);
     env.objc.alloc_object(
         class,
         Box::new(CGDataProviderHostObject::DataWithSize {
@@ -155,7 +155,7 @@ pub(super) fn from_cg_image(env: &mut Environment, cg_image: CGImageRef) -> CGDa
     CGImageRetain(env, cg_image);
     let class = env
         .objc
-        .get_known_class("_touchHLE_CGDataProvider", &mut env.mem);
+        .get_known_class("_RintedHLE_CGDataProvider", &mut env.mem);
     env.objc.alloc_object(
         class,
         Box::new(CGDataProviderHostObject::CGImage(cg_image)),
@@ -232,7 +232,7 @@ fn CGDataProviderCreateWithCFData(env: &mut Environment, data: CFDataRef) -> CGD
     CFRetain(env, data);
     let class = env
         .objc
-        .get_known_class("_touchHLE_CGDataProvider", &mut env.mem);
+        .get_known_class("_RintedHLE_CGDataProvider", &mut env.mem);
     env.objc.alloc_object(
         class,
         Box::new(CGDataProviderHostObject::CFData(data)),
@@ -368,7 +368,7 @@ fn CGDataProviderCreateSequential(
 
     let class = env
         .objc
-        .get_known_class("_touchHLE_CGDataProvider", &mut env.mem);
+        .get_known_class("_RintedHLE_CGDataProvider", &mut env.mem);
     env.objc.alloc_object(
         class,
         Box::new(CGDataProviderHostObject::DataWithSize {
@@ -449,7 +449,7 @@ fn CGDataProviderCreateDirect(
 
     let class = env
         .objc
-        .get_known_class("_touchHLE_CGDataProvider", &mut env.mem);
+        .get_known_class("_RintedHLE_CGDataProvider", &mut env.mem);
     env.objc.alloc_object(
         class,
         Box::new(CGDataProviderHostObject::Direct {

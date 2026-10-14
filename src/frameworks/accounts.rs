@@ -12,7 +12,7 @@
 //! guest-side `[NSString isEqualToString:ACAccountTypeIdentifierFacebook]`
 //! dereferences NULL.
 //!
-//! touchHLE has no real ACAccountStore implementation — the OAuth flow
+//! RintedHLE has no real ACAccountStore implementation — the OAuth flow
 //! it would drive doesn't exist on Android — but resolving the
 //! constants is enough to keep apps that defensively link Accounts (via
 //! Facebook SDK / Flurry / Talking Carl's sharing hooks) past the dyld
@@ -125,7 +125,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 // `- (NSArray<ACAccount *> *)accounts;`
 //
-// touchHLE has no account database, so the store is always empty. This
+// RintedHLE has no account database, so the store is always empty. This
 // mirrors a device with no Twitter/Facebook/etc. accounts configured.
 - (id)accounts {
     let empty = ns_array::from_vec(env, Vec::new());

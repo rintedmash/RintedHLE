@@ -3,6 +3,98 @@
 version = 4
 
 [[package]]
+name = "RintedHLE"
+version = "0.2.3"
+dependencies = [
+ "RintedHLE_dynarmic_wrapper",
+ "RintedHLE_gl_bindings",
+ "RintedHLE_libxml2_wrapper",
+ "RintedHLE_openal_soft_wrapper",
+ "RintedHLE_pvrt_decompress_wrapper",
+ "RintedHLE_stb_image_wrapper",
+ "RintedHLE_version",
+ "bzip2",
+ "caf",
+ "cargo-license",
+ "cc",
+ "cmake",
+ "corosensei",
+ "digest",
+ "encoding_rs",
+ "flate2",
+ "gl_generator",
+ "hound",
+ "lazy_static",
+ "libc",
+ "mach_object",
+ "md-5",
+ "mimalloc",
+ "nibarchive",
+ "openh264",
+ "plist",
+ "quick-xml 0.38.4",
+ "regex",
+ "rusqlite",
+ "rusttype",
+ "sdl2",
+ "sdl2-sys",
+ "sha1",
+ "sha2",
+ "symphonia",
+ "ureq",
+ "windows-sys 0.61.2",
+ "zip",
+]
+
+[[package]]
+name = "RintedHLE_dynarmic_wrapper"
+version = "0.2.3"
+dependencies = [
+ "cc",
+ "cmake",
+]
+
+[[package]]
+name = "RintedHLE_gl_bindings"
+version = "0.2.3"
+dependencies = [
+ "gl_generator",
+]
+
+[[package]]
+name = "RintedHLE_libxml2_wrapper"
+version = "0.2.3"
+dependencies = [
+ "cc",
+ "cmake",
+]
+
+[[package]]
+name = "RintedHLE_openal_soft_wrapper"
+version = "0.2.3"
+dependencies = [
+ "cmake",
+]
+
+[[package]]
+name = "RintedHLE_pvrt_decompress_wrapper"
+version = "0.2.3"
+dependencies = [
+ "cc",
+]
+
+[[package]]
+name = "RintedHLE_stb_image_wrapper"
+version = "0.2.3"
+dependencies = [
+ "cc",
+]
+
+[[package]]
+name = "RintedHLE_version"
+version = "0.2.3"
+
+[[package]]
 name = "ab_glyph_rasterizer"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1044,6 +1136,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rintedhle-ios-entry"
+version = "0.1.0"
+dependencies = [
+ "RintedHLE",
+]
+
+[[package]]
 name = "rusqlite"
 version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1537,104 +1636,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4f7f0dd8d50a853a531c426359045b1998f04219d88799810762cd4ad314234"
 dependencies = [
  "serde",
-]
-
-[[package]]
-name = "touchHLE"
-version = "0.2.3"
-dependencies = [
- "bzip2",
- "caf",
- "cargo-license",
- "cc",
- "cmake",
- "corosensei",
- "digest",
- "encoding_rs",
- "gl_generator",
- "hound",
- "lazy_static",
- "libc",
- "mach_object",
- "md-5",
- "mimalloc",
- "nibarchive",
- "openh264",
- "plist",
- "quick-xml 0.38.4",
- "regex",
- "rusqlite",
- "rusttype",
- "sdl2",
- "sdl2-sys",
- "sha1",
- "sha2",
- "symphonia",
- "touchHLE_dynarmic_wrapper",
- "touchHLE_gl_bindings",
- "touchHLE_libxml2_wrapper",
- "touchHLE_openal_soft_wrapper",
- "touchHLE_pvrt_decompress_wrapper",
- "touchHLE_stb_image_wrapper",
- "touchHLE_version",
- "ureq",
- "windows-sys 0.61.2",
- "zip",
-]
-
-[[package]]
-name = "touchHLE_dynarmic_wrapper"
-version = "0.2.3"
-dependencies = [
- "cc",
- "cmake",
-]
-
-[[package]]
-name = "touchHLE_gl_bindings"
-version = "0.2.3"
-dependencies = [
- "gl_generator",
-]
-
-[[package]]
-name = "touchHLE_libxml2_wrapper"
-version = "0.2.3"
-dependencies = [
- "cc",
- "cmake",
-]
-
-[[package]]
-name = "touchHLE_openal_soft_wrapper"
-version = "0.2.3"
-dependencies = [
- "cmake",
-]
-
-[[package]]
-name = "touchHLE_pvrt_decompress_wrapper"
-version = "0.2.3"
-dependencies = [
- "cc",
-]
-
-[[package]]
-name = "touchHLE_stb_image_wrapper"
-version = "0.2.3"
-dependencies = [
- "cc",
-]
-
-[[package]]
-name = "touchHLE_version"
-version = "0.2.3"
-
-[[package]]
-name = "touchhle-ios-entry"
-version = "0.1.0"
-dependencies = [
- "touchHLE",
 ]
 
 [[package]]

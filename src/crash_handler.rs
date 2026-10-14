@@ -5,7 +5,7 @@
  */
 //! Native crash diagnostics.
 //!
-//! touchHLE's own errors and guest errors are always logged, but a *host*
+//! RintedHLE's own errors and guest errors are always logged, but a *host*
 //! crash (SIGSEGV/SIGBUS/SIGILL from e.g. a JIT bug or a graphics driver)
 //! kills the process silently, which makes bug reports undiagnosable ("it
 //! just closes with no error"). These handlers write a one-line marker with
@@ -73,7 +73,7 @@ pub fn append_to_log(msg: &str) {
     }
 }
 
-/// Install a Rust panic hook that mirrors panic messages into the touchHLE
+/// Install a Rust panic hook that mirrors panic messages into the RintedHLE
 /// log file. The default hook only writes to stderr/logcat, which users
 /// rarely capture, so panics look like silent aborts (especially on Android,
 /// where a panic unwinding out of a guest-thread coroutine ends in
@@ -83,7 +83,7 @@ pub fn install_panic_hook() {
         let thread = std::thread::current();
         let thread_name = thread.name().unwrap_or("<unnamed>");
         let msg = format!(
-            "touchHLE: PANIC in thread \"{}\" at {}: {}\n(panic is followed by unwinding; if this appears right before a FATAL SIGNAL line, the panic crossed a coroutine boundary and aborted the process)",
+            "RintedHLE: PANIC in thread \"{}\" at {}: {}\n(panic is followed by unwinding; if this appears right before a FATAL SIGNAL line, the panic crossed a coroutine boundary and aborted the process)",
             thread_name,
             info.location()
                 .map(|l| format!("{}:{}", l.file(), l.line()))
@@ -102,7 +102,7 @@ pub fn install_panic_hook() {
 mod imp {
     use std::sync::atomic::{AtomicI32, AtomicUsize, Ordering};
 
-    /// Raw fd of the touchHLE log file, so the signal handler (which cannot
+    /// Raw fd of the RintedHLE log file, so the signal handler (which cannot
     /// safely use the `Mutex<File>` in `log::get_log_file()`) can append to it.
     static LOG_FD: AtomicI32 = AtomicI32::new(-1);
 
@@ -173,7 +173,7 @@ mod imp {
     }
 
     /// The interrupted PC/LR as addresses, so `maps_for` attributes them to a
-    /// loaded library (and reports the libtouchHLE.so load base needed to
+    /// loaded library (and reports the libRintedHLE.so load base needed to
     /// symbolize them).
     fn fault_addrs(fault: InterruptedFrame) -> Vec<*mut libc::c_void> {
         match fault {
@@ -214,11 +214,11 @@ mod imp {
         unsafe { libc::close(fd) };
         let text = String::from_utf8_lossy(&buf[..off]).into_owned();
         let mut out = String::from("relevant /proc/self/maps entries:\n");
-        // Track the lowest mapping of libtouchHLE.so together with its file
+        // Track the lowest mapping of libRintedHLE.so together with its file
         // offset, so native backtrace frames can be converted to ELF file
         // addresses for offline symbolization:
         //   file_vaddr = frame_addr - load_base, load_base = map_start - map_offset
-        let mut touchhle_load_base: Option<(usize, usize)> = None;
+        let mut rintedhle_load_base: Option<(usize, usize)> = None;
         for line in text.lines() {
             // "start-end perms offset dev inode path"
             let mut it = line.splitn(2, ' ');
@@ -233,14 +233,14 @@ mod imp {
                 ) else {
                     continue;
                 };
-                if line.contains("libtouchHLE.so") && touchhle_load_base.is_none() {
+                if line.contains("libRintedHLE.so") && rintedhle_load_base.is_none() {
                     // Offset is the third field.
                     let offset = line
                         .split_whitespace()
                         .nth(2)
                         .and_then(|o| usize::from_str_radix(o, 16).ok())
                         .unwrap_or(0);
-                    touchhle_load_base = Some((start.saturating_sub(offset), offset));
+                    rintedhle_load_base = Some((start.saturating_sub(offset), offset));
                 }
                 if addrs.iter().any(|a| {
                     let a = *a as usize;
@@ -251,9 +251,9 @@ mod imp {
                 }
             }
         }
-        if let Some((base, _)) = touchhle_load_base {
+        if let Some((base, _)) = rintedhle_load_base {
             out.push_str(&format!(
-                "libtouchHLE.so load base: {:#x} (symbolize native frames with: llvm-symbolizer --obj=libtouchHLE.so <frame - base>)\n",
+                "libRintedHLE.so load base: {:#x} (symbolize native frames with: llvm-symbolizer --obj=libRintedHLE.so <frame - base>)\n",
                 base
             ));
         }
@@ -337,7 +337,7 @@ mod imp {
             format!(" at address {:#x}", addr)
         };
         let msg = format!(
-            "touchHLE: FATAL: native host crash: {}{} — the signal alone does not identify the root cause. Check preceding panic, loader and guest-fault messages. The process will now terminate.\n",
+            "RintedHLE: FATAL: native host crash: {}{} — the signal alone does not identify the root cause. Check preceding panic, loader and guest-fault messages. The process will now terminate.\n",
             std::str::from_utf8(&name[..name.len() - 1]).unwrap_or("SIGNAL"),
             location
         );
@@ -531,7 +531,7 @@ mod win_imp {
 
         let mut msg = String::new();
         msg.push_str(&format!(
-            "\ntouchHLE: FATAL host exception {} ({:#010x}) at host addr {:?}",
+            "\nRintedHLE: FATAL host exception {} ({:#010x}) at host addr {:?}",
             kind, code, rec.exception_address
         ));
         if code == EXCEPTION_ACCESS_VIOLATION {

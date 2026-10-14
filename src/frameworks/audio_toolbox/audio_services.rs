@@ -257,7 +257,7 @@ fn AudioServicesDisposeSystemSoundID(
 fn AudioServicesPlaySystemSound(env: &mut Environment, in_system_sound_id: SystemSoundID) {
     log!("AudioServicesPlaySystemSound({})", in_system_sound_id);
     if in_system_sound_id == kSystemSoundID_Vibrate {
-        // Vibration has no host equivalent in touchHLE; acknowledge quietly.
+        // Vibration has no host equivalent in RintedHLE; acknowledge quietly.
         log_dbg!("AudioServicesPlaySystemSound(vibrate) (no host haptics)");
         return;
     } else if in_system_sound_id == kSystemSoundID_UserPreferredAlert {
@@ -332,7 +332,7 @@ fn AudioServicesAddSystemSoundCompletion(
     // system sound finishes playing. […] If inRunLoop is NULL, the system
     // installs the callback in the main run loop in its default mode."
     //
-    // touchHLE runs a single ARM run loop, so we ignore inRunLoop /
+    // RintedHLE runs a single ARM run loop, so we ignore inRunLoop /
     // inRunLoopMode (the polling is performed unconditionally from
     // ns_run_loop's tick). We DO support the documented "unregister via
     // NULL completion routine" idiom (passing NULL is also handled

@@ -195,7 +195,7 @@ pub fn pthread_attr_setstacksize(
 /// values. Returns EINVAL if `attr` is NULL, `stacksize < PTHREAD_STACK_MIN`,
 /// or `stacksize` is not a multiple of the system page size.
 ///
-/// touchHLE creates the actual thread stack itself when the thread is
+/// RintedHLE creates the actual thread stack itself when the thread is
 /// spawned (see [pthread_create]) so the supplied `stackaddr` is recorded
 /// for introspection but is not honoured as the literal allocation site —
 /// real Apple libpthread also reserves the right to ignore the addr if
@@ -225,7 +225,7 @@ pub fn pthread_attr_setstack(
 /// `int pthread_attr_setstackaddr(pthread_attr_t *attr, void *stackaddr)` —
 /// legacy POSIX function (deprecated by Apple in favour of `pthread_attr_setstack`).
 /// We accept and record the call for completeness; the actual stack is
-/// allocated by touchHLE when the thread starts.
+/// allocated by RintedHLE when the thread starts.
 pub fn pthread_attr_setstackaddr(
     env: &mut Environment,
     attr: MutPtr<pthread_attr_t>,
@@ -250,7 +250,7 @@ fn pthread_attr_setinheritsched(
 ) -> i32 {
     check_magic!(env, attr, MAGIC_ATTR);
     // Scheduling inheritance is a hint only; the default (inherit) is
-    // always in effect in touchHLE, so accepting the call is correct.
+    // always in effect in RintedHLE, so accepting the call is correct.
     log_dbg!(
         "pthread_attr_setinheritsched({:?}, {}) (accepted)",
         attr,
@@ -457,7 +457,7 @@ pub fn pthread_self(env: &mut Environment) -> pthread_t {
 pub fn pthread_exit(env: &mut Environment, retval: MutVoidPtr) {
     let current_thread = env.current_thread;
     log!(
-        "pthread_exit({:?}) on emulated thread {}; redirecting to touchHLE thread-exit routine",
+        "pthread_exit({:?}) on emulated thread {}; redirecting to RintedHLE thread-exit routine",
         retval,
         current_thread
     );
@@ -465,8 +465,8 @@ pub fn pthread_exit(env: &mut Environment, retval: MutVoidPtr) {
     // pthread_exit is noreturn from the guest's point of view.
     //
     // The old implementation parked the *host* thread forever, which makes the
-    // desktop think touchHLE is frozen. Instead, branch to the same guest-side
-    // thread-exit SVC that touchHLE already uses when a pthread start routine
+    // desktop think RintedHLE is frozen. Instead, branch to the same guest-side
+    // thread-exit SVC that RintedHLE already uses when a pthread start routine
     // returns normally.
     //
     // Note: environment::Thread::return_value is private to environment.rs.
@@ -772,7 +772,7 @@ fn pthread_setschedparam(
 // =========================================================================
 
 /// `pthread_sigmask` — change or examine the signal mask for the calling thread.
-/// In touchHLE signals are not emulated, so this is a no-op returning success.
+/// In RintedHLE signals are not emulated, so this is a no-op returning success.
 fn pthread_sigmask(
     _env: &mut Environment,
     how: i32,
@@ -793,7 +793,7 @@ fn pthread_sigmask(
 
 /// `pthread_kill` — send a signal to a specific thread.
 ///
-/// Signal delivery in touchHLE is synchronous and runs on the calling guest
+/// Signal delivery in RintedHLE is synchronous and runs on the calling guest
 /// thread (see `crate::libc::signal`), so a signal aimed at the calling
 /// thread is exactly `raise()`. A signal aimed at any *other* thread is
 /// delivered on the calling thread as well: refusing it would hang the

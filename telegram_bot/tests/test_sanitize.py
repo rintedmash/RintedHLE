@@ -42,7 +42,7 @@ def test_looks_binary_true_for_replacement_heavy_text():
 
 
 def test_looks_binary_false_for_real_log():
-    assert not s.looks_binary("touchHLE UNOFFICIAL abc123 — https://touchhle.org/\n" * 50)
+    assert not s.looks_binary("RintedHLE abc123 — https://github.com/rintedmash/RintedHLE/\n" * 50)
 
 
 def test_looks_binary_false_for_a_couple_of_replacements():

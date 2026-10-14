@@ -41,7 +41,7 @@ static TOUCH_BEGAN_DIAGNOSTICS: AtomicUsize = AtomicUsize::new(0);
 static TOUCH_ENDED_DIAGNOSTICS: AtomicUsize = AtomicUsize::new(0);
 
 fn log_touch_delivery(marker: &str, counter: &AtomicUsize, count: usize) {
-    if !crate::env_flag_cached!("TOUCHHLE_TRACE_TOUCHES") {
+    if !crate::env_flag_cached!("RINTEDHLE_TRACE_TOUCHES") {
         return;
     }
     let sequence = counter.fetch_add(1, Ordering::Relaxed) + 1;
@@ -202,7 +202,7 @@ fn stale_cancel_and_release(env: &mut Environment, finger_id: FingerId, touch: i
     release(env, touch);
 }
 
-fn touchhle_cocos_view_class_name(env: &mut Environment, view: id) -> String {
+fn rintedhle_cocos_view_class_name(env: &mut Environment, view: id) -> String {
     if view == nil {
         return String::new();
     }
@@ -210,7 +210,7 @@ fn touchhle_cocos_view_class_name(env: &mut Environment, view: id) -> String {
     env.objc.get_class_name(view_class).to_owned()
 }
 
-fn touchhle_cocos_is_gl_or_game_view_name(class_name: &str) -> bool {
+fn rintedhle_cocos_is_gl_or_game_view_name(class_name: &str) -> bool {
     matches!(
         class_name,
         "CCGLView"
@@ -234,14 +234,14 @@ fn touchhle_cocos_is_gl_or_game_view_name(class_name: &str) -> bool {
         || class_name.contains("RootView")
 }
 
-fn touchhle_manual_landscape_touch_remap_enabled() -> bool {
-    crate::env_flag_cached!("TOUCHHLE_TOUCH_LOCATION_PORTRAIT_TO_LANDSCAPE")
-        || crate::env_flag_cached!("TOUCHHLE_COCOS_TOUCH_REMAP")
-        || crate::env_flag_cached!("TOUCHHLE_UNITY_TOUCH_REMAP")
-        || crate::env_flag_cached!("TOUCHHLE_ENGINE_TOUCH_REMAP")
+fn rintedhle_manual_landscape_touch_remap_enabled() -> bool {
+    crate::env_flag_cached!("RINTEDHLE_TOUCH_LOCATION_PORTRAIT_TO_LANDSCAPE")
+        || crate::env_flag_cached!("RINTEDHLE_COCOS_TOUCH_REMAP")
+        || crate::env_flag_cached!("RINTEDHLE_UNITY_TOUCH_REMAP")
+        || crate::env_flag_cached!("RINTEDHLE_ENGINE_TOUCH_REMAP")
 }
 
-fn touchhle_should_use_landscape_touch_remap_for_bundle(
+fn rintedhle_should_use_landscape_touch_remap_for_bundle(
     bundle_id: &str,
     manual_override: bool,
 ) -> bool {
@@ -254,53 +254,53 @@ fn touchhle_should_use_landscape_touch_remap_for_bundle(
     }
 }
 
-fn touchhle_should_use_landscape_touch_remap(env: &Environment) -> bool {
-    touchhle_should_use_landscape_touch_remap_for_bundle(
+fn rintedhle_should_use_landscape_touch_remap(env: &Environment) -> bool {
+    rintedhle_should_use_landscape_touch_remap_for_bundle(
         env.bundle.bundle_identifier(),
-        touchhle_manual_landscape_touch_remap_enabled(),
+        rintedhle_manual_landscape_touch_remap_enabled(),
     )
 }
 
 fn should_remap_touch_location_for_view(env: &mut Environment, view: id) -> bool {
-    if view == nil || !touchhle_should_use_landscape_touch_remap(env) {
+    if view == nil || !rintedhle_should_use_landscape_touch_remap(env) {
         return false;
     }
-    let class_name = touchhle_cocos_view_class_name(env, view);
-    touchhle_cocos_is_gl_or_game_view_name(&class_name)
+    let class_name = rintedhle_cocos_view_class_name(env, view);
+    rintedhle_cocos_is_gl_or_game_view_name(&class_name)
 }
 
 #[cfg(test)]
 mod landscape_touch_remap_tests {
-    use super::touchhle_should_use_landscape_touch_remap_for_bundle;
+    use super::rintedhle_should_use_landscape_touch_remap_for_bundle;
 
     #[test]
     fn power_rangers_keeps_its_native_landscape_touch_coordinates() {
-        assert!(!touchhle_should_use_landscape_touch_remap_for_bundle(
+        assert!(!rintedhle_should_use_landscape_touch_remap_for_bundle(
             "com.saban.powerrangersbash",
             false
         ));
-        assert!(touchhle_should_use_landscape_touch_remap_for_bundle(
+        assert!(rintedhle_should_use_landscape_touch_remap_for_bundle(
             "com.saban.powerrangersbash",
             true
         ));
-        assert!(touchhle_should_use_landscape_touch_remap_for_bundle(
+        assert!(rintedhle_should_use_landscape_touch_remap_for_bundle(
             "at.source.veggie1",
             false
         ));
-        assert!(!touchhle_should_use_landscape_touch_remap_for_bundle(
+        assert!(!rintedhle_should_use_landscape_touch_remap_for_bundle(
             "at.source.tomzom",
             true
         ));
     }
 }
 
-fn touchhle_cocos_target_size() -> (f32, f32) {
+fn rintedhle_cocos_target_size() -> (f32, f32) {
     // PERF: computed once; this runs for every remapped touch point.
     static CACHED: std::sync::OnceLock<(f32, f32)> = std::sync::OnceLock::new();
     *CACHED.get_or_init(|| {
-        std::env::var("TOUCHHLE_COCOS_TOUCH_SIZE")
-            .or_else(|_| std::env::var("TOUCHHLE_UNITY_TOUCH_SIZE"))
-            .or_else(|_| std::env::var("TOUCHHLE_ENGINE_TOUCH_SIZE"))
+        std::env::var("RINTEDHLE_COCOS_TOUCH_SIZE")
+            .or_else(|_| std::env::var("RINTEDHLE_UNITY_TOUCH_SIZE"))
+            .or_else(|_| std::env::var("RINTEDHLE_ENGINE_TOUCH_SIZE"))
             .ok()
             .and_then(|v| {
                 let mut parts = v.split(|c| c == 'x' || c == 'X' || c == ',');
@@ -312,18 +312,18 @@ fn touchhle_cocos_target_size() -> (f32, f32) {
     })
 }
 
-fn touchhle_cocos_remap_point(env: &mut Environment, view: id, point: CGPoint) -> CGPoint {
+fn rintedhle_cocos_remap_point(env: &mut Environment, view: id, point: CGPoint) -> CGPoint {
     let old_x = point.x;
     let old_y = point.y;
-    let (target_w, target_h) = touchhle_cocos_target_size();
+    let (target_w, target_h) = rintedhle_cocos_target_size();
     // PERF: cached read-once lookups; runs for every remapped touch point.
-    let mode = crate::env_var_cached!("TOUCHHLE_TOUCH_MODE")
+    let mode = crate::env_var_cached!("RINTEDHLE_TOUCH_MODE")
         .map(str::to_owned)
         .unwrap_or_else(|| {
             let bundle_id = env.bundle.bundle_identifier();
-            let custom_mode = crate::env_var_cached!("TOUCHHLE_COCOS_TOUCH_MODE")
-                .or(crate::env_var_cached!("TOUCHHLE_UNITY_TOUCH_MODE"))
-                .or(crate::env_var_cached!("TOUCHHLE_ENGINE_TOUCH_MODE"));
+            let custom_mode = crate::env_var_cached!("RINTEDHLE_COCOS_TOUCH_MODE")
+                .or(crate::env_var_cached!("RINTEDHLE_UNITY_TOUCH_MODE"))
+                .or(crate::env_var_cached!("RINTEDHLE_ENGINE_TOUCH_MODE"));
             match bundle_id {
                 "at.source.veggie1" | "at.source.potato3D" | "at.source.potpan" => {
                     "scale".to_string()
@@ -385,18 +385,18 @@ fn touchhle_cocos_remap_point(env: &mut Environment, view: id, point: CGPoint) -
         }
     };
 
-    if let Some(offset) = crate::env_var_cached!("TOUCHHLE_TOUCH_LOCATION_X_OFFSET") {
+    if let Some(offset) = crate::env_var_cached!("RINTEDHLE_TOUCH_LOCATION_X_OFFSET") {
         if let Ok(offset) = offset.parse::<f32>() {
             new_x += offset;
         }
     }
-    if let Some(offset) = crate::env_var_cached!("TOUCHHLE_TOUCH_LOCATION_Y_OFFSET") {
+    if let Some(offset) = crate::env_var_cached!("RINTEDHLE_TOUCH_LOCATION_Y_OFFSET") {
         if let Ok(offset) = offset.parse::<f32>() {
             new_y += offset;
         }
     }
 
-    if !crate::env_flag_cached!("TOUCHHLE_COCOS_NO_TOUCH_CLAMP") {
+    if !crate::env_flag_cached!("RINTEDHLE_COCOS_NO_TOUCH_CLAMP") {
         new_x = new_x.clamp(0.0, (target_w - 1.0).max(0.0));
         new_y = new_y.clamp(0.0, (target_h - 1.0).max(0.0));
     }
@@ -408,21 +408,21 @@ fn touchhle_cocos_remap_point(env: &mut Environment, view: id, point: CGPoint) -
     CGPoint { x: new_x, y: new_y }
 }
 
-fn touchhle_cocos_should_allow_multitouch(env: &mut Environment, view: id) -> bool {
-    if crate::env_flag_cached!("TOUCHHLE_COCOS_FORCE_SINGLE_TOUCH")
-        || crate::env_flag_cached!("TOUCHHLE_UNITY_FORCE_SINGLE_TOUCH")
-        || crate::env_flag_cached!("TOUCHHLE_ENGINE_FORCE_SINGLE_TOUCH")
+fn rintedhle_cocos_should_allow_multitouch(env: &mut Environment, view: id) -> bool {
+    if crate::env_flag_cached!("RINTEDHLE_COCOS_FORCE_SINGLE_TOUCH")
+        || crate::env_flag_cached!("RINTEDHLE_UNITY_FORCE_SINGLE_TOUCH")
+        || crate::env_flag_cached!("RINTEDHLE_ENGINE_FORCE_SINGLE_TOUCH")
     {
         return false;
     }
-    if crate::env_flag_cached!("TOUCHHLE_COCOS_FORCE_MULTITOUCH")
-        || crate::env_flag_cached!("TOUCHHLE_UNITY_FORCE_MULTITOUCH")
-        || crate::env_flag_cached!("TOUCHHLE_ENGINE_FORCE_MULTITOUCH")
+    if crate::env_flag_cached!("RINTEDHLE_COCOS_FORCE_MULTITOUCH")
+        || crate::env_flag_cached!("RINTEDHLE_UNITY_FORCE_MULTITOUCH")
+        || crate::env_flag_cached!("RINTEDHLE_ENGINE_FORCE_MULTITOUCH")
     {
         return true;
     }
-    let class_name = touchhle_cocos_view_class_name(env, view);
-    touchhle_cocos_is_gl_or_game_view_name(&class_name)
+    let class_name = rintedhle_cocos_view_class_name(env, view);
+    rintedhle_cocos_is_gl_or_game_view_name(&class_name)
 }
 
 pub const CLASSES: ClassExports = objc_classes! {
@@ -473,9 +473,9 @@ pub const CLASSES: ClassExports = objc_classes! {
 
     let remap_view = if that_view != nil { that_view } else { view };
     let should_remap =
-        touchhle_should_use_landscape_touch_remap(env) || should_remap_touch_location_for_view(env, remap_view);
+        rintedhle_should_use_landscape_touch_remap(env) || should_remap_touch_location_for_view(env, remap_view);
 
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_TOUCH_REMAP") {
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_TOUCH_REMAP") {
         static COUNTER: AtomicUsize = AtomicUsize::new(0);
         if COUNTER.fetch_add(1, Ordering::Relaxed) < 24 {
             let location_x = location.x;
@@ -503,7 +503,7 @@ pub const CLASSES: ClassExports = objc_classes! {
             let vb_w = vbounds.size.width;
             let vb_h = vbounds.size.height;
             log!(
-                "TOUCHHLE_TRACE_TOUCH_REMAP: view={} bounds=({:.0}x{:.0}) location=({:.1},{:.1}) location_in_window=({:.1},{:.1}) result=({:.1},{:.1}) should_remap={}",
+                "RINTEDHLE_TRACE_TOUCH_REMAP: view={} bounds=({:.0}x{:.0}) location=({:.1},{:.1}) location_in_window=({:.1},{:.1}) result=({:.1},{:.1}) should_remap={}",
                 vclass, vb_w, vb_h,
                 location_x, location_y, location_in_window_x, location_in_window_y, result_x, result_y,
                 should_remap
@@ -515,7 +515,7 @@ pub const CLASSES: ClassExports = objc_classes! {
         // Important: this happens AFTER UIKit hit-testing. The touch can still
         // hit a portrait-sized EAGL/CCGL view, but the game can receive the
         // Cocos/OpenGL coordinate system it expects.
-        result = touchhle_cocos_remap_point(env, remap_view, result);
+        result = rintedhle_cocos_remap_point(env, remap_view, result);
     }
 
     result
@@ -534,8 +534,8 @@ pub const CLASSES: ClassExports = objc_classes! {
     };
 
     let remap_view = if that_view != nil { that_view } else { view };
-    if touchhle_should_use_landscape_touch_remap(env) || should_remap_touch_location_for_view(env, remap_view) {
-        result = touchhle_cocos_remap_point(env, remap_view, result);
+    if rintedhle_should_use_landscape_touch_remap(env) || should_remap_touch_location_for_view(env, remap_view) {
+        result = rintedhle_cocos_remap_point(env, remap_view, result);
     }
 
     result
@@ -593,29 +593,29 @@ pub fn handle_event(env: &mut Environment, event: Event) {
     }
 }
 
-fn touchhle_cocos_touch_aliases_enabled(env: &mut Environment, view: id) -> bool {
-    if crate::env_flag_cached!("TOUCHHLE_DISABLE_COCOS_TOUCH_ALIASES") {
+fn rintedhle_cocos_touch_aliases_enabled(env: &mut Environment, view: id) -> bool {
+    if crate::env_flag_cached!("RINTEDHLE_DISABLE_COCOS_TOUCH_ALIASES") {
         return false;
     }
-    if crate::env_flag_cached!("TOUCHHLE_COCOS_TOUCH_ALIASES") {
+    if crate::env_flag_cached!("RINTEDHLE_COCOS_TOUCH_ALIASES") {
         return true;
     }
-    let class_name = touchhle_cocos_view_class_name(env, view);
-    touchhle_cocos_is_gl_or_game_view_name(&class_name)
+    let class_name = rintedhle_cocos_view_class_name(env, view);
+    rintedhle_cocos_is_gl_or_game_view_name(&class_name)
         || class_name.starts_with("CC")
         || class_name.contains("Layer")
         || class_name.contains("Scene")
         || class_name.contains("Menu")
 }
 
-fn touchhle_send_cocos_touch_aliases(
+fn rintedhle_send_cocos_touch_aliases(
     env: &mut Environment,
     view: id,
     phase: &str,
     touches: id,
     event: id,
 ) {
-    if view == nil || !touchhle_cocos_touch_aliases_enabled(env, view) {
+    if view == nil || !rintedhle_cocos_touch_aliases_enabled(env, view) {
         return;
     }
 
@@ -660,14 +660,14 @@ fn touchhle_send_cocos_touch_aliases(
     }
 }
 
-fn touchhle_send_cocos_touch_aliases_to_chain(
+fn rintedhle_send_cocos_touch_aliases_to_chain(
     env: &mut Environment,
     view: id,
     phase: &str,
     touches: id,
     event: id,
 ) {
-    // XaView A8 fix: touchHLE's responder chain has no view->viewController
+    // XaView A8 fix: RintedHLE's responder chain has no view->viewController
     // links, so game views owned by view controllers (Asphalt 8's CCEAGLView
     // subclass) never receive Cocos touch aliases when a tap lands on a
     // sibling/overlay UIView. Walk the ENTIRE view hierarchy under the
@@ -683,13 +683,13 @@ fn touchhle_send_cocos_touch_aliases_to_chain(
         current = superview;
         depth += 1;
     }
-    touchhle_send_cocos_touch_aliases_to_hierarchy(env, current, phase, touches, event);
+    rintedhle_send_cocos_touch_aliases_to_hierarchy(env, current, phase, touches, event);
 }
 
 /// Send Cocos touch aliases (`ccTouchesBegan:` etc.) to every view in the
 /// view hierarchy rooted at `root` whose class responds to them. This makes
-/// up for touchHLE not modelling UIViewController responder-chain links.
-fn touchhle_send_cocos_touch_aliases_to_hierarchy(
+/// up for RintedHLE not modelling UIViewController responder-chain links.
+fn rintedhle_send_cocos_touch_aliases_to_hierarchy(
     env: &mut Environment,
     root: id,
     phase: &str,
@@ -705,7 +705,7 @@ fn touchhle_send_cocos_touch_aliases_to_hierarchy(
         if current == nil || !visited.insert(current) {
             continue;
         }
-        touchhle_send_cocos_touch_aliases(env, current, phase, touches, event);
+        rintedhle_send_cocos_touch_aliases(env, current, phase, touches, event);
         let subviews: id = msg![env; current subviews];
         if subviews != nil {
             let count: NSUInteger = msg![env; subviews count];
@@ -722,7 +722,7 @@ fn touchhle_send_cocos_touch_aliases_to_hierarchy(
 /// below the window's own root view(s). Empty helper windows left behind by
 /// completed modal flows (age gate, ATT prompt, …) have only a bare, childless
 /// root view and must not intercept touches meant for the window underneath.
-fn touchhle_window_has_content(env: &mut Environment, window: id) -> bool {
+fn rintedhle_window_has_content(env: &mut Environment, window: id) -> bool {
     let subviews: id = msg![env; window subviews];
     let count: NSUInteger = msg![env; subviews count];
     for i in 0..count {
@@ -744,7 +744,7 @@ fn touchhle_window_has_content(env: &mut Environment, window: id) -> bool {
 /// nothing there to interact with. Doodle Jump's launch cross-promo is covered
 /// by exactly such an empty sibling view, which otherwise makes its close
 /// button unreachable.
-fn touchhle_is_empty_overlay(env: &mut Environment, view: id) -> bool {
+fn rintedhle_is_empty_overlay(env: &mut Environment, view: id) -> bool {
     let class: crate::objc::Class = msg![env; view class];
     if env.objc.get_class_name(class) != "UIView" {
         return false;
@@ -756,10 +756,10 @@ fn touchhle_is_empty_overlay(env: &mut Environment, view: id) -> bool {
 
 /// Depth-first search for the frontmost interactive descendant of `root` that
 /// contains `point` (expressed in `root`'s coordinate space), ignoring empty
-/// transparent overlay views (see [touchhle_is_empty_overlay]). Used as a
+/// transparent overlay views (see [rintedhle_is_empty_overlay]). Used as a
 /// fallback when the standard `hitTest:` lands on such an overlay so touches
 /// still reach the real content underneath.
-fn touchhle_hit_test_skipping_overlays(env: &mut Environment, root: id, point: CGPoint) -> id {
+fn rintedhle_hit_test_skipping_overlays(env: &mut Environment, root: id, point: CGPoint) -> id {
     let hidden: bool = msg![env; root isHidden];
     let uie: bool = msg![env; root isUserInteractionEnabled];
     let alpha: f32 = msg![env; root alpha];
@@ -774,20 +774,20 @@ fn touchhle_hit_test_skipping_overlays(env: &mut Environment, root: id, point: C
     for i in (0..count).rev() {
         let child: id = msg![env; subviews objectAtIndex:i];
         let child_point: CGPoint = msg![env; root convertPoint:point toView:child];
-        let hit = touchhle_hit_test_skipping_overlays(env, child, child_point);
+        let hit = rintedhle_hit_test_skipping_overlays(env, child, child_point);
         if hit != nil {
             return hit;
         }
     }
     // No descendant matched. Only claim the touch if this view is itself a
     // meaningful target; empty transparent overlays fall through.
-    if touchhle_is_empty_overlay(env, root) {
+    if rintedhle_is_empty_overlay(env, root) {
         return nil;
     }
     root
 }
 
-fn touchhle_find_cocos_touch_target(env: &mut Environment, root: id) -> id {
+fn rintedhle_find_cocos_touch_target(env: &mut Environment, root: id) -> id {
     if root == nil {
         return nil;
     }
@@ -796,14 +796,14 @@ fn touchhle_find_cocos_touch_target(env: &mut Environment, root: id) -> id {
         let count: NSUInteger = msg![env; subviews count];
         for i in (0..count).rev() {
             let child: id = msg![env; subviews objectAtIndex:i];
-            let found = touchhle_find_cocos_touch_target(env, child);
+            let found = rintedhle_find_cocos_touch_target(env, child);
             if found != nil {
                 return found;
             }
         }
     }
-    let class_name = touchhle_cocos_view_class_name(env, root);
-    if touchhle_cocos_is_gl_or_game_view_name(&class_name) {
+    let class_name = rintedhle_cocos_view_class_name(env, root);
+    if rintedhle_cocos_is_gl_or_game_view_name(&class_name) {
         root
     } else {
         nil
@@ -928,7 +928,7 @@ fn handle_touches_down(env: &mut Environment, map: HashMap<FingerId, Coords>) {
             // never a legitimate touch target, so fall through to the window
             // below (the primary search below still falls back to the topmost
             // window if every candidate is empty).
-            if !touchhle_window_has_content(env, window) {
+            if !rintedhle_window_has_content(env, window) {
                 return None;
             }
             let location_in_window: CGPoint = msg![env; window
@@ -970,8 +970,8 @@ fn handle_touches_down(env: &mut Environment, map: HashMap<FingerId, Coords>) {
         // the touch reaches the real interactive content underneath. This is
         // what lets Doodle Jump's launch cross-promo close button — hidden
         // behind an empty full-screen sibling view — actually receive taps.
-        if view != nil && touchhle_is_empty_overlay(env, view) {
-            let deep = touchhle_hit_test_skipping_overlays(env, window, location_in_window);
+        if view != nil && rintedhle_is_empty_overlay(env, view) {
+            let deep = rintedhle_hit_test_skipping_overlays(env, window, location_in_window);
             if deep != nil {
                 view = deep;
             }
@@ -988,14 +988,14 @@ fn handle_touches_down(env: &mut Environment, map: HashMap<FingerId, Coords>) {
 
         if view == nil {
             log_dbg!("SUPER HACK: hitTest failed, looking for Cocos/GL target before using window");
-            let cocos_target = touchhle_find_cocos_touch_target(env, window);
+            let cocos_target = rintedhle_find_cocos_touch_target(env, window);
             view = if cocos_target != nil {
                 cocos_target
             } else {
                 window
             };
         } else if view == window {
-            let cocos_target = touchhle_find_cocos_touch_target(env, window);
+            let cocos_target = rintedhle_find_cocos_touch_target(env, window);
             if cocos_target != nil {
                 view = cocos_target;
             }
@@ -1018,7 +1018,7 @@ fn handle_touches_down(env: &mut Environment, map: HashMap<FingerId, Coords>) {
 
         let is_multi_touch_enabled: bool = msg![env; view isMultipleTouchEnabled];
         if !is_multi_touch_enabled
-            && !touchhle_cocos_should_allow_multitouch(env, view)
+            && !rintedhle_cocos_should_allow_multitouch(env, view)
             && (view_touches.contains_key(&view) || views_with_existing_touches.contains(&view))
         {
             // The view already has a finger and refuses multi-touch. Real iOS
@@ -1097,7 +1097,7 @@ fn handle_touches_down(env: &mut Environment, map: HashMap<FingerId, Coords>) {
         let _: () = msg![env;
             view touchesBegan:v_set withEvent:event];
         super::ui_gesture_recognizer::touches_began(env, view, v_set);
-        touchhle_send_cocos_touch_aliases_to_chain(env, view, "began", v_set, event);
+        rintedhle_send_cocos_touch_aliases_to_chain(env, view, "began", v_set, event);
         let count: NSUInteger = msg![env; v_set count];
         log_touch_delivery("TOUCH-DIAG", &TOUCH_BEGAN_DIAGNOSTICS, count as usize);
     }
@@ -1185,7 +1185,7 @@ fn handle_touches_move(env: &mut Environment, map: HashMap<FingerId, Coords>) {
         let count: NSUInteger = msg![env; deliver count];
         if count != 0 {
             let _: () = msg![env; view touchesMoved:deliver withEvent:event];
-            touchhle_send_cocos_touch_aliases_to_chain(env, view, "moved", deliver, event);
+            rintedhle_send_cocos_touch_aliases_to_chain(env, view, "moved", deliver, event);
         }
         release(env, deliver);
     }
@@ -1353,7 +1353,7 @@ fn handle_touches_up(env: &mut Environment, map: HashMap<FingerId, Coords>) {
         let count: NSUInteger = msg![env; deliver count];
         if count != 0 {
             let _: () = msg![env; view touchesEnded:deliver withEvent:event];
-            touchhle_send_cocos_touch_aliases_to_chain(env, view, "ended", deliver, event);
+            rintedhle_send_cocos_touch_aliases_to_chain(env, view, "ended", deliver, event);
             log_touch_delivery("TOUCH-END", &TOUCH_ENDED_DIAGNOSTICS, count as usize);
         }
         release(env, deliver);

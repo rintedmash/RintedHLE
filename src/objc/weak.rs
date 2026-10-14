@@ -109,7 +109,7 @@ pub fn objc_storeWeak(env: &mut Environment, location: MutPtr<id>, new_obj: id) 
 
 /// `id objc_storeWeakOrNil(id *location, id newObj)` — same as above
 /// but documented to tolerate a deallocating object (returns nil
-/// instead of crashing). touchHLE never enters the "deallocating but
+/// instead of crashing). RintedHLE never enters the "deallocating but
 /// not yet deallocated" intermediate state, so we forward.
 pub fn objc_storeWeakOrNil(env: &mut Environment, location: MutPtr<id>, new_obj: id) -> id {
     objc_storeWeak(env, location, new_obj)

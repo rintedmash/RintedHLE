@@ -6,7 +6,7 @@
  * Parts of this file are derived from SDL 2's Android project template, which
  * has a different license. Please see vendor/SDL/LICENSE.txt for details.
  */
-package org.touchhle.android;
+package org.rintedhle.android;
 
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -30,7 +30,7 @@ import java.io.InputStream;
  */
 
 public class MainActivity extends SDLActivity {
-    private static final String TAG = "touchHLE";
+    private static final String TAG = "RintedHLE";
 
     // Public accessor for SDLActivity's protected static mSingleton, so
     // helper classes in this package (HostMedia) can reach the Activity.
@@ -55,7 +55,7 @@ public class MainActivity extends SDLActivity {
                     (android.net.wifi.WifiManager) getApplicationContext()
                             .getSystemService(android.content.Context.WIFI_SERVICE);
             if (wm != null && multicastLock == null) {
-                multicastLock = wm.createMulticastLock("touchHLE_mdns");
+                multicastLock = wm.createMulticastLock("RintedHLE_mdns");
                 multicastLock.setReferenceCounted(false);
                 multicastLock.acquire();
                 Log.i(TAG, "Wi-Fi multicast lock acquired (mDNS discovery enabled)");
@@ -370,7 +370,7 @@ public class MainActivity extends SDLActivity {
     protected String[] getLibraries() {
         return new String[]{
             "SDL2",
-            "touchHLE"
+            "RintedHLE"
         };
     }
 
@@ -449,9 +449,9 @@ public class MainActivity extends SDLActivity {
     }
 
     private void copyIpa(Uri uri, String name) {
-        // touchHLE lists apps from this directory (see APPS_DIR in paths.rs);
+        // RintedHLE lists apps from this directory (see APPS_DIR in paths.rs);
         // it matches SDL_AndroidGetExternalStoragePath() on Android.
-        File appsDir = new File(getExternalFilesDir(null), "touchHLE_apps");
+        File appsDir = new File(getExternalFilesDir(null), "RintedHLE_apps");
         if (!appsDir.exists() && !appsDir.mkdirs()) {
             Log.e(TAG, "Couldn't create " + appsDir);
             return;

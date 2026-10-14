@@ -164,7 +164,7 @@ fn resolve_host_addresses(hostname: &str, network_access: bool) -> Option<Vec<Ip
 
     let normalized = hostname.to_ascii_lowercase();
     match normalized.as_str() {
-        "localhost" | "loopback" | "touchhle" => Some(vec![
+        "localhost" | "loopback" | "rintedhle" => Some(vec![
             IpAddr::V4(Ipv4Addr::LOCALHOST),
             IpAddr::V6(Ipv6Addr::LOCALHOST),
         ]),
@@ -374,7 +374,7 @@ fn gethostbyname(env: &mut Environment, name: ConstPtr<u8>) -> MutPtr<u8> {
         octets
     } else {
         match hostname.as_str() {
-            "localhost" | "loopback" | "touchHLE" => [127, 0, 0, 1],
+            "localhost" | "loopback" | "RintedHLE" => [127, 0, 0, 1],
             "broadcasthost" => [255, 255, 255, 255],
             // Games (e.g. Gameloft titles) broadcast LAN discovery to the
             // name of their own service or to wildcard hostnames; also map

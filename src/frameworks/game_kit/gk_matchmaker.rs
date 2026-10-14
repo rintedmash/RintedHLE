@@ -1,6 +1,6 @@
 //! `GKMatchmaker` — matchmaking singleton.
 //!
-//! touchHLE has no Game Center connectivity, so matchmaking can never
+//! RintedHLE has no Game Center connectivity, so matchmaking can never
 //! actually find peers. The singleton is nevertheless a real object:
 //! games call `[GKMatchmaker sharedMatchmaker]` during start-up and then
 //! register matchmaking handlers / query properties. Returning `nil`

@@ -135,7 +135,7 @@ pub(super) fn CFNotificationCenterPostNotificationWithOptions(
     _options: CFOptionFlags,
     _deliver_time: f64, // CFTimeInterval
 ) {
-    // touchHLE always delivers notifications synchronously, so the
+    // RintedHLE always delivers notifications synchronously, so the
     // posting options and the delivery time make no difference here.
     post_notification(env, center, name, object, user_info);
 }

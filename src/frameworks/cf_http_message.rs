@@ -90,7 +90,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 (env, this, _cmd);
 
-@implementation _touchHLE_CFHTTPMessage: NSObject
+@implementation _RintedHLE_CFHTTPMessage: NSObject
 
 - (())dealloc {
     env.objc.dealloc_object(this, &mut env.mem)
@@ -109,7 +109,7 @@ fn validate_allocator(env: &mut Environment, allocator: CFAllocatorRef) -> bool 
 fn alloc_message(env: &mut Environment, msg: CFHTTPMessageHostObject) -> CFHTTPMessageRef {
     let class = env
         .objc
-        .get_known_class("_touchHLE_CFHTTPMessage", &mut env.mem);
+        .get_known_class("_RintedHLE_CFHTTPMessage", &mut env.mem);
     env.objc.alloc_object(class, Box::new(msg), &mut env.mem)
 }
 

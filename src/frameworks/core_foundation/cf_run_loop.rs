@@ -215,7 +215,7 @@ fn CFRunLoopRunInMode(
     seconds: CFTimeInterval,
     _return_after_source_handled: bool,
 ) -> i32 {
-    // touchHLE's run loop is mode-agnostic: NSRunLoop stores its timers and
+    // RintedHLE's run loop is mode-agnostic: NSRunLoop stores its timers and
     // sources in a single global list and `addTimer:forMode:` ignores the mode
     // entirely. Engines like Unity drive their main loop through a private
     // run-loop mode, so bailing out for any non-default mode used to make every
@@ -357,7 +357,7 @@ fn CFRunLoopSourceCreate(
     });
     let class = env
         .objc
-        .get_known_class("_touchHLE_CFRunLoopSource", &mut env.mem);
+        .get_known_class("_RintedHLE_CFRunLoopSource", &mut env.mem);
     let source = env.objc.alloc_object(class, host, &mut env.mem);
     // Retain `info` if the context provides a retain callback (Apple docs).
     let retain_cb = env.objc.borrow::<CFRunLoopSourceHostObject>(source).retain;
@@ -523,7 +523,7 @@ fn CFRunLoopAddTimer(
         return;
     }
 
-    // Как сказано в заголовке файла: в touchHLE CFRunLoop и NSRunLoop — это
+    // Как сказано в заголовке файла: в RintedHLE CFRunLoop и NSRunLoop — это
     // один и тот же тип.
     // Поэтому мы честно пробрасываем вызов напрямую в NSRunLoop, который умеет
     // работать с таймерами.
@@ -569,7 +569,7 @@ fn CFRunLoopTimerCreate(
     };
 
     // 3. Выделяем реальный объект, чтобы игра не получила null.
-    // Используем базовый класс NSObject (или если в touchHLE есть NSTimer, то
+    // Используем базовый класс NSObject (или если в RintedHLE есть NSTimer, то
     // его)
     let class = env.objc.get_known_class("NSObject", &mut env.mem);
 
@@ -682,13 +682,13 @@ pub const FUNCTIONS: FunctionExports = &[
 ];
 
 // At the bottom of the file, append (still inside the same Rust module) a
-// CLASSES const that declares `_touchHLE_CFRunLoopSource: NSObject` so the
+// CLASSES const that declares `_RintedHLE_CFRunLoopSource: NSObject` so the
 // runtime can dispatch retain/release through env.objc.
 pub const CLASSES: ClassExports = objc_classes! {
 
 (env, this, _cmd);
 
-@implementation _touchHLE_CFRunLoopSource: NSObject
+@implementation _RintedHLE_CFRunLoopSource: NSObject
 
 - (())dealloc {
     // If a release callback was supplied, call it on `info` per Apple docs.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Automated tap-sequence smoke test for touchHLE/HyperHLE on Windows and Linux/X11.
+"""Automated tap-sequence smoke test for RintedHLE/RintedHLE on Windows and Linux/X11.
 
 Launches the emulator with --print-fps, performs a sequence of taps at
 coordinates relative to the emulator window, captures screenshots and checks
@@ -38,7 +38,7 @@ if sys.platform == "win32":
 FPS_RE = re.compile(r"(?:EAGLContext .*|Core Animation compositor) FPS: ([0-9.]+)")
 
 
-def find_window(process_id=None, pid_hint_title="touchHLE"):
+def find_window(process_id=None, pid_hint_title="RintedHLE"):
     if sys.platform == "win32":
         found = []
         fallback = []
@@ -159,7 +159,7 @@ def main():
     p.add_argument("app")
     repo_root = Path(__file__).resolve().parent.parent
     default_exe = repo_root / "target" / "release" / (
-        "touchHLE.exe" if sys.platform == "win32" else "touchHLE"
+        "RintedHLE.exe" if sys.platform == "win32" else "RintedHLE"
     )
     p.add_argument("--exe", default=str(default_exe))
     p.add_argument("--cwd", default=str(repo_root))
@@ -187,7 +187,7 @@ def main():
     env = os.environ.copy()
     env["RUST_BACKTRACE"] = "full"
     if args.require_touch_delivery:
-        env["TOUCHHLE_TRACE_TOUCHES"] = "1"
+        env["RINTEDHLE_TRACE_TOUCHES"] = "1"
     try:
         proc = subprocess.Popen(
             [str(exe), str(app), "--print-fps", *extra],

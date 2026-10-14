@@ -343,7 +343,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     () = msg![env; image_view setFrame:bounds];
 }
 
-// touchHLE has no deferred layout pass (setNeedsLayout is a no-op), so
+// RintedHLE has no deferred layout pass (setNeedsLayout is a no-op), so
 // re-layout the title/image/background subviews whenever the button is
 // resized. Buttons made with `buttonWithType:` get their real frame (often via
 // `sizeToFit`) only after init, and would otherwise keep zero-sized subviews.
@@ -567,7 +567,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 - (())setTitleShadowOffset:(CGSize)_offset {
     // Per Apple docs this is a deprecated visual property (UIButton.titleShadowOffset).
-    // We accept and ignore it since touchHLE does not render title shadows.
+    // We accept and ignore it since RintedHLE does not render title shadows.
 }
 
 // MARK: - Titles

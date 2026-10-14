@@ -1901,7 +1901,7 @@ pub const FUNCTIONS: FunctionExports = &[
 /// the Open Group `fenv.h` reference
 /// <https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/fenv.h.html>.
 ///
-/// touchHLE exposes a zero-filled 8-byte `fenv_t` (matching ARMv7's
+/// RintedHLE exposes a zero-filled 8-byte `fenv_t` (matching ARMv7's
 /// `__fpu_control` + reserved layout): apps that pass `FE_DFL_ENV`
 /// to `fesetenv` will get the default environment (all flags clear,
 /// round-to-nearest).

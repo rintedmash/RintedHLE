@@ -33,7 +33,7 @@ const NS_URL_ERROR_DOMAIN: &str = "NSURLErrorDomain";
 const NS_URL_ERROR_NOT_CONNECTED_TO_INTERNET: i32 = -1009;
 
 fn fake_network_success_enabled() -> bool {
-    std::env::var_os("TOUCHHLE_FAKE_NETWORK_SUCCESS").is_some()
+    std::env::var_os("RINTEDHLE_FAKE_NETWORK_SUCCESS").is_some()
 }
 
 // ---------------------------------------------------------------------------
@@ -45,7 +45,7 @@ struct NSURLConnectionHostObject {
     /// `id<NSURLConnectionDelegate>` — retained while the connection is
     /// alive, released on dealloc / cancel.
     delegate: id,
-    /// `NSOperationQueue *` from setDelegateQueue:. touchHLE schedules all
+    /// `NSOperationQueue *` from setDelegateQueue:. RintedHLE schedules all
     /// delegate callbacks on the main thread, so the queue is only stored
     /// (retained) for API fidelity.
     delegate_queue: id,
@@ -67,7 +67,7 @@ fn make_network_error(env: &mut crate::Environment) -> id {
     let desc_val = from_rust_string(
         env,
         "The network connection was lost. \
-         (touchHLE: networking not supported)"
+         (RintedHLE: networking not supported)"
             .to_string(),
     );
     autorelease(env, desc_val);
@@ -157,7 +157,7 @@ fn notify_delegate_success(env: &mut crate::Environment, connection: id, delegat
         return;
     }
 
-    log!("NSURLConnection: TOUCHHLE_FAKE_NETWORK_SUCCESS=1, notifying delegate of fake HTTP 200 success");
+    log!("NSURLConnection: RINTEDHLE_FAKE_NETWORK_SUCCESS=1, notifying delegate of fake HTTP 200 success");
 
     let response = make_fake_http_response(env, nil);
     let data = make_fake_success_data(env);
@@ -197,7 +197,7 @@ pub const CLASSES: ClassExports = objc_classes! {
                        error:(MutPtr<id>)error_ptr {
 
     if fake_network_success_enabled() {
-        log!("NSURLConnection sendSynchronousRequest: TOUCHHLE_FAKE_NETWORK_SUCCESS=1, returning fake HTTP 200 + tiny JSON + no error");
+        log!("NSURLConnection sendSynchronousRequest: RINTEDHLE_FAKE_NETWORK_SUCCESS=1, returning fake HTTP 200 + tiny JSON + no error");
 
         if !response_ptr.is_null() {
             let response = make_fake_http_response(env, request);
@@ -246,7 +246,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 // MARK: - Asynchronous block API
 //
 // `+[NSURLConnection sendAsynchronousRequest:queue:completionHandler:]`
-// — iOS 5+ block-based convenience. touchHLE has no live network stack,
+// — iOS 5+ block-based convenience. RintedHLE has no live network stack,
 // so we synthesise the "not connected to internet" error. The handler is
 // called with (nil, nil, error) as Apple documents for failure cases.
 // Games like Sonic Runners handle this gracefully — they show an error
@@ -260,7 +260,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     }
     log!(
         "NSURLConnection sendAsynchronousRequest:queue:completionHandler: \
-         delivering NSURLErrorNotConnectedToInternet (touchHLE has no network)"
+         delivering NSURLErrorNotConnectedToInternet (RintedHLE has no network)"
     );
 
     let _ = request;
@@ -279,7 +279,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
     if fake_network_success_enabled() {
         log!(
-            "NSURLConnection sendAsynchronousRequest:queue:completionHandler:              TOUCHHLE_FAKE_NETWORK_SUCCESS=1, delivering empty data + no error"
+            "NSURLConnection sendAsynchronousRequest:queue:completionHandler:              RINTEDHLE_FAKE_NETWORK_SUCCESS=1, delivering empty data + no error"
         );
         let empty_data: id = msg_class![env; NSData data];
         let _: () = invoke.call_from_host(env, (handler, nil, empty_data, nil));
@@ -334,7 +334,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
     if start_immediately {
         // Per Apple's documentation, when startImmediately is YES the
-        // connection begins loading data immediately. Since touchHLE has
+        // connection begins loading data immediately. Since RintedHLE has
         // no network stack, we schedule the delegate failure callback via
         // performSelector:withObject:afterDelay: so that it fires on the
         // next run-loop iteration rather than synchronously during init.
@@ -343,16 +343,16 @@ pub const CLASSES: ClassExports = objc_classes! {
         if fake_network_success_enabled() {
             log_dbg!(
                 "NSURLConnection: scheduling deferred empty-success notification \
-                 (TOUCHHLE_FAKE_NETWORK_SUCCESS=1)"
+                 (RINTEDHLE_FAKE_NETWORK_SUCCESS=1)"
             );
-            let sel = env.objc.register_host_selector("_touchHLE_deliverSuccess".to_string(), &mut env.mem);
+            let sel = env.objc.register_host_selector("_RintedHLE_deliverSuccess".to_string(), &mut env.mem);
             () = msg![env; this performSelector:sel withObject:nil afterDelay:0.0_f64];
         } else {
             log_dbg!(
                 "NSURLConnection: scheduling deferred failure notification \
-                 (networking not supported in touchHLE)"
+                 (networking not supported in RintedHLE)"
             );
-            let sel = env.objc.register_host_selector("_touchHLE_deliverFailure".to_string(), &mut env.mem);
+            let sel = env.objc.register_host_selector("_RintedHLE_deliverFailure".to_string(), &mut env.mem);
             () = msg![env; this performSelector:sel withObject:nil afterDelay:0.0_f64];
         }
     }
@@ -361,7 +361,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 }
 
 // Internal helper method: delivers the failure callback to the delegate.
-- (())_touchHLE_deliverFailure {
+- (())_RintedHLE_deliverFailure {
     let host = env.objc.borrow::<NSURLConnectionHostObject>(this);
     if host.cancelled {
         return;
@@ -373,7 +373,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     notify_delegate_failure(env, this, delegate);
 }
 
-- (())_touchHLE_deliverSuccess {
+- (())_RintedHLE_deliverSuccess {
     let host = env.objc.borrow::<NSURLConnectionHostObject>(this);
     if host.cancelled {
         return;
@@ -391,16 +391,16 @@ pub const CLASSES: ClassExports = objc_classes! {
     if fake_network_success_enabled() {
         log_dbg!(
             "NSURLConnection start: scheduling deferred empty-success \
-             (TOUCHHLE_FAKE_NETWORK_SUCCESS=1)"
+             (RINTEDHLE_FAKE_NETWORK_SUCCESS=1)"
         );
-        let sel = env.objc.register_host_selector("_touchHLE_deliverSuccess".to_string(), &mut env.mem);
+        let sel = env.objc.register_host_selector("_RintedHLE_deliverSuccess".to_string(), &mut env.mem);
         () = msg![env; this performSelector:sel withObject:nil afterDelay:0.0_f64];
     } else {
         log_dbg!(
             "NSURLConnection start: scheduling deferred failure \
-             (networking not supported in touchHLE)"
+             (networking not supported in RintedHLE)"
         );
-        let sel = env.objc.register_host_selector("_touchHLE_deliverFailure".to_string(), &mut env.mem);
+        let sel = env.objc.register_host_selector("_RintedHLE_deliverFailure".to_string(), &mut env.mem);
         () = msg![env; this performSelector:sel withObject:nil afterDelay:0.0_f64];
     }
 }

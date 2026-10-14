@@ -517,7 +517,7 @@ pub fn recomposite_if_necessary(env: &mut Environment, force: bool) -> Option<In
     }
     std::mem::drop(gles);
 
-    if crate::env_flag_cached!("TOUCHHLE_DUMP_LAYER_TREE") {
+    if crate::env_flag_cached!("RINTEDHLE_DUMP_LAYER_TREE") {
         use std::sync::atomic::{AtomicU32, Ordering};
         static N: AtomicU32 = AtomicU32::new(0);
         if N.fetch_add(1, Ordering::Relaxed) % 600 == 0 {

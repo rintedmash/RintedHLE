@@ -5,18 +5,18 @@
  */
 //! OpenGL ES abstraction and implementations.
 //!
-//! touchHLE uses OpenGL ES for several things. OpenGL ES is part of iPhone OS's
+//! RintedHLE uses OpenGL ES for several things. OpenGL ES is part of iPhone OS's
 //! API surface and can be used by apps for rendering, so there must be an
 //! implementation of it to expose to the app. Beyond that, there are various
 //! internal uses for which any graphics API would work, but using the same one
 //! makes things simpler:
 //! - Presenting frames rendered by the app to the screen, with appropriate
 //!   rotation and scaling.
-//! - Drawing touchHLE's virtual cursor.
+//! - Drawing RintedHLE's virtual cursor.
 //! - Drawing the app's splash screen.
 //! - Compositing the app's Core Animation layers (usually for UIKit views).
 //!
-//! touchHLE's OpenGL ES implementation consists of a series of layers. This
+//! RintedHLE's OpenGL ES implementation consists of a series of layers. This
 //! module contains the layers that aren't specific to a particular use:
 //!
 //! - [gles_generic] provides an abstraction over OpenGL ES implementations.
@@ -74,12 +74,12 @@ pub mod gles3_on_gl3;
 mod gles_generic;
 pub mod present;
 pub mod util;
-use touchHLE_gl_bindings::gl21compat as gl21compat_raw;
-use touchHLE_gl_bindings::gl33core as gl33core_raw;
-pub use touchHLE_gl_bindings::gles11 as gles11_raw;
-pub use touchHLE_gl_bindings::gles2 as gles2_raw;
-pub use touchHLE_gl_bindings::gles30 as gles30_raw;
-pub use touchHLE_gl_bindings::gles11::types::*;
+use RintedHLE_gl_bindings::gl21compat as gl21compat_raw;
+use RintedHLE_gl_bindings::gl33core as gl33core_raw;
+pub use RintedHLE_gl_bindings::gles11 as gles11_raw;
+pub use RintedHLE_gl_bindings::gles2 as gles2_raw;
+pub use RintedHLE_gl_bindings::gles30 as gles30_raw;
+pub use RintedHLE_gl_bindings::gles11::types::*;
 pub use util::try_decode_pvrtc;
 
 use crate::environment::Environment;
@@ -1437,7 +1437,7 @@ pub(crate) fn configure_translator_tracing(_enabled: bool) {}
 
 pub(crate) fn translator_tracing_enabled() -> bool {
     // PERF: cached read-once flag; called from hot GL-translation paths.
-    crate::env_flag_cached!("TOUCHHLE_TRACE_TRANSLATOR")
+    crate::env_flag_cached!("RINTEDHLE_TRACE_TRANSLATOR")
 }
 
 pub(crate) fn trace_translator_event(event: String) {
@@ -1471,9 +1471,9 @@ pub fn configure_angle_driver(enabled: bool) {
     } else {
         "libGLESv2.so"
     };
-    let egl_path = std::env::var("TOUCHHLE_ANGLE_EGL").unwrap_or_else(|_| default_egl.to_owned());
+    let egl_path = std::env::var("RINTEDHLE_ANGLE_EGL").unwrap_or_else(|_| default_egl.to_owned());
     let gles_path =
-        std::env::var("TOUCHHLE_ANGLE_GLES").unwrap_or_else(|_| default_gles.to_owned());
+        std::env::var("RINTEDHLE_ANGLE_GLES").unwrap_or_else(|_| default_gles.to_owned());
     let egl_exists = std::path::Path::new(&egl_path).exists();
     let gles_exists = std::path::Path::new(&gles_path).exists();
 
@@ -1787,10 +1787,10 @@ pub fn create_gles1_ctx_no_parent_stack(
 ) -> Result<Box<dyn GLESContext>, String> {
     assert!(window.on_main_stack());
     log!("Creating an OpenGL ES 1.1 context:");
-    // Hardcoded GPU/backend pin: TOUCHHLE_FORCE_GLES1 overrides everything
+    // Hardcoded GPU/backend pin: RINTEDHLE_FORCE_GLES1 overrides everything
     // (CLI flag, host capability probing) so the exact backend is used even
     // when probing would pick a different one.
-    let forced = std::env::var("TOUCHHLE_FORCE_GLES1")
+    let forced = std::env::var("RINTEDHLE_FORCE_GLES1")
         .ok()
         .and_then(|name| GLESImplementation::from_short_name(&name).ok());
     let forced_list: [GLESImplementation; 1] = match forced {

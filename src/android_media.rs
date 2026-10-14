@@ -8,7 +8,7 @@
 //! host hardware on Android.
 //!
 //! All calls go through hand-rolled JNI (no `jni` crate dependency) into
-//! static methods on `org.touchhle.android.HostMedia` — see that file for
+//! static methods on `org.rintedhle.android.HostMedia` — see that file for
 //! the Android side (Camera2 still capture, AudioRecord streaming).
 //!
 //! On other platforms (or when the permission is denied / hardware absent)
@@ -115,7 +115,7 @@ mod imp {
         }
 
         fn find_host_media_class(&self) -> Option<*mut c_void> {
-            let name = CString::new("org/touchhle/android/HostMedia").ok()?;
+            let name = CString::new("org/rintedhle/android/HostMedia").ok()?;
             let Some(f): Option<
                 unsafe extern "C" fn(*mut c_void, *const c_char) -> *mut c_void,
             > = self.slot(slots::FIND_CLASS)
@@ -316,7 +316,7 @@ mod imp {
     /// coroutine stack, and ART resolves `FindClass` through the class loader
     /// of the calling *managed* frame - there is none on a coroutine stack, so
     /// it falls back to the system class loader, which does not know the app's
-    /// own classes. A lazy `FindClass("org/touchhle/android/HostMedia")` from
+    /// own classes. A lazy `FindClass("org/rintedhle/android/HostMedia")` from
     /// guest code therefore returns NULL, and every camera/microphone probe
     /// silently answers "not available" even on a device that has both.
     /// Calling the *resolved* methods from a coroutine stack is fine; only the

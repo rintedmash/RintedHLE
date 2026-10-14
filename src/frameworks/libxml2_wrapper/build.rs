@@ -177,7 +177,7 @@ fn main() {
     }
     cc_build.define("LIBXML_STATIC", Some("1"));
     cc_build.warnings(false);
-    cc_build.compile("touchHLE_libxml2_shim");
+    cc_build.compile("RintedHLE_libxml2_shim");
 
     println!(
         "cargo:rerun-if-changed={}",

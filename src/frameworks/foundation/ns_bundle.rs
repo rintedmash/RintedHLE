@@ -98,7 +98,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     if let Some(bundle) = env.framework_state.foundation.ns_bundle.main_bundle {
         bundle
     } else {
-        let new = msg_class![env; _touchHLE_NSBundle_Static alloc];
+        let new = msg_class![env; _RintedHLE_NSBundle_Static alloc];
         env.framework_state.foundation.ns_bundle.main_bundle = Some(new);
         new
     }
@@ -264,7 +264,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 }
 
 + (id)allFrameworks {
-    // No dynamically loaded frameworks in touchHLE.
+    // No dynamically loaded frameworks in RintedHLE.
     msg_class![env; NSArray array]
 }
 
@@ -422,7 +422,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 //
 // Per Apple's [NSBundle Reference](https://developer.apple.com/documentation/foundation/nsbundle/1418338-load):
 // "Dynamically loads the bundle's executable code into a running
-// program, if the code has not already been loaded." touchHLE links
+// program, if the code has not already been loaded." RintedHLE links
 // every bundle's executable image up-front at app launch (via dyld), so
 // there is never any deferred code to load. The documented return
 // value for "code already loaded successfully" is YES, which is what
@@ -448,7 +448,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 // Per Apple's [NSBundle Reference](https://developer.apple.com/documentation/foundation/nsbundle/1417447-loadandreturnerror):
 // "On output, if the bundle was not loaded successfully, this contains
 // an error object describing why; otherwise, it contains no value."
-// touchHLE always treats the bundle as loaded (see -load above), so the
+// RintedHLE always treats the bundle as loaded (see -load above), so the
 // error out-parameter is explicitly set to nil.
 - (bool)loadAndReturnError:(MutPtr<id>)error {
     if !error.is_null() {
@@ -983,10 +983,10 @@ pub const CLASSES: ClassExports = objc_classes! {
 @end
 
 // =========================================================================
-// MARK: - _touchHLE_NSBundle_Static (main bundle — never released)
+// MARK: - _RintedHLE_NSBundle_Static (main bundle — never released)
 // =========================================================================
 
-@implementation _touchHLE_NSBundle_Static: NSBundle
+@implementation _RintedHLE_NSBundle_Static: NSBundle
 
 + (id)allocWithZone:(NSZonePtr)_zone {
     let bundle_path = env.bundle.bundle_path().as_str().to_string();
@@ -1052,7 +1052,7 @@ fn localized_info_plist_strings(env: &mut Environment, bundle: id) -> id {
 /// Apple documents the result as "a dictionary with the keys from the
 /// bundle's localized property list", chosen using the preferred
 /// localization (falling back to the most appropriate localization in the
-/// bundle). touchHLE layers those localized values over the plain
+/// bundle). RintedHLE layers those localized values over the plain
 /// `Info.plist` contents instead of returning only the localized keys:
 /// apps routinely read keys such as `CFBundleVersion` from this
 /// dictionary, and dropping every non-localized key would turn those

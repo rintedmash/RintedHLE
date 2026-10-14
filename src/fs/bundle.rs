@@ -440,7 +440,7 @@ mod tests {
     /// when the bundle was loaded. Now such entries are skipped instead.
     #[test]
     fn test_ipa_with_corrupt_local_file_header() {
-        let dir = std::env::temp_dir().join("touchHLE_test_corrupt_ipa");
+        let dir = std::env::temp_dir().join("RintedHLE_test_corrupt_ipa");
         std::fs::create_dir_all(&dir).unwrap();
         let ipa_path = dir.join("TestApp.ipa");
 
@@ -488,7 +488,7 @@ mod tests {
     /// representation rather than panicking the emulator.
     #[test]
     fn test_ipa_with_corrupt_payload_is_empty_not_panic() {
-        let dir = std::env::temp_dir().join("touchHLE_test_corrupt_ipa_payload");
+        let dir = std::env::temp_dir().join("RintedHLE_test_corrupt_ipa_payload");
         std::fs::create_dir_all(&dir).unwrap();
         let ipa_path = dir.join("TestApp.ipa");
 

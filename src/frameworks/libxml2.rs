@@ -6,7 +6,7 @@
 //! Host shim for `libxml2.2.dylib`.
 //!
 //! Every entry point dispatches to the real, vendored libxml2 (built in
-//! `vendor/libxml2`) via the [`touchHLE_libxml2_wrapper`] crate.  The guest
+//! `vendor/libxml2`) via the [`RintedHLE_libxml2_wrapper`] crate.  The guest
 //! never sees a host pointer directly: every libxml2 object (`xmlDoc *`,
 //! `xmlNode *`, `xmlAttr *`, `xmlTextReader *`, `xmlXPathObject *`, …) is
 //! recorded in a global handle table and exchanged with the guest as an
@@ -30,7 +30,7 @@ use std::ffi::CString;
 use std::os::raw::{c_char, c_int, c_void};
 use std::ptr;
 use std::sync::Mutex;
-use touchHLE_libxml2_wrapper as xml;
+use RintedHLE_libxml2_wrapper as xml;
 
 pub const DYLIB: crate::dyld::HostDylib = crate::dyld::HostDylib {
     path: "/usr/lib/libxml2.2.dylib",
@@ -822,7 +822,7 @@ fn xmlDocGetRootElement(env: &mut Environment, doc: u32) -> u32 {
     // Guest DOM mirror: hand the guest a real guest-memory `xmlNode` struct it
     // can walk by direct field access (`node->name`/`children`/`next`/…), which
     // games like Where's My Water (com.disney.SwampyGame) require. Opt-in via
-    // `--xml-dom-mirror` / `TOUCHHLE_XML_MIRROR=1`; off by default so API-only
+    // `--xml-dom-mirror` / `RINTEDHLE_XML_MIRROR=1`; off by default so API-only
     // guests (which read nodes only through libxml2 accessors) are unaffected.
     if env.options.xml_dom_mirror {
         return mirror_node(env, root as *mut c_void, p as usize);

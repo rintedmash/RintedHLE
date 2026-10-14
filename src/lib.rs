@@ -3,7 +3,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
-//! touchHLE is a high-level emulator (HLE) for iPhone OS applications.
+//! RintedHLE is a high-level emulator (HLE) for iPhone OS applications.
 //!
 //! In various places, the terms "guest" and "host" are used to distinguish
 //! between the emulated application (the "guest") and the emulator itself (the
@@ -15,7 +15,7 @@
 //! - The host can access both "guest memory" and "host memory".
 //! - A "guest function" is emulated Arm code, usually from the app binary.
 //! - A "host function" is a Rust function that is part of this emulator.
-// Allow the crate to have a non-snake-case name (touchHLE).
+// Allow the crate to have a non-snake-case name (RintedHLE).
 // This also allows items in the crate to have non-snake-case names.
 #![allow(non_snake_case)]
 // The documentation for this crate is intended to include private items.
@@ -79,7 +79,7 @@ use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
-pub use touchHLE_version::*;
+pub use RintedHLE_version::*;
 
 #[cfg(target_os = "ios")]
 static HOST_EXIT_REQUESTED: AtomicBool = AtomicBool::new(false);
@@ -187,15 +187,15 @@ pub extern "C" fn SDL_main(
     }));
     // Empty args: brings up app picker.
     match main([String::new()].into_iter()) {
-        Ok(_) => echo!("touchHLE finished"),
-        Err(e) => echo!("touchHLE errored: {e:?}"),
+        Ok(_) => echo!("RintedHLE finished"),
+        Err(e) => echo!("RintedHLE errored: {e:?}"),
     }
     0
 }
 
 const USAGE: &str = "\
 Usage:
-    touchHLE [PATH] [OPTIONS]
+    RintedHLE [PATH] [OPTIONS]
 
 PATH should be a path to a .app bundle or .ipa file.
 
@@ -214,11 +214,11 @@ pub fn main<T: Iterator<Item = String>>(mut args: T) -> Result<(), String> {
 
     // Headless CI boxes have no sound devices; when asked, point OpenAL
     // Soft's wave writer at a capture file before any OpenAL call happens.
-    if std::env::var_os("TOUCHHLE_CAPTURE_AUDIO").is_some()
+    if std::env::var_os("RINTEDHLE_CAPTURE_AUDIO").is_some()
         && std::env::var_os("ALSOFT_DRIVERS").is_none()
     {
-        let path = std::env::var_os("TOUCHHLE_CAPTURE_AUDIO").unwrap();
-        let conf = std::env::temp_dir().join("touchhle-wave-capture.conf");
+        let path = std::env::var_os("RINTEDHLE_CAPTURE_AUDIO").unwrap();
+        let conf = std::env::temp_dir().join("rintedhle-wave-capture.conf");
         // openal-soft's wave backend only reads its output path from the
         // config key `wave/file`; it does not honour an env override, so
         // generate a minimal config file and point ALSOFT_CONF at it.
@@ -250,7 +250,7 @@ pub fn main<T: Iterator<Item = String>>(mut args: T) -> Result<(), String> {
     }
 
     echo!(
-        "touchHLE {}{}{}",
+        "RintedHLE {}{}{}",
         branding(),
         if branding().is_empty() { "" } else { " " },
         VERSION,
@@ -269,7 +269,7 @@ pub fn main<T: Iterator<Item = String>>(mut args: T) -> Result<(), String> {
 
     {
         let base_path = paths::user_data_base_path();
-        log!("Base path for touchHLE files: {}", base_path.display());
+        log!("Base path for RintedHLE files: {}", base_path.display());
         paths::prepopulate_user_data_dir();
         paths::remove_legacy_pvrtc_disk_cache();
     }
@@ -359,18 +359,18 @@ pub fn main<T: Iterator<Item = String>>(mut args: T) -> Result<(), String> {
     // aligned with the active orientation; portrait axes leave its EAGL scene
     // occupying only a small portion of the display.
     if app_id == "com.gameloft.gangstar3"
-        && std::env::var_os("TOUCHHLE_LANDSCAPE_UISCREEN_BOUNDS").is_none()
+        && std::env::var_os("RINTEDHLE_LANDSCAPE_UISCREEN_BOUNDS").is_none()
     {
         unsafe {
-            std::env::set_var("TOUCHHLE_LANDSCAPE_UISCREEN_BOUNDS", "1");
+            std::env::set_var("RINTEDHLE_LANDSCAPE_UISCREEN_BOUNDS", "1");
         }
     }
 
     // ULTRAHLE_MINIONJUMP_SCREEN_BEGIN
     // Minion Jump / SheepEscape needs the iPad landscape identity/profile.
     unsafe {
-        std::env::remove_var("TOUCHHLE_FORCE_IPAD_DEVICE_IDENTITY");
-        std::env::remove_var("TOUCHHLE_FORCE_IPAD_LANDSCAPE_SCREEN");
+        std::env::remove_var("RINTEDHLE_FORCE_IPAD_DEVICE_IDENTITY");
+        std::env::remove_var("RINTEDHLE_FORCE_IPAD_LANDSCAPE_SCREEN");
     }
 
     if matches!(
@@ -378,8 +378,8 @@ pub fn main<T: Iterator<Item = String>>(mut args: T) -> Result<(), String> {
         "com.apprisetec9.minionjump" | "com.risinghighapps.kingdomprincepro"
     ) {
         unsafe {
-            std::env::set_var("TOUCHHLE_FORCE_IPAD_DEVICE_IDENTITY", "1");
-            std::env::set_var("TOUCHHLE_FORCE_IPAD_LANDSCAPE_SCREEN", "1");
+            std::env::set_var("RINTEDHLE_FORCE_IPAD_DEVICE_IDENTITY", "1");
+            std::env::set_var("RINTEDHLE_FORCE_IPAD_LANDSCAPE_SCREEN", "1");
         }
     }
     // ULTRAHLE_MINIONJUMP_SCREEN_END
@@ -387,11 +387,11 @@ pub fn main<T: Iterator<Item = String>>(mut args: T) -> Result<(), String> {
     // ULTRAHLE_POTATO_LANDSCAPE_BEGIN
     // Potato Panic / Potato Story: use normal PC-style present rotation/composition; remap touch coordinates as landscape-right.
     unsafe {
-        std::env::remove_var("TOUCHHLE_FORCE_LANDSCAPE_VIEWPORT");
-        std::env::remove_var("TOUCHHLE_FORCE_LANDSCAPE_RENDERBUFFER");
-        std::env::remove_var("TOUCHHLE_FORCE_LANDSCAPE_VIEW_BOUNDS");
-        std::env::remove_var("TOUCHHLE_TOUCH_LOCATION_PORTRAIT_TO_LANDSCAPE");
-        std::env::remove_var("TOUCHHLE_TOUCH_MODE");
+        std::env::remove_var("RINTEDHLE_FORCE_LANDSCAPE_VIEWPORT");
+        std::env::remove_var("RINTEDHLE_FORCE_LANDSCAPE_RENDERBUFFER");
+        std::env::remove_var("RINTEDHLE_FORCE_LANDSCAPE_VIEW_BOUNDS");
+        std::env::remove_var("RINTEDHLE_TOUCH_LOCATION_PORTRAIT_TO_LANDSCAPE");
+        std::env::remove_var("RINTEDHLE_TOUCH_MODE");
         // NOTE: do not force a portrait->landscape touch remap on
         // com.robtop.geometryjump (Geometry Dash) anymore. Its cocos2d-x view
         // is mounted as a UIViewController's view, so UIWindow's landscape
@@ -399,25 +399,25 @@ pub fn main<T: Iterator<Item = String>>(mut args: T) -> Result<(), String> {
         // game's own landscape space; the extra "right" remap rotated those
         // already-correct coordinates a second time and taps activated the
         // wrong buttons (press high -> settings, press low -> level menu).
-        std::env::remove_var("TOUCHHLE_TOUCH_LOCATION_X_OFFSET");
-        std::env::remove_var("TOUCHHLE_TOUCH_LOCATION_Y_OFFSET");
-        std::env::remove_var("TOUCHHLE_PRESENT_STRETCH_TO_VIEWPORT");
-        std::env::remove_var("TOUCHHLE_POTATO_ANDROID_THUMB2_COMPAT");
+        std::env::remove_var("RINTEDHLE_TOUCH_LOCATION_X_OFFSET");
+        std::env::remove_var("RINTEDHLE_TOUCH_LOCATION_Y_OFFSET");
+        std::env::remove_var("RINTEDHLE_PRESENT_STRETCH_TO_VIEWPORT");
+        std::env::remove_var("RINTEDHLE_POTATO_ANDROID_THUMB2_COMPAT");
     }
 
     if matches!(app_id, "at.source.potpan" | "at.source.potato3D") {
         unsafe {
-            std::env::set_var("TOUCHHLE_TOUCH_LOCATION_PORTRAIT_TO_LANDSCAPE", "1");
-            std::env::set_var("TOUCHHLE_TOUCH_MODE", "right-flip-x");
+            std::env::set_var("RINTEDHLE_TOUCH_LOCATION_PORTRAIT_TO_LANDSCAPE", "1");
+            std::env::set_var("RINTEDHLE_TOUCH_MODE", "right-flip-x");
 
             if cfg!(target_os = "android") {
                 // Potato Story/Panic must use the same logical GL shape as desktop:
                 // 480x320 landscape, not Android's current 320x480 Cocos viewport.
-                std::env::set_var("TOUCHHLE_POTATO_ANDROID_THUMB2_COMPAT", "1");
-                std::env::set_var("TOUCHHLE_FORCE_LANDSCAPE_VIEWPORT", "1");
-                std::env::set_var("TOUCHHLE_FORCE_LANDSCAPE_RENDERBUFFER", "1");
-                std::env::set_var("TOUCHHLE_FORCE_LANDSCAPE_VIEW_BOUNDS", "1");
-                std::env::set_var("TOUCHHLE_PRESENT_STRETCH_TO_VIEWPORT", "1");
+                std::env::set_var("RINTEDHLE_POTATO_ANDROID_THUMB2_COMPAT", "1");
+                std::env::set_var("RINTEDHLE_FORCE_LANDSCAPE_VIEWPORT", "1");
+                std::env::set_var("RINTEDHLE_FORCE_LANDSCAPE_RENDERBUFFER", "1");
+                std::env::set_var("RINTEDHLE_FORCE_LANDSCAPE_VIEW_BOUNDS", "1");
+                std::env::set_var("RINTEDHLE_PRESENT_STRETCH_TO_VIEWPORT", "1");
             }
         }
     }
@@ -429,10 +429,10 @@ pub fn main<T: Iterator<Item = String>>(mut args: T) -> Result<(), String> {
     if app_id == "com.turner.mfm" {
         log!("Applying Mutant Fridge landscape screen and Cocos compatibility profile.");
         unsafe {
-            std::env::set_var("TOUCHHLE_LANDSCAPE_UISCREEN_BOUNDS", "1");
-            std::env::set_var("TOUCHHLE_FORCE_LANDSCAPE_VIEWPORT", "1");
-            std::env::set_var("TOUCHHLE_COCOS_TOUCH_REMAP", "1");
-            std::env::set_var("TOUCHHLE_COCOS_TOUCH_MODE", "identity");
+            std::env::set_var("RINTEDHLE_LANDSCAPE_UISCREEN_BOUNDS", "1");
+            std::env::set_var("RINTEDHLE_FORCE_LANDSCAPE_VIEWPORT", "1");
+            std::env::set_var("RINTEDHLE_COCOS_TOUCH_REMAP", "1");
+            std::env::set_var("RINTEDHLE_COCOS_TOUCH_MODE", "identity");
         }
     }
 
@@ -501,7 +501,7 @@ pub fn main<T: Iterator<Item = String>>(mut args: T) -> Result<(), String> {
         // missing post-iOS-9 APIs becomes the rule rather than the exception.
         if major > 9 || (major == 9 && minor > 0) {
             echo!(
-                "Warning: app requires OS version {}. touchHLE currently aims \
+                "Warning: app requires OS version {}. RintedHLE currently aims \
                  for iOS 2.x–9.0; newer APIs may be missing.",
                 version
             );
@@ -510,7 +510,7 @@ pub fn main<T: Iterator<Item = String>>(mut args: T) -> Result<(), String> {
 
     if required_device_capabilities.contains(&"opengles-3") {
         echo!(
-            "Warning: app requires OpenGL ES 3.0+ support. HyperHLE now routes EAGL OpenGL ES 3 contexts to its GLES 3 backend."
+            "Warning: app requires OpenGL ES 3.0+ support. RintedHLE now routes EAGL OpenGL ES 3 contexts to its GLES 3 backend."
         );
     }
 

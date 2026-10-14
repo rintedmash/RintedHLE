@@ -16,7 +16,7 @@ use crate::dyld::{export_c_func, FunctionExports, HostConstant};
 use crate::frameworks::core_graphics::cg_geometry::CGSize;
 use crate::mem::{ConstVoidPtr, MutPtr};
 
-/// HyperHLE does not emulate an active iOS Guided Access session.
+/// RintedHLE does not emulate an active iOS Guided Access session.
 fn UIAccessibilityIsGuidedAccessEnabled(_env: &mut Environment) -> bool {
     false
 }
@@ -1053,7 +1053,7 @@ pub fn handle_events(env: &mut Environment) -> Option<Instant> {
                 ui_touch::handle_event(env, event)
             }
             Event::AppWillResignActive => {
-                // touchHLE has become inactive (e.g. the user is switching
+                // RintedHLE has become inactive (e.g. the user is switching
                 // apps, a system dialog took focus, the screen is turning
                 // off, etc.). Per Apple's UIApplicationDelegate lifecycle
                 // docs, notify the app delegate so it can pause its game

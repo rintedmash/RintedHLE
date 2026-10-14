@@ -10,7 +10,7 @@
 //! dedicated `kCNNetworkInfo*` key constants. Analytics SDKs bundled with
 //! games (e.g. LEGO Ninjago) call these at startup to record Wi-Fi state.
 //!
-//! touchHLE has no Wi-Fi telemetry, so we model a device whose only
+//! RintedHLE has no Wi-Fi telemetry, so we model a device whose only
 //! interface is the (always present) Wi-Fi interface `en0`, exactly as a
 //! real iPhone OS 3.x/4.x device reports, and report it with a placeholder
 //! SSID. Apps that only probe for interface presence (the overwhelmingly
@@ -54,13 +54,13 @@ fn CNCopySupportedInterfaces(env: &mut Environment) -> CFArrayRef {
 /// Returns the current network info dictionary for the given interface, or
 /// NULL when the information is unavailable (which is also what a real
 /// device returns when Wi-Fi is off or the caller lacks permission).
-/// touchHLE has no Wi-Fi telemetry, so any query reports a placeholder
+/// RintedHLE has no Wi-Fi telemetry, so any query reports a placeholder
 /// network rather than failing the call outright.
 fn CNCopyCurrentNetworkInfo(env: &mut Environment, interface: CFStringRef) -> CFDictionaryRef {
     let interface_name = to_rust_string(env, interface.cast());
     log_dbg!("CNCopyCurrentNetworkInfo({interface_name:?}) — reporting placeholder Wi-Fi network",);
 
-    let ssid = get_static_str(env, "touchHLE");
+    let ssid = get_static_str(env, "RintedHLE");
     let bssid = get_static_str(env, "02:00:00:00:00:00");
     let ssid_key = get_static_str(env, "SSID");
     let bssid_key = get_static_str(env, "BSSID");

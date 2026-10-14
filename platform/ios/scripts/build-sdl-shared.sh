@@ -39,8 +39,8 @@ BUILD_DIR="$REPO/build/sdl-shared-$SDK"
 PREFIX="$BUILD_DIR/install"
 SDKROOT=$(xcrun --sdk "$SDK" --show-sdk-path)
 DEVELOPER_DIR=${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}
-TOUCHHLE_BOOST_ROOT=${TOUCHHLE_BOOST_ROOT:-"$REPO/vendor/boost"}
-export SDKROOT DEVELOPER_DIR TOUCHHLE_BOOST_ROOT
+RINTEDHLE_BOOST_ROOT=${RINTEDHLE_BOOST_ROOT:-"$REPO/vendor/boost"}
+export SDKROOT DEVELOPER_DIR RINTEDHLE_BOOST_ROOT
 
 # SDL records __FILE__ in its error and assertion strings, which would otherwise
 # put the build machine's home directory in a shipped binary. The Rust build
@@ -54,7 +54,7 @@ cmake \
     -DCMAKE_C_FLAGS="$SDL_CFLAGS" \
     -DCMAKE_OBJC_FLAGS="$SDL_CFLAGS" \
     -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-    -DCMAKE_TOOLCHAIN_FILE="$ROOT/cmake/TouchHLEiOS.cmake" \
+    -DCMAKE_TOOLCHAIN_FILE="$ROOT/cmake/RintedHLEiOS.cmake" \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="$PREFIX" \
     -DCMAKE_INSTALL_NAME_DIR=@rpath \

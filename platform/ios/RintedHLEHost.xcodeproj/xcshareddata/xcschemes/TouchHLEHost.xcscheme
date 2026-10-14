@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "A10000000000000000000001"
-               BuildableName = "touchHLE.app"
-               BlueprintName = "TouchHLEHost"
-               ReferencedContainer = "container:TouchHLEHost.xcodeproj">
+               BuildableName = "RintedHLE.app"
+               BlueprintName = "RintedHLEHost"
+               ReferencedContainer = "container:RintedHLEHost.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "A10000000000000000000001"
-            BuildableName = "touchHLE.app"
-            BlueprintName = "TouchHLEHost"
-            ReferencedContainer = "container:TouchHLEHost.xcodeproj">
+            BuildableName = "RintedHLE.app"
+            BlueprintName = "RintedHLEHost"
+            ReferencedContainer = "container:RintedHLEHost.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -62,9 +62,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "A10000000000000000000001"
-            BuildableName = "touchHLE.app"
-            BlueprintName = "TouchHLEHost"
-            ReferencedContainer = "container:TouchHLEHost.xcodeproj">
+            BuildableName = "RintedHLE.app"
+            BlueprintName = "RintedHLEHost"
+            ReferencedContainer = "container:RintedHLEHost.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

@@ -17,7 +17,7 @@
 //! This module provides:
 //! 1. Host implementations of the handful of Swift runtime entry points that
 //!    guest code actually calls on the hot path (retain/release/alloc — all
-//!    effectively no-ops or small allocations under touchHLE's memory model).
+//!    effectively no-ops or small allocations under RintedHLE's memory model).
 //! 2. Stable per-symbol data slots for metadata/witness-table symbols (zeroed
 //!    buffers; Swift type metadata is only compared for identity here).
 //! 3. A pattern match for `__swift_FORCE_LOAD_$_*` autolink shims (no-ops).
@@ -106,7 +106,7 @@ fn is_swift_data_symbol(name: &str) -> bool {
 /// Host implementations. All follow the C-ABI-ish `fn(&mut Environment, …)`
 /// shape expected by [crate::dyld::Dyld::create_guest_function].
 ///
-/// `__swift_retain(Object)` → Object. touchHLE does not model Swift refcounts
+/// `__swift_retain(Object)` → Object. RintedHLE does not model Swift refcounts
 /// (the ObjC bridge handles the app's lifetime), so this is an identity fn.
 fn swift_retain(env: &mut Environment, object: MutVoidPtr) -> MutVoidPtr {
     object
@@ -125,7 +125,7 @@ fn swift_release_n(_env: &mut Environment, _object: MutVoidPtr, _n: u32) {}
 
 /// `__swift_slowAlloc(size, align)` → zeroed memory.
 ///
-/// Swift uses this for all box/slow-path allocations. touchHLE's guest heap
+/// Swift uses this for all box/slow-path allocations. RintedHLE's guest heap
 /// never frees, so `__swift_slowDealloc` is correspondingly a no-op.
 fn swift_slow_alloc(env: &mut Environment, size: u32, _align: u32) -> MutVoidPtr {
     let ptr: MutVoidPtr = env.mem.alloc(size.max(1)).cast();
@@ -208,7 +208,7 @@ fn swift_get_existential_type_metadata(
 }
 
 /// `__swift_getInitializedObjCClass(Class)` → Class (already initialized in
-/// touchHLE's ObjC runtime before guest code runs).
+/// RintedHLE's ObjC runtime before guest code runs).
 fn swift_get_initialized_objc_class(_env: &mut Environment, class: ConstVoidPtr) -> ConstVoidPtr {
     class
 }

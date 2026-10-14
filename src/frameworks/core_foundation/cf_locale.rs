@@ -114,7 +114,7 @@ pub const CONSTANTS: ConstantExports = &[
         HostConstant::NSString(kCFLocaleCollatorIdentifier),
     ),
     // Notification name (CFNotificationCenter.h). Chrome reads it to observe
-    // locale changes; touchHLE never fires it, but the constant must resolve.
+    // locale changes; RintedHLE never fires it, but the constant must resolve.
     (
         "_kCFLocaleCurrentLocaleDidChangeNotification",
         HostConstant::NSString("CFLocaleCurrentLocaleDidChangeNotification"),

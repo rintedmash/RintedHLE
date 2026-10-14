@@ -510,7 +510,7 @@ impl MovieVideo {
         let worker_shared = shared.clone();
         let worker_bytes: Arc<[u8]> = Arc::from(movie_bytes);
         let worker = match thread::Builder::new()
-            .name("touchhle-movie-video".to_string())
+            .name("rintedhle-movie-video".to_string())
             .spawn(move || decode_movie(worker_bytes, worker_shared, looping, info))
         {
             Ok(worker) => worker,

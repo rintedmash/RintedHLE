@@ -243,7 +243,7 @@ impl Ics {
             let mut l = 0;
 
             while k < self.info.max_sfb {
-                // touchHLE patch: `l` can reach MAX_SFBS on streams with
+                // RintedHLE patch: `l` can reach MAX_SFBS on streams with
                 // zero-length sections, which would panic on the array index
                 // below. Report a recoverable decode error instead.
                 if l >= MAX_SFBS {

@@ -109,14 +109,14 @@ const kAudioFilePositionError: OSStatus = -40;
 const kAudioFileFileNotFoundError: OSStatus = -43;
 
 fn audiofile_soft_eof_enabled() -> bool {
-    std::env::var_os("TOUCHHLE_AUDIOFILE_SOFT_EOF").is_some()
+    std::env::var_os("RINTEDHLE_AUDIOFILE_SOFT_EOF").is_some()
 }
 
 /// When set, restores the legacy behaviour of substituting a two-second
 /// silent dummy `AudioFile` when the data handed to us cannot be decoded,
 /// instead of reporting a genuine error to the guest.
 fn audiofile_dummy_on_error_enabled() -> bool {
-    std::env::var_os("TOUCHHLE_AUDIOFILE_DUMMY_ON_ERROR").is_some()
+    std::env::var_os("RINTEDHLE_AUDIOFILE_DUMMY_ON_ERROR").is_some()
 }
 
 type AudioFilePermissions = i8;
@@ -388,7 +388,7 @@ pub fn AudioFileInitializeWithCallbacks(
     // caller control where data is stored (memory buffer, network stream,
     // etc.). After initialization the AudioFile handle is ready for writing.
     //
-    // In HyperHLE we create the same virtual writable file as
+    // In RintedHLE we create the same virtual writable file as
     // AudioFileCreateWithURL. The write callback is not invoked — all data
     // stays in our in-memory buffer. This is sufficient for games that use
     // callback-based audio file creation (e.g. for streaming to a memory
@@ -595,7 +595,7 @@ pub fn AudioFileOpenWithCallbacks(
                 return kAudioFileUnsupportedFileTypeError;
             }
             log!(
-                "TOUCHHLE_AUDIOFILE_DUMMY_ON_ERROR: substituting a dummy \
+                "RINTEDHLE_AUDIOFILE_DUMMY_ON_ERROR: substituting a dummy \
                  AudioFile (2 seconds of silence) instead of an error."
             );
             create_dummy_audio_file()
@@ -977,7 +977,7 @@ pub fn AudioFileReadPackets(
         env.mem.write(io_num_packets, packets_read);
 
         log!(
-            "AudioFileReadPackets: TOUCHHLE_AUDIOFILE_SOFT_EOF=1,              softened EOF short read ({} < {} bytes), reporting {} packet(s) without eofErr",
+            "AudioFileReadPackets: RINTEDHLE_AUDIOFILE_SOFT_EOF=1,              softened EOF short read ({} < {} bytes), reporting {} packet(s) without eofErr",
             bytes_read,
             bytes_to_read,
             packets_read

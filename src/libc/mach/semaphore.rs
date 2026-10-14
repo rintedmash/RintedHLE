@@ -42,11 +42,11 @@ const MAX_TIMED_WAIT_SECS: u32 = 3600;
 /// uses (they typically wait in 5–50ms slices) while costing almost nothing.
 const TIMED_WAIT_POLL_INTERVAL: Duration = Duration::from_millis(1);
 
-/// DIAG (TOUCHHLE_TRACE_MACHSEM=1): trace Mach semaphore traffic. FMOD drives
+/// DIAG (RINTEDHLE_TRACE_MACHSEM=1): trace Mach semaphore traffic. FMOD drives
 /// its async/bank-loader threads entirely through these, so a lost signal shows
 /// up here as a wait with no matching signal.
 fn machsem_trace(env: &Environment, op: &str, sem: semaphore_t) {
-    if !crate::env_flag_cached!("TOUCHHLE_TRACE_MACHSEM") {
+    if !crate::env_flag_cached!("RINTEDHLE_TRACE_MACHSEM") {
         return;
     }
     let value = env
@@ -89,7 +89,7 @@ fn semaphore_create(
     env.mem.write(semaphore, open_semaphore);
     let caller_lr = env.cpu.regs()[14];
     machsem_trace(env, "create", open_semaphore);
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_MACHSEM") {
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_MACHSEM") {
         // Log the creator's LR so we can trace which code path owns each semaphore
         log!("  MACHSEM-CREATE-BT lr={:#x}", caller_lr);
     }
@@ -112,7 +112,7 @@ fn semaphore_signal(env: &mut Environment, semaphore: semaphore_t) -> kern_retur
     // bad semaphore port.)
     let caller_lr = env.cpu.regs()[14];
     machsem_trace(env, "signal", semaphore);
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_MACHSEM") {
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_MACHSEM") {
         // Also log a symbolized backtrace for every signal, so we can trace
         // which code path is (or isn't) waking the worker.
         log!("  MACHSEM-BT signal lr={:#x}", caller_lr);
@@ -269,7 +269,7 @@ fn semaphore_wait(env: &mut Environment, semaphore: semaphore_t) -> kern_return_
         }
         env.sleep_guest((deadline - now).min(TIMED_WAIT_POLL_INTERVAL));
     };
-    if crate::env_flag_cached!("TOUCHHLE_TRACE_MACHSEM") {
+    if crate::env_flag_cached!("RINTEDHLE_TRACE_MACHSEM") {
         let ret_lr = env.cpu.regs()[14];
         let ret_pc = env.cpu.regs()[15];
         log!("MACHSEM t={} wait-exit sem={:?} result={:?} returning-to-lr={:#x} pc={:#x}", env.current_thread, semaphore, result, ret_lr, ret_pc);

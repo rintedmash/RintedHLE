@@ -58,7 +58,7 @@ static SYSCTL_VALUES: [((i32, i32), &str, SysInfoType); 38] = [
     ((1,1), "kern.ostype" , String(b"Darwin")),
     ((1,2), "kern.osrelease" , String(b"13.0.0")),
     ((1,3), "kern.osversion" , String(b"10B141")),
-    ((1,10), "kern.hostname" , String(b"touchHLE")),
+    ((1,10), "kern.hostname" , String(b"RintedHLE")),
     ((1,4), "kern.version" , String(b"Darwin Kernel Version 13.0.0: Wed Jun 13 16:55:00 PDT 2012; root:xnu-2107.7.55~11/RELEASE_ARM_S5L8920X")),
     ((1,21), "kern.boottime" , SysInfoType::Int64(1600000000)),
     // kern.proc.pid is a node for process information. Some games probe

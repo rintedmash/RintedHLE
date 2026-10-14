@@ -5,7 +5,7 @@
  */
 //! `signal.h` — signal dispositions and synchronous signal delivery.
 //!
-//! touchHLE does not run guest signal handlers on the host. Instead a
+//! RintedHLE does not run guest signal handlers on the host. Instead a
 //! "signal" is delivered synchronously, on the guest thread that raised
 //! it, exactly like a real `raise()`/`pthread_kill()` call does for the
 //! calling thread. That is enough for the uses early iOS apps actually
@@ -75,7 +75,7 @@ const SIGUSR2: i32 = 31;
 const NSIG: i32 = 32;
 
 // `sa_flags` bits used below (Darwin's `sys/signal.h`).
-/// Restart syscalls interrupted by the signal. Stored, but touchHLE has
+/// Restart syscalls interrupted by the signal. Stored, but RintedHLE has
 /// no restartable guest syscalls, so it has no observable effect.
 const SA_RESTART: i32 = 0x0002;
 /// Reset the disposition to `SIG_DFL` before running the handler.
@@ -153,7 +153,7 @@ fn alloc_siginfo_context(env: &mut Environment, signum: i32) -> (MutVoidPtr, Mut
     env.mem
         .write(siginfo_words + SIGINFO_SI_SIGNO / 4, signum as u32);
     // si_code 0 == SI_USER: the signal came from `raise()`, which is exactly
-    // how touchHLE delivers every signal.
+    // how RintedHLE delivers every signal.
     env.mem.write(siginfo_words + SIGINFO_SI_CODE / 4, 0u32);
     // For a fault signal, the faulting address is the best approximation we
     // have: the PC the guest was executing when it raised.

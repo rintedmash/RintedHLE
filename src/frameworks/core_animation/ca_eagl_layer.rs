@@ -82,7 +82,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 // Returns YES if the backing store should be retained after presentation.
 // Corresponds to kEAGLDrawablePropertyRetainedBacking.
-- (bool)_touchHLE_retainedBacking {
+- (bool)_RintedHLE_retainedBacking {
     let props = env.objc.borrow::<CALayerHostObject>(this).drawable_properties;
     if props == nil { return false; }
     let key: id = ns_string::get_static_str(env, kEAGLDrawablePropertyRetainedBacking);
@@ -93,7 +93,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 
 // Returns the requested color format string, or "kEAGLColorFormatRGBA8"
 // as the default if not specified.
-- (id)_touchHLE_colorFormat { // NSString*
+- (id)_RintedHLE_colorFormat { // NSString*
     let props = env.objc.borrow::<CALayerHostObject>(this).drawable_properties;
     if props != nil {
         let key: id = ns_string::get_static_str(env, kEAGLDrawablePropertyColorFormat);
@@ -372,7 +372,7 @@ pub fn find_fullscreen_eagl_layer(env: &mut Environment) -> id {
             || opacity != 1.0
             || !transform_is_usable
         {
-            if crate::env_flag_cached!("TOUCHHLE_TRACE_PRESENT") {
+            if crate::env_flag_cached!("RINTEDHLE_TRACE_PRESENT") {
                 log!(
                     "FULLSCREEN-DIAG layer {:?} rejected: frame={:?} screen={:?} frame_match={} bounds_origin={:?} anchor={:?} hidden={} opacity={} transform_kind={:?} transform_usable={}",
                     layer,
@@ -423,7 +423,7 @@ pub fn find_fullscreen_eagl_layer(env: &mut Environment) -> id {
     }
 
     if !env.objc.borrow::<CALayerHostObject>(layer).opaque {
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_PRESENT") {
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_PRESENT") {
             log!("FULLSCREEN-DIAG layer {:?} rejected: not opaque", layer);
         }
         return nil;
@@ -431,7 +431,7 @@ pub fn find_fullscreen_eagl_layer(env: &mut Environment) -> id {
 
     let ca_eagl_layer_class: Class = msg_class![env; CAEAGLLayer class];
     if !msg![env; layer isKindOfClass:ca_eagl_layer_class] {
-        if crate::env_flag_cached!("TOUCHHLE_TRACE_PRESENT") {
+        if crate::env_flag_cached!("RINTEDHLE_TRACE_PRESENT") {
             log!("FULLSCREEN-DIAG layer {:?} rejected: not a CAEAGLLayer", layer);
         }
         return nil;
@@ -659,7 +659,7 @@ pub fn present_pixels(env: &mut Environment, layer: id, pixels: Vec<u8>, width: 
 /// presentation (i.e. `kEAGLDrawablePropertyRetainedBacking` is YES).
 /// Convenience wrapper for use by `EAGLContext`.
 pub fn is_retained_backing(env: &mut Environment, layer: id) -> bool {
-    msg![env; layer _touchHLE_retainedBacking]
+    msg![env; layer _RintedHLE_retainedBacking]
 }
 
 /// Returns the drawable's pixel width (from the presented pixel buffer if

@@ -232,7 +232,7 @@ fn CFStringGetSmallestEncoding(env: &mut Environment, the_string: CFStringRef) -
 /// Apple docs: returns the IANA character-set name registered for `encoding`,
 /// or NULL if the encoding has no IANA equivalent. Games use this when building
 /// HTTP headers (e.g. `Content-Type: text/html; charset=...`). We return the
-/// canonical IANA names for the encodings touchHLE supports and NULL for the
+/// canonical IANA names for the encodings RintedHLE supports and NULL for the
 /// rest, matching real CFString behavior.
 fn CFStringConvertEncodingToIANACharSetName(
     env: &mut Environment,
