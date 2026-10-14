@@ -1,10 +1,10 @@
-name: Build HyperHLE
+name: Build RintedHLE
 
 on:
   workflow_dispatch:
     inputs:
-      publish_hyperhle_release:
-        description: Publish a HyperHLE release (after all builds succeed)
+      publish_rintedhle_release:
+        description: Publish a RintedHLE release (after all builds succeed)
         type: boolean
         default: false
   push:
@@ -29,7 +29,7 @@ jobs:
     runs-on: macos-latest  
 
     steps:  
-      - name: Checkout touchHLE
+      - name: Checkout RintedHLE
         uses: actions/checkout@main
         with:
           submodules: recursive
@@ -68,9 +68,9 @@ jobs:
       - name: Create .app bundle and DMG
         # `hdiutil create` periodically fails on the `macos-15-arm64` GitHub
         # Actions runners with `hdiutil: create failed - Resource busy` when
-        # Spotlight (`mds`/`mds_stores`) decides to index `touchHLE-dmg-src`
+        # Spotlight (`mds`/`mds_stores`) decides to index `RintedHLE-dmg-src`
         # at the same moment hdiutil tries to snapshot it, or when a stale
-        # `/Volumes/touchHLE` from a previous run hasn't fully detached.
+        # `/Volumes/RintedHLE` from a previous run hasn't fully detached.
         # Mirror the workaround Apple documents in TN2065 / `hdiutil(1)` —
         # detach any stray attachment, pass `-ov` so an existing image is
         # overwritten cleanly, and retry a few times. See
@@ -79,47 +79,47 @@ jobs:
           set -eu
           cd dev-scripts
           ./make-macos-bundle.sh \
-            ../target/x86_64-apple-darwin/release/touchHLE \
-            "`cargo run --package touchHLE_version`" \
-            "`cargo run --package touchHLE_version -- --branding`"
-          mkdir touchHLE-dmg-src
-          mv *.app touchHLE-dmg-src/
+            ../target/x86_64-apple-darwin/release/RintedHLE \
+            "`cargo run --package RintedHLE_version`" \
+            "`cargo run --package RintedHLE_version -- --branding`"
+          mkdir RintedHLE-dmg-src
+          mv *.app RintedHLE-dmg-src/
           # Forbid Spotlight from indexing the staging folder so it can't
           # race with hdiutil for an exclusive handle.
-          touch touchHLE-dmg-src/.metadata_never_index || true
+          touch RintedHLE-dmg-src/.metadata_never_index || true
           # Tear down any stale mount left over from a previous run.
-          if [ -d "/Volumes/touchHLE" ]; then
-            hdiutil detach -force "/Volumes/touchHLE" || true
+          if [ -d "/Volumes/RintedHLE" ]; then
+            hdiutil detach -force "/Volumes/RintedHLE" || true
           fi
           # Retry hdiutil up to 5 times with growing back-off.
           attempt=1
           max_attempts=5
-          until hdiutil create -ov -volname touchHLE \
-              -srcfolder touchHLE-dmg-src touchHLE.dmg; do
+          until hdiutil create -ov -volname RintedHLE \
+              -srcfolder RintedHLE-dmg-src RintedHLE.dmg; do
             if [ "$attempt" -ge "$max_attempts" ]; then
               echo "hdiutil create still failed after $max_attempts attempts" >&2
               exit 1
             fi
             sleep_secs=$((attempt * 5))
             echo "hdiutil create failed (attempt $attempt); retrying in ${sleep_secs}s" >&2
-            if [ -d "/Volumes/touchHLE" ]; then
-              hdiutil detach -force "/Volumes/touchHLE" || true
+            if [ -d "/Volumes/RintedHLE" ]; then
+              hdiutil detach -force "/Volumes/RintedHLE" || true
             fi
             sleep "$sleep_secs"
             attempt=$((attempt + 1))
           done
-          mv touchHLE.dmg ..
+          mv RintedHLE.dmg ..
           
       - uses: actions/upload-artifact@main
         with:
-          name: HyperHLE_macOS_x86_64
-          path: touchHLE.dmg
+          name: RintedHLE_macOS_x86_64
+          path: RintedHLE.dmg
 
   build-linux:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout touchHLE
+      - name: Checkout RintedHLE
         uses: actions/checkout@main
         with:
           submodules: recursive
@@ -180,18 +180,18 @@ jobs:
         run: cargo build --release
 
       - name: Create bundle
-        run: cd dev-scripts && ./make-linux-bundle.sh ../target/release/touchHLE && mv touchHLE_linux_bundle/ ..
+        run: cd dev-scripts && ./make-linux-bundle.sh ../target/release/RintedHLE && mv RintedHLE_linux_bundle/ ..
 
       - uses: actions/upload-artifact@main
         with:
-          name: HyperHLE_Linux_x86_64
-          path: touchHLE_linux_bundle/
+          name: RintedHLE_Linux_x86_64
+          path: RintedHLE_linux_bundle/
 
   build-android:
     runs-on: ubuntu-latest  
 
     steps:  
-    - name: Checkout touchHLE
+    - name: Checkout RintedHLE
       uses: actions/checkout@main
       with:
         submodules: recursive
@@ -282,35 +282,35 @@ jobs:
       run: echo 'sdk.dir='$ANDROID_SDK_ROOT > android/local.properties  
 
     - name: Build for Android  
-      run: cd android && ../gradle/gradle-8.11.1/bin/gradle assembleRelease && mv app/build/outputs/apk/release/HyperHLE-Fork-release.apk ../HyperHLE-Fork.apk  
+      run: cd android && ../gradle/gradle-8.11.1/bin/gradle assembleRelease && mv app/build/outputs/apk/release/RintedHLE-release.apk ../RintedHLE.apk  
       env:  
-        HYPERHLE_KEYSTORE_B64: ${{ secrets.HYPERHLE_KEYSTORE_B64 }}
-        HYPERHLE_KEYSTORE_PASSWORD: ${{ secrets.HYPERHLE_KEYSTORE_PASSWORD }}
-        HYPERHLE_KEY_ALIAS: ${{ secrets.HYPERHLE_KEY_ALIAS }}
+        RINTEDHLE_KEYSTORE_B64: ${{ secrets.RINTEDHLE_KEYSTORE_B64 }}
+        RINTEDHLE_KEYSTORE_PASSWORD: ${{ secrets.RINTEDHLE_KEYSTORE_PASSWORD }}
+        RINTEDHLE_KEY_ALIAS: ${{ secrets.RINTEDHLE_KEY_ALIAS }}
         ANDROID_NDK_ROOT: '/usr/local/lib/android/sdk/ndk/25.2.9519653'  
         CMAKE: ${{ github.workspace }}/vendor/cmake/bin/cmake  
 
     - uses: actions/upload-artifact@main
       with:  
-        name: HyperHLE_Android_AArch64  
-        path: HyperHLE-Fork.apk
+        name: RintedHLE_Android_AArch64  
+        path: RintedHLE.apk
 
   build-ios:
     # The iOS app (platform/ios) and its packaging come from Applesauce
     # (https://github.com/johnny901901901/Applesauce). This builds the three
     # unsigned/fakesigned IPAs it ships and uploads each one on its own.
     #
-    # It waits for check-hyperhle-release only to learn the version a release
+    # It waits for check-rintedhle-release only to learn the version a release
     # build will be tagged with; that job is skipped outside trunk pushes and
     # manual runs, and the iOS build runs regardless.
-    needs: [check-hyperhle-release]
+    needs: [check-rintedhle-release]
     if: ${{ !cancelled() }}
     runs-on: macos-latest
     env:
-      HYPERHLE_VERSION: ${{ needs.check-hyperhle-release.outputs.should_release == 'true' && needs.check-hyperhle-release.outputs.version || '' }}
+      RINTEDHLE_VERSION: ${{ needs.check-rintedhle-release.outputs.should_release == 'true' && needs.check-rintedhle-release.outputs.version || '' }}
 
     steps:
-      - name: Checkout touchHLE
+      - name: Checkout RintedHLE
         uses: actions/checkout@main
         with:
           submodules: recursive
@@ -376,31 +376,31 @@ jobs:
       - name: Verify the IPAs
         run: |
           set -eu
-          sh platform/ios/scripts/verify-ipa.sh dist/HyperHLE-iOS-unsigned.ipa
-          sh platform/ios/scripts/verify-ipa.sh --trollstore dist/HyperHLE-iOS-trollstore.ipa
-          sh platform/ios/scripts/verify-ipa.sh --trollstore-permanent-jit dist/HyperHLE-iOS-trollstore-permanent-jit.ipa
+          sh platform/ios/scripts/verify-ipa.sh dist/RintedHLE-iOS-unsigned.ipa
+          sh platform/ios/scripts/verify-ipa.sh --trollstore dist/RintedHLE-iOS-trollstore.ipa
+          sh platform/ios/scripts/verify-ipa.sh --trollstore-permanent-jit dist/RintedHLE-iOS-trollstore-permanent-jit.ipa
 
       # Each IPA is uploaded as-is rather than wrapped in a zip.
       - uses: actions/upload-artifact@main
         with:
-          path: dist/HyperHLE-iOS-unsigned.ipa
+          path: dist/RintedHLE-iOS-unsigned.ipa
           archive: false
 
       - uses: actions/upload-artifact@main
         with:
-          path: dist/HyperHLE-iOS-trollstore.ipa
+          path: dist/RintedHLE-iOS-trollstore.ipa
           archive: false
 
       - uses: actions/upload-artifact@main
         with:
-          path: dist/HyperHLE-iOS-trollstore-permanent-jit.ipa
+          path: dist/RintedHLE-iOS-trollstore-permanent-jit.ipa
           archive: false
 
   build-win:
     runs-on: windows-2022  
 
     steps:  
-    - name: Checkout touchHLE
+    - name: Checkout RintedHLE
       uses: actions/checkout@main
       with:
         submodules: recursive
@@ -433,14 +433,14 @@ jobs:
 
     - name: Create bundle  
       shell: bash  
-      run: cd dev-scripts && ./make-windows-bundle.sh ../target/release/touchHLE.exe && mv touchHLE_windows_bundle/ ..  
+      run: cd dev-scripts && ./make-windows-bundle.sh ../target/release/RintedHLE.exe && mv RintedHLE_windows_bundle/ ..  
       
     - uses: actions/upload-artifact@main
       with:  
-        name: HyperHLE_Windows_x86_64  
-        path: touchHLE_windows_bundle/
+        name: RintedHLE_Windows_x86_64  
+        path: RintedHLE_windows_bundle/
 
-  check-hyperhle-release:
+  check-rintedhle-release:
     runs-on: ubuntu-latest
     if: >-
       (github.event_name == 'push' && github.ref == 'refs/heads/trunk') ||
@@ -451,22 +451,22 @@ jobs:
       changelog_from: ${{ steps.check.outputs.changelog_from }}
       changelog_limit: ${{ steps.check.outputs.changelog_limit }}
     steps:
-      - name: Checkout touchHLE
+      - name: Checkout RintedHLE
         uses: actions/checkout@main
         with:
           fetch-depth: 0
           fetch-tags: true
-      - name: Check whether a HyperHLE release is due
+      - name: Check whether a RintedHLE release is due
         id: check
         env:
-          FORCE_HYPERHLE_RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_hyperhle_release && 'true' || '' }}
-        run: ./dev-scripts/hyperhle-should-release.sh
+          FORCE_RINTEDHLE_RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_rintedhle_release && 'true' || '' }}
+        run: ./dev-scripts/rintedhle-should-release.sh
 
-  publish-hyperhle-release:
-    needs: [check-hyperhle-release, build-osx, build-linux, build-android, build-win, build-ios]
+  publish-rintedhle-release:
+    needs: [check-rintedhle-release, build-osx, build-linux, build-android, build-win, build-ios]
     if: >-
-      needs.check-hyperhle-release.result == 'success' &&
-      needs.check-hyperhle-release.outputs.should_release == 'true' &&
+      needs.check-rintedhle-release.result == 'success' &&
+      needs.check-rintedhle-release.outputs.should_release == 'true' &&
       needs.build-osx.result == 'success' &&
       needs.build-linux.result == 'success' &&
       needs.build-android.result == 'success' &&
@@ -476,7 +476,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout touchHLE
+      - name: Checkout RintedHLE
         uses: actions/checkout@main
         with:
           submodules: recursive
@@ -485,61 +485,61 @@ jobs:
       - name: Download macOS artifact
         uses: actions/download-artifact@main
         with:
-          name: HyperHLE_macOS_x86_64
+          name: RintedHLE_macOS_x86_64
           path: artifacts/macos
       - name: Download Android artifact
         uses: actions/download-artifact@main
         with:
-          name: HyperHLE_Android_AArch64
+          name: RintedHLE_Android_AArch64
           path: artifacts/android
       - name: Download Windows artifact
         uses: actions/download-artifact@main
         with:
-          name: HyperHLE_Windows_x86_64
+          name: RintedHLE_Windows_x86_64
           path: artifacts/windows
       - name: Download Linux artifact
         uses: actions/download-artifact@main
         with:
-          name: HyperHLE_Linux_x86_64
+          name: RintedHLE_Linux_x86_64
           path: artifacts/linux
       # Unzipped artifacts (upload-artifact archive: false) are documented to
       # download by their exact file name, so fetch each IPA by name.
       - name: Download iOS unsigned IPA
         uses: actions/download-artifact@main
         with:
-          name: HyperHLE-iOS-unsigned.ipa
+          name: RintedHLE-iOS-unsigned.ipa
           path: artifacts/ios
       - name: Download iOS TrollStore IPA
         uses: actions/download-artifact@main
         with:
-          name: HyperHLE-iOS-trollstore.ipa
+          name: RintedHLE-iOS-trollstore.ipa
           path: artifacts/ios
       - name: Download iOS TrollStore permanent-JIT IPA
         uses: actions/download-artifact@main
         with:
-          name: HyperHLE-iOS-trollstore-permanent-jit.ipa
+          name: RintedHLE-iOS-trollstore-permanent-jit.ipa
           path: artifacts/ios
       - name: Install packaging tools
         run: sudo apt-get update -qq && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq pandoc zip
-      - name: Package HyperHLE release files
+      - name: Package RintedHLE release files
         env:
           # Lets the changelog look up each commit author's GitHub username.
           GH_TOKEN: ${{ github.token }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
-          FORCE_HYPERHLE_RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_hyperhle_release && 'true' || '' }}
-          VERSION: ${{ needs.check-hyperhle-release.outputs.version }}
-          CHANGELOG_FROM: ${{ needs.check-hyperhle-release.outputs.changelog_from }}
-          CHANGELOG_LIMIT: ${{ needs.check-hyperhle-release.outputs.changelog_limit }}
-        run: ./dev-scripts/package-hyperhle-release.sh "$VERSION" "$CHANGELOG_FROM"
-      - name: Publish HyperHLE release
+          FORCE_RINTEDHLE_RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_rintedhle_release && 'true' || '' }}
+          VERSION: ${{ needs.check-rintedhle-release.outputs.version }}
+          CHANGELOG_FROM: ${{ needs.check-rintedhle-release.outputs.changelog_from }}
+          CHANGELOG_LIMIT: ${{ needs.check-rintedhle-release.outputs.changelog_limit }}
+        run: ./dev-scripts/package-rintedhle-release.sh "$VERSION" "$CHANGELOG_FROM"
+      - name: Publish RintedHLE release
         uses: softprops/action-gh-release@master
         with:
-          tag_name: ${{ needs.check-hyperhle-release.outputs.version }}
+          tag_name: ${{ needs.check-rintedhle-release.outputs.version }}
           # Tag the commit that was built, not whatever trunk points at by now.
           target_commitish: ${{ github.sha }}
-          name: HyperHLE ${{ needs.check-hyperhle-release.outputs.version }}
+          name: RintedHLE ${{ needs.check-rintedhle-release.outputs.version }}
           body_path: release/RELEASE_NOTES.md
           files: |
-            release/HyperHLE_*.zip
-            release/HyperHLE-iOS-*.ipa
+            release/RintedHLE_*.zip
+            release/RintedHLE-iOS-*.ipa
           fail_on_unmatched_files: true
