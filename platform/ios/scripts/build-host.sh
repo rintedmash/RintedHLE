@@ -37,7 +37,7 @@ export DEVELOPER_DIR
 RINTEDHLE_CORE_REPO= sh "$ROOT/scripts/build-rust.sh" "$RUST_TARGET" "$CONFIGURATION"
 
 # The app ships every core it is built with. RINTEDHLE_CORE_REPO points at a
-# checkout of the other core (johnny901901901/RintedHLE, branch ios-core-dylib);
+# checkout of the other core (johnny901901901/touchHLE, branch ios-core-dylib);
 # without it the app is built with RintedHLE alone and the core picker hides
 # itself.
 if [ -n "${RINTEDHLE_CORE_REPO:-}" ]; then

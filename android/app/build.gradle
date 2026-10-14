@@ -50,8 +50,10 @@ def getRintedHLEVersionCode() {
 def RintedHLEKeystoreFile = System.getenv('RINTEDHLE_KEYSTORE_FILE')
 def RintedHLEKeystoreB64 = System.getenv('RINTEDHLE_KEYSTORE_B64')
 def RintedHLEUsesExternalKey = (RintedHLEKeystoreB64 != null && !RintedHLEKeystoreB64.trim().isEmpty()) || (RintedHLEKeystoreFile != null && !RintedHLEKeystoreFile.trim().isEmpty())
-def RintedHLEKeystorePass = System.getenv('RINTEDHLE_KEYSTORE_PASSWORD') ?: 'rintedhle'
-def RintedHLEKeyAlias = System.getenv('RINTEDHLE_KEY_ALIAS') ?: 'rintedhle'
+// The committed keystore was created with these credentials; the env vars
+// override them if signing secrets are configured in CI.
+def RintedHLEKeystorePass = System.getenv('RINTEDHLE_KEYSTORE_PASSWORD') ?: 'hyperhle'
+def RintedHLEKeyAlias = System.getenv('RINTEDHLE_KEY_ALIAS') ?: 'hyperhle'
 def RintedHLECommittedKeystore = file("${rootDir}/keystore/release.keystore")
 def RintedHLEHasReleaseKey = RintedHLEUsesExternalKey || RintedHLECommittedKeystore.exists()
 
